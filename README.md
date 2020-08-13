@@ -1,4 +1,4 @@
-# js13k-2020
+# js13k-2020 🎮
 
 MIT License
 
@@ -43,8 +43,8 @@ NodeJS 14.8.0
 ## Modules scripts
 
 ```html
-<script type="module" src="hello-module1.js"></script>
-<script type="module" src="hello-module2.ts"></script>
+<script type="module" src="./src/hello-module1.js"></script>
+<script type="module" src="./src/hello-module2.ts"></script>
 <script type="module">
   document.getElementById('xxx').addEventListener('click', functionDefinedInModule1)
 </script>
@@ -58,7 +58,7 @@ TypeScript is supported.
 ## Global scripts
 
 ```html
-<script src="global.js"></script>
+<script src="./src/global.js"></script>
 <script>function aFunctionInTheGlobalScope(){alert("x")}</script>
 
 <button onclick="aFunctionInTheGlobalScope()">click me</buttom>
