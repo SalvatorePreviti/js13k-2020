@@ -26,7 +26,7 @@
   "scripts": {
     "ts-run": "node ./dev/ts-run.js",
     "ts-check": "tsc",
-    "acuris-eslint": "acuris-eslint --fix",
+    "lint": "acuris-eslint --fix",
     "dev": "vite",
     "build": "node -r v8-compile-cache dev/ts-run.js dev/build.ts"
   },
