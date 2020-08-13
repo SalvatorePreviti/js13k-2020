@@ -42,7 +42,7 @@ export function devEndOperation(info?: string) {
     if (popped.hasChildren) {
       s =
         chalk.rgb(80, 130, 180)(`${'━'.repeat(_operationsStack.length)}╸`) +
-        chalk.rgb(120, 230, 255).italic(popped.name.padEnd(25 - _operationsStack.length), ' ') +
+        chalk.rgb(120, 230, 255).italic(popped.name.padEnd(23 - _operationsStack.length), ' ') +
         chalk.rgb(110, 170, 245)(`${timeDiffMs.toFixed(0).padStart(5, ' ')} ms`)
       if (info) {
         s += ` ${chalk.rgb(100, 240, 255)(info)}`
