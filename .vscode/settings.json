@@ -1,0 +1,52 @@
+{
+  "[json]": {
+    "editor.formatOnSave": true,
+    "editor.quickSuggestions": {
+      "comments": true,
+      "other": true,
+      "strings": true
+    }
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true,
+    "source.fixAll.eslint": true
+  },
+  "editor.detectIndentation": false,
+  "editor.formatOnSave": true,
+  "editor.lineNumbers": "on",
+  "editor.tabSize": 2,
+  "eslint.codeActionsOnSave.mode": "all",
+  "eslint.enable": true,
+  "eslint.format.enable": true,
+  "eslint.lintTask.enable": true,
+  "files.eol": "\n",
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/.eslintcache": true,
+    "**/.prettiercache": true,
+    "**/.cache": true,
+    "**/.fuse_hidden*": true
+  },
+  "javascript.format.enable": true,
+  "javascript.format.semicolons": "remove",
+  "search.exclude": {
+    "dist": true,
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/package-lock.json": true,
+    "**/yarn.lock": true,
+    "**/.fusebox/**/*": true,
+    "**/.webpack": true,
+    "**/.dynamodb/**/*": true,
+    "**/*.tsbuildinfo": true,
+    "**/.yarn-integrity": true,
+    "**/.grunt": true
+  },
+  "typescript.format.enable": true,
+  "typescript.format.semicolons": "remove",
+  "eslint.validate": []
+}

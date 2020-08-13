@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "pflannery.vscode-versionlens",
+    "visualstudioexptteam.vscodeintellicode",
+    "donjayamanne.githistory",
+    "eamodio.gitlens",
+    "clinyong.vscode-css-modules",
+    "jpoissonnier.vscode-styled-components"
+  ]
+}

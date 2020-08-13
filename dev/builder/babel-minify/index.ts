@@ -1,0 +1,48 @@
+import { transform } from '@babel/core'
+import paths from '../../config/builder-paths'
+
+import babelPluginMinifyDeadCodeElimination from 'babel-plugin-minify-dead-code-elimination'
+import babelPluginMinifyEmptyFunction from 'babel-plugin-minify-empty-function'
+import babelPluginMinifyConstantFolding from 'babel-plugin-minify-constant-folding'
+import babelPluginMinifySimplify from 'babel-plugin-minify-simplify'
+import babelPluginMinifyTypeConstructors from 'babel-plugin-minify-type-constructors'
+import babelPluginMergeSiblingVariables from 'babel-plugin-transform-merge-sibling-variables'
+import babelPluginSimplifyComparisonOperators from 'babel-plugin-transform-simplify-comparison-operators'
+import babelPluginMinifyFlipComparisons from 'babel-plugin-minify-flip-comparisons'
+
+import babelPluginMinifyObjectArgs from './babel-plugin-minify-object-args'
+import babelPluginMinifyTemplateLiterals from './babel-plugin-minify-template-literals'
+
+export function babelMinify(code: string) {
+  const transformResult = transform(code, {
+    root: paths.root,
+    configFile: false,
+    babelrc: false,
+    envName: 'production',
+    compact: true,
+    cwd: paths.root,
+    minified: true,
+    parserOpts: {
+      strictMode: true,
+      allowAwaitOutsideFunction: false,
+      allowImportExportEverywhere: false,
+      allowReturnOutsideFunction: false,
+      allowSuperOutsideMethod: false,
+      allowUndeclaredExports: true,
+      sourceType: 'script'
+    },
+    plugins: [
+      babelPluginMinifyDeadCodeElimination,
+      babelPluginMinifyEmptyFunction,
+      babelPluginMinifyConstantFolding,
+      babelPluginMinifySimplify,
+      babelPluginMinifyTypeConstructors,
+      babelPluginMergeSiblingVariables,
+      babelPluginMinifyFlipComparisons,
+      babelPluginSimplifyComparisonOperators,
+      babelPluginMinifyObjectArgs,
+      babelPluginMinifyTemplateLiterals
+    ]
+  })
+  return transformResult.code || code
+}

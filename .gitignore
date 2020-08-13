@@ -1,0 +1,108 @@
+# <@acuris/eslint-config>
+
+# You can disable patterns by prepending # without any space. For example #.npmrc
+
+# excluded files for security
+.npmrc
+.env
+.env.test
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Dependency directories
+typings
+bower_components
+node_modules
+jspm_packages
+
+# Build outputs
+.serverless
+.webpack
+build/Release
+build/Debug
+*.tgz
+*.tmp-browserify-*
+ipch
+
+# Go
+goMakeIt
+*.iml
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Cache and lockfiles
+.clangd
+.cache
+.fuse_hidden*
+.fusebox
+.dynamodb
+*.tsbuildinfo
+.npm
+.history
+.eslintcache
+.prettiercache
+.node_repl_history
+.yarn-integrity
+.grunt
+.lock-wscript
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Test coverage
+lib-cov
+coverage
+.nyc_output
+*.lcov
+
+# IDEs and OS
+.idea
+.DS_Store
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.Trash-*
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDouble
+.LSOverride
+.apdisk
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN
+*.lnk
+
+# some projects still requires yarn-packages-cache to be published
+!**/yarn-packages-cache/*.tgz
+
+# </@acuris/eslint-config>
+
+dist
