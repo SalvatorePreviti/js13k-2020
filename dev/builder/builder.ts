@@ -7,7 +7,7 @@ import {
   RollupOptions,
   OutputOptions as RollupOutputOptions
 } from 'rollup'
-import { createResolver, InternalResolver } from 'vite/dist/node/resolver'
+import { createResolver, InternalResolver, Resolver } from 'vite/dist/node/resolver'
 import { createBuildCssPlugin } from 'vite/dist/node/build/buildPluginCss'
 import { createBuildAssetPlugin } from 'vite/dist/node/build/buildPluginAsset'
 import { createReplacePlugin } from 'vite/dist/node/build/buildPluginReplace'
@@ -33,7 +33,7 @@ export interface RollupBuildResult {
 export async function builderRollupBuild(): Promise<RollupBuildResult> {
   const sourcemap = !!viteConfig.sourcemap && !!viteConfig.buildSourcemap
 
-  const resolver = createResolver(paths.root, viteConfig.resolvers || [], viteConfig.alias || {})
+  const resolver = createResolver(paths.root, viteConfig.resolvers || [], viteConfig.alias)
 
   const mainHtml = new BuilderMainHtml(resolver)
 

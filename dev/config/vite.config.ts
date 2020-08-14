@@ -1,20 +1,38 @@
-import { UserConfig } from 'vite'
+import { UserConfig as ViteUserConfig } from 'vite'
 
 import { createServerPluginImportText } from '../server/server-plugin-import-text'
 
 import paths from './builder-paths'
+import { serverPluginImportHtml } from '../server/server-plugin-import-html'
 
-export type ViteConfig = UserConfig & { textExtensions: string[]; buildSourcemap: boolean }
+export interface ViteConfig extends ViteUserConfig {
+  textExtensions: string[]
+  buildSourcemap: boolean
+}
+
+/** List of aliases available only during local server development mode */
+const devModeAliases = new Map<string, string>([['/src/debug/debug', paths.resolve('./src/debug/debug_debug.ts')]])
+
+const devModeResolver = {
+  fileToRequest(filePath: string, _root: string) {
+    return devModeAliases.get(filePath)
+  },
+  requestToFile(filePath: string, _root: string) {
+    return devModeAliases.get(filePath)
+  }
+}
 
 const viteConfig: ViteConfig = {
   textExtensions: paths.textExtensions,
 
-  configureServer: [createServerPluginImportText(paths.textExtensions)],
+  configureServer: [createServerPluginImportText(paths.textExtensions), serverPluginImportHtml],
 
   root: paths.root,
   assetsDir: '_assets',
   base: paths.base,
   outDir: paths.resolve(paths.dist, 'vite'),
+
+  resolvers: [devModeResolver],
 
   sourcemap: true,
 
