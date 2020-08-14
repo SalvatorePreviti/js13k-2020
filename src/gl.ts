@@ -13,8 +13,6 @@ export const gl = canvasElement.getContext('webgl2', {
   failIfMajorPerformanceCaveat: false,
   /** A hint to the user agent indicating what configuration of GPU is suitable for the WebGL context. */
   powerPreference: 'high-performance',
-  /** Boolean that indicates that the page compositor will assume the drawing buffer contains colors with pre-multiplied alpha. */
-  premultipliedAlpha: true,
   /** If the value is true the buffers will not be cleared and will preserve their values until cleared or overwritten. */
   preserveDrawingBuffer: false,
   /** Boolean that indicates that the drawing buffer has a stencil buffer of at least 8 bits. */

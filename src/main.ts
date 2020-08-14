@@ -1,19 +1,18 @@
 import './css/styles.less'
 import { gl } from './gl'
 import { canvasSize } from './canvas'
+import { debug_updateInfo } from './debug/debug'
+import { shaderProgram_iResolution } from './shader-program'
 
-import { debug_updateInfo, debug_exec } from './debug/debug'
+function animationFrame() {
+  requestAnimationFrame(animationFrame)
+  debug_updateInfo()
 
-function debugAnimationFrame() {
   gl.viewport(0, 0, canvasSize.w, canvasSize.h)
 
-  requestAnimationFrame(debugAnimationFrame)
+  gl.uniform2f(shaderProgram_iResolution, canvasSize.w, canvasSize.h)
 
-  debug_updateInfo()
+  gl.drawArrays(gl.TRIANGLES, 0, 3)
 }
 
-debug_exec(() => {
-  console.log('HELLO WORLD THIS SHOULD NOT HAPPEN IN RELEASE MODE!!!!!')
-})
-
-requestAnimationFrame(debugAnimationFrame)
+requestAnimationFrame(animationFrame)

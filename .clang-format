@@ -1,0 +1,26 @@
+DisableFormat: false
+BasedOnStyle: Chromium
+IndentWidth: 2
+UseTab: Never
+ColumnLimit: 120
+NamespaceIndentation: All
+AlignAfterOpenBracket: DontAlign
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: false
+AlignOperands: false
+AlignTrailingComments: false
+PointerAlignment: Middle
+BinPackArguments: true
+MaxEmptyLinesToKeep: 1
+BreakConstructorInitializers: AfterColon
+IndentPPDirectives: AfterHash
+
+---
+Language: JavaScript
+DisableFormat: true
+ColumnLimit: 120
+JavaScriptQuotes: Single
