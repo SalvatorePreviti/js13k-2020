@@ -1,4 +1,6 @@
-import { updateGraph } from './debug-info'
+import { updateGraph } from './_debug-info'
+
+export { debug_reportClear, debug_report, debug_trycatch, debug_trycatch_wrap } from './_debug-report'
 
 /** Prints debug information. Call to debug_log will disappear in release mode. */
 export const debug_log = console.info.bind(console)

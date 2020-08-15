@@ -1,5 +1,5 @@
-import './debug-info.less'
-import debugInfoHtmlString from './debug-info.html'
+import './_debug.less'
+import debugInfoHtmlString from './_debug.html'
 
 function appendDebugInfoHtmlToBody() {
   const tempDiv = document.createElement('div')

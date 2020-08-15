@@ -2,9 +2,12 @@ import { gl } from './gl'
 
 import vertexShaderCode from './shaders/vertex.vert'
 import fragmentShaderCode from './shaders/fragment.frag'
-import { debug_exec } from './debug/debug'
+import { debug_exec } from './debug'
+import { debug_report, debug_reportClear } from './debug'
 
 export const shaderProgram = gl.createProgram()
+
+debug_reportClear('compile-shader', import.meta.url)
 
 const _loadShaderCode = (type: number, sourceCode: string) => {
   const shader = gl.createShader(type)
@@ -13,11 +16,24 @@ const _loadShaderCode = (type: number, sourceCode: string) => {
 
   debug_exec(() => {
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      throw new Error(
-        `Could not compile ${type === gl.VERTEX_SHADER ? 'vertex' : 'fragment'} shader\n\n${
+      debug_report(
+        'error',
+        `Error compiling ${type === gl.VERTEX_SHADER ? 'vertex' : 'fragment'} shader\n\n${
           gl.getShaderInfoLog(shader) || 'compilation failed'
-        }`
+        }`,
+        { context: 'compile-shader', file: import.meta.url }
       )
+    } else {
+      const infoLog = gl.getShaderInfoLog(shader)
+      if (infoLog) {
+        debug_report(
+          'warn',
+          `Error compiling ${type === gl.VERTEX_SHADER ? 'vertex' : 'fragment'} shader\n\n${
+            gl.getShaderInfoLog(shader) || 'compilation failed'
+          }`,
+          { context: 'compile-shader', file: import.meta.url }
+        )
+      }
     }
   })
 
@@ -30,14 +46,21 @@ _loadShaderCode(gl.FRAGMENT_SHADER, fragmentShaderCode)
 gl.linkProgram(shaderProgram)
 
 debug_exec(() => {
-  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-    throw new Error(`Could not link shader program\n\n${gl.getShaderInfoLog(shaderProgram) || 'link failed'}`)
-  }
-
   gl.validateProgram(shaderProgram)
-  if (!gl.getProgramParameter(shaderProgram, gl.VALIDATE_STATUS)) {
-    const info = gl.getProgramInfoLog(shaderProgram)
-    throw new Error(`Could not validate shader program\n\n${info}`)
+
+  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+    debug_report('warn', `Error linking shader program\n\n${gl.getProgramInfoLog(shaderProgram) || 'link failed'}`, {
+      context: 'compile-shader',
+      file: import.meta.url
+    })
+  } else {
+    const infoLog = gl.getProgramInfoLog(shaderProgram)
+    if (infoLog) {
+      debug_report('warn', infoLog, {
+        context: 'compile-shader',
+        file: import.meta.url
+      })
+    }
   }
 })
 

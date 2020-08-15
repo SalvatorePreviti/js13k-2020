@@ -1,0 +1,188 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 3px;
+}
+::-webkit-scrollbar-track-piece {
+  background-color: #000;
+  border-radius: 0;
+}
+::-webkit-scrollbar-button {
+  background-color: #333;
+  border-radius: 0;
+}
+::-webkit-scrollbar-track {
+  background-color: #333;
+  border-radius: 0;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #333;
+  border-radius: 3px;
+  border-radius: 0;
+}
+::-webkit-scrollbar-corner {
+  background-color: #333;
+  border-radius: 0;
+}
+::-webkit-resizer {
+  background-color: #333;
+  border-radius: 0;
+}
+
+html {
+  scrollbar-face-color: #333;
+  scrollbar-base-color: #333;
+  scrollbar-3dlight-color: #333;
+  scrollbar-highlight-color: #333;
+  scrollbar-track-color: #000;
+  scrollbar-arrow-color: #000;
+  scrollbar-shadow-color: #333;
+}
+
+#debug-info {
+  top: 0;
+  left: 0;
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #ccddee;
+}
+
+#debug-info-graph {
+  background-color: #000;
+  opacity: 0.7;
+  transition: opacity ease 0.2s;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+#debug-report {
+  display: none;
+  position: absolute;
+  margin: auto;
+  width: 100%;
+  max-width: 1300px;
+  bottom: 50px;
+  background: #000;
+  color: #bbb;
+  border: 1px solid #000;
+
+  opacity: 0.8;
+  transition: opacity ease 0.2s;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  > header {
+    background: rgba(100, 110, 200, 0.3);
+    padding: 3px;
+    padding-left: 5px;
+
+    #debug-report-close {
+      float: right;
+      background-color: #058;
+      border: 1px solid #38a;
+      color: #fff;
+      border-radius: 3px;
+      opacity: 0.7;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+
+  > section {
+    overflow-y: scroll;
+    max-height: calc(100vh - 130px);
+
+    .debug-report-item {
+      position: relative;
+      padding-top: 3px;
+      padding-bottom: 3px;
+      padding-left: 30px;
+      padding-right: 30px;
+      margin-top: 5px;
+      margin-bottom: 5px;
+      font-size: 15px;
+
+      > .debug-report-item-context {
+        margin-bottom: 5px;
+
+        display: flex;
+        align-content: space-between;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      &::before {
+        position: absolute;
+        left: 5px;
+        top: 1px;
+        font-size: 12px;
+      }
+
+      &.debug-report-info {
+        color: #acf;
+        background-color: rgba(0, 50, 100, 0.2);
+        border: 1px solid #03a;
+        border-left: none;
+        border-right: none;
+        &::before {
+          content: 'ℹ️';
+        }
+      }
+
+      &.debug-report-warn {
+        background-color: rgba(110, 110, 0, 0.2);
+        border: 1px solid #aa0;
+        border-left: none;
+        border-right: none;
+        &::before {
+          content: '⚠️';
+        }
+      }
+
+      &.debug-report-error {
+        color: #fbb;
+        background-color: rgba(120, 0, 0, 0.3);
+        border: 1px solid #700;
+        border-left: none;
+        border-right: none;
+        &::before {
+          content: '❌';
+        }
+      }
+
+      > pre {
+        padding: 0;
+        margin: 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+
+      > .debug-report-item-repeat-count {
+        font-size: 12px;
+        position: absolute;
+        right: 0;
+        top: 0;
+        background: #222;
+        color: #eee;
+        padding: 2px;
+        padding-left: 3px;
+        padding-right: 3px;
+        margin-top: 2px;
+        border-radius: 5px;
+        &::before {
+          content: 'x';
+          color: #aaa;
+        }
+      }
+    }
+  }
+}

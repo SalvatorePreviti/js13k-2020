@@ -43,7 +43,7 @@
     "noEmitOnError": false,
     "newLine": "lf",
     "allowUmdGlobalAccess": true,
-    "module": "ES2020",
+    "module": "esnext",
     "moduleResolution": "node"
   },
   "compileOnSave": false,
