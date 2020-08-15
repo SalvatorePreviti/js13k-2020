@@ -1,16 +1,21 @@
+declare module '*.fs' {
+  export const code: string
+}
+
+declare module '*.vs' {
+  export const code: string
+}
+
 declare module '*.frag' {
-  const content: string
-  export default content
+  export const code: string
 }
 
 declare module '*.vert' {
-  const content: string
-  export default content
+  export const code: string
 }
 
 declare module '*.glsl' {
-  const content: string
-  export default content
+  export const code: string
 }
 
 declare module '*.txt' {

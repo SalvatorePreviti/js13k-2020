@@ -24,6 +24,7 @@ import { builderBundle } from './builder-bundle'
 import fs from 'fs'
 import path from 'path'
 import { createRollupPluginImportText } from './rollup-plugin-import-text'
+import { createRollupPluginImportShader } from './rollup-plugin-import-shader'
 
 export interface RollupBuildResult {
   html: string
@@ -142,6 +143,7 @@ async function createRollupPlugins(
     ...(await createBaseRollupPlugins(paths.root, resolver, viteConfig)),
 
     createRollupPluginImportText(paths.textExtensions),
+    createRollupPluginImportShader(paths.shaderExtensions),
 
     htmlPlugin,
     createReplacePlugin(

@@ -11,7 +11,10 @@ class BuilderPathsConfig {
   }
 
   /** List of extensions to use as text files */
-  public textExtensions = ['.txt', '.frag', '.vert', '.glsl', '.fs', '.vs']
+  public textExtensions = ['.txt']
+
+  /** List of extensions to use as shader files */
+  public shaderExtensions = ['.frag', '.vert', '.glsl', '.fs', '.vs']
 
   /** source index.html path, the entry point */
   public indexHtmlPath = this.resolve('index.html')

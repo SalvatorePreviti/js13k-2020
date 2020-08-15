@@ -9,4 +9,3 @@ out vec4 outColor;
 void main() {
   outColor = vec4(fragUV.x, fragUV.y, -fragUV.y, 1.);
 }
-dsfds

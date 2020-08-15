@@ -23,6 +23,7 @@ class ReportItemList {
       if (
         last.kind === item.kind &&
         last.context === item.context &&
+        last.title === item.title &&
         last.file === item.file &&
         last.message === item.message
       ) {
@@ -84,6 +85,7 @@ class ReportItemList {
 class ReportItem {
   public readonly kind: 'error' | 'warn' | 'info'
   public readonly context: string
+  public readonly title: string
   public readonly message: string
   public readonly file: string
 
@@ -92,7 +94,13 @@ class ReportItem {
   private _repeatCountElement: HTMLDivElement | null = null
   private _element: HTMLDivElement | null = null
 
-  public constructor(kind: string, context: string | undefined, message: string, file: string | undefined) {
+  public constructor(
+    kind: string,
+    context: string | undefined,
+    message: string,
+    file: string | undefined,
+    title: string | undefined
+  ) {
     this.kind = 'error'
     switch (kind.toLowerCase()) {
       case 'warn':
@@ -106,6 +114,7 @@ class ReportItem {
     this.context = context || ''
     this.message = message
     this.file = file || ''
+    this.title = title || ''
   }
 
   public getElement(): HTMLDivElement {
@@ -115,19 +124,26 @@ class ReportItem {
       this._element = itemElement
       itemElement.className = `debug-report-item debug-report-${this.kind}`
 
-      if (this.context || this.file) {
-        const contextElement = document.createElement('div')
-        contextElement.className = 'debug-report-item-context'
+      if (this.title || this.context || this.file) {
+        const contextRowElement = document.createElement('div')
+        contextRowElement.className = 'debug-report-item-context'
 
-        const contextSpanElement = document.createElement('div')
-        contextSpanElement.innerText = `${this.context}`
+        const contextElement = document.createElement('div')
+        contextRowElement.appendChild(contextElement)
+        contextElement.innerText = `${this.context}`
+        if (this.title) {
+          const contextTitleElement = document.createElement('span')
+          contextTitleElement.style.paddingLeft = '15px'
+          contextTitleElement.style.fontStyle = 'italic'
+          contextTitleElement.innerHTML = this.title
+          contextElement.appendChild(contextTitleElement)
+        }
 
         const fileSpanElement = document.createElement('div')
         fileSpanElement.innerText = this.file
 
-        contextElement.appendChild(contextSpanElement)
-        contextElement.appendChild(fileSpanElement)
-        itemElement.appendChild(contextElement)
+        contextRowElement.appendChild(fileSpanElement)
+        itemElement.appendChild(contextRowElement)
       }
 
       const messagePre = document.createElement('pre')
@@ -170,16 +186,18 @@ export function debug_report(
 
   let context = ''
   let file = ''
+  let title = ''
   if (info) {
     if (typeof info === 'object') {
       context = info.context
       file = info.file
+      title = info.title
     } else {
       context = info
     }
   }
 
-  _reportItemsList.add(new ReportItem(kind, context, message, file))
+  _reportItemsList.add(new ReportItem(kind, context, message, file, title))
 }
 
 /** Clears the previous error report on screen */
@@ -204,7 +222,8 @@ export function debug_trycatch<T>(fn: () => T, info?: DebugReportInfo | string):
       return (result as any).catch((error: Error) => {
         debug_report('error', error, {
           context: (typeof info === 'string' ? info : info && info.context) || fn.name,
-          file: typeof info === 'object' && info.file
+          file: typeof info === 'object' && info.file,
+          title: typeof info === 'object' && info.title
         })
         if (typeof info === 'object' && info && info.rethrow !== false) {
           throw error
@@ -215,7 +234,8 @@ export function debug_trycatch<T>(fn: () => T, info?: DebugReportInfo | string):
   } catch (error) {
     debug_report('error', error, {
       context: (typeof info === 'string' ? info : info && info.context) || fn.name,
-      file: typeof info === 'object' && info.file
+      file: typeof info === 'object' && info.file,
+      title: typeof info === 'object' && info.title
     })
     if (typeof info === 'object' && info && info.rethrow !== false) {
       throw error
@@ -238,7 +258,8 @@ export function debug_trycatch_wrap<F extends Function>(fn: F, info?: DebugRepor
         return result.catch((error: Error) => {
           debug_report('error', error, {
             context: (typeof info === 'string' ? info : info && info.context) || fn.name,
-            file: typeof info === 'object' && info.file
+            file: typeof info === 'object' && info.file,
+            title: typeof info === 'object' && info.title
           })
           if (typeof info === 'object' && info && info.rethrow !== false) {
             throw error
@@ -249,7 +270,8 @@ export function debug_trycatch_wrap<F extends Function>(fn: F, info?: DebugRepor
     } catch (error) {
       debug_report('error', error, {
         context: (typeof info === 'string' ? info : info && info.context) || fn.name,
-        file: typeof info === 'object' && info.file
+        file: typeof info === 'object' && info.file,
+        title: typeof info === 'object' && info.title
       })
       if (typeof info === 'object' && info && info.rethrow !== false) {
         throw error
@@ -276,3 +298,38 @@ document.getElementById('debug-report-close').addEventListener('click', () => {
 window.addEventListener('error', (e) => {
   debug_report('error', e.error || e.message, 'Uncaught')
 })
+
+export function debug_checkShaderCompileStatus(
+  gl: WebGL2RenderingContext,
+  shader: WebGLShader,
+  info: DebugReportInfo
+): void {
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    debug_report('error', gl.getShaderInfoLog(shader) || 'compilation failed', info)
+  } else {
+    const infoLog = gl.getShaderInfoLog(shader)
+    if (infoLog) {
+      if (infoLog.indexOf('WARN') >= 0) {
+        debug_report('warn', gl.getShaderInfoLog(shader), info)
+      }
+    }
+  }
+}
+
+export function debug_checkShaderProgramLinkStatus(
+  gl: WebGL2RenderingContext,
+  shaderProgram: WebGLProgram,
+  info: DebugReportInfo
+): void {
+  gl.validateProgram(shaderProgram)
+  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+    debug_report('error', gl.getProgramInfoLog(shaderProgram) || 'link failed', info)
+  } else {
+    const infoLog = gl.getProgramInfoLog(shaderProgram)
+    if (infoLog) {
+      if (infoLog.indexOf('WARN') >= 0) {
+        debug_report('warn', infoLog, info)
+      }
+    }
+  }
+}

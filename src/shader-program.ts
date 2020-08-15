@@ -1,69 +1,65 @@
 import { gl } from './gl'
 
-import vertexShaderCode from './shaders/vertex.vert'
-import fragmentShaderCode from './shaders/fragment.frag'
-import { debug_exec } from './debug'
-import { debug_report, debug_reportClear } from './debug'
+import { code as vertexShaderCode } from './shaders/vertex.vert'
+import { code as fragmentShaderCode } from './shaders/fragment.frag'
+import {
+  debug_log,
+  debug_reportClear,
+  debug_checkShaderProgramLinkStatus,
+  debug_checkShaderCompileStatus
+} from './debug'
 
-export const shaderProgram = gl.createProgram()
+export let shaderProgram: WebGLProgram
 
-debug_reportClear('compile-shader', import.meta.url)
+export let shaderProgram_iResolution: WebGLUniformLocation
 
 const _loadShaderCode = (type: number, sourceCode: string) => {
   const shader = gl.createShader(type)
   gl.shaderSource(shader, sourceCode)
   gl.compileShader(shader)
 
-  debug_exec(() => {
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      debug_report(
-        'error',
-        `Error compiling ${type === gl.VERTEX_SHADER ? 'vertex' : 'fragment'} shader\n\n${
-          gl.getShaderInfoLog(shader) || 'compilation failed'
-        }`,
-        { context: 'compile-shader', file: import.meta.url }
-      )
-    } else {
-      const infoLog = gl.getShaderInfoLog(shader)
-      if (infoLog) {
-        debug_report(
-          'warn',
-          `Error compiling ${type === gl.VERTEX_SHADER ? 'vertex' : 'fragment'} shader\n\n${
-            gl.getShaderInfoLog(shader) || 'compilation failed'
-          }`,
-          { context: 'compile-shader', file: import.meta.url }
-        )
-      }
-    }
+  debug_checkShaderCompileStatus(gl, shader, {
+    title: type === gl.VERTEX_SHADER ? 'vertex shader' : 'fragment shader',
+    context: 'compile-shader',
+    file: import.meta.url
   })
 
   gl.attachShader(shaderProgram, shader)
+  return shader
 }
 
-_loadShaderCode(gl.VERTEX_SHADER, vertexShaderCode)
-_loadShaderCode(gl.FRAGMENT_SHADER, fragmentShaderCode)
+const loadShaderProgram = () => {
+  shaderProgram = gl.createProgram()
 
-gl.linkProgram(shaderProgram)
+  debug_reportClear('compile-shader', import.meta.url)
 
-debug_exec(() => {
-  gl.validateProgram(shaderProgram)
+  const vertexShader = _loadShaderCode(gl.VERTEX_SHADER, vertexShaderCode)
+  const fragmentShader = _loadShaderCode(gl.FRAGMENT_SHADER, fragmentShaderCode)
 
-  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-    debug_report('warn', `Error linking shader program\n\n${gl.getProgramInfoLog(shaderProgram) || 'link failed'}`, {
-      context: 'compile-shader',
-      file: import.meta.url
-    })
-  } else {
-    const infoLog = gl.getProgramInfoLog(shaderProgram)
-    if (infoLog) {
-      debug_report('warn', infoLog, {
-        context: 'compile-shader',
-        file: import.meta.url
-      })
-    }
+  gl.linkProgram(shaderProgram)
+
+  debug_checkShaderProgramLinkStatus(gl, shaderProgram, {
+    title: 'shader program',
+    context: 'compile-shader',
+    file: import.meta.url
+  })
+
+  gl.useProgram(shaderProgram)
+
+  gl.deleteShader(vertexShader)
+  gl.deleteShader(fragmentShader)
+
+  shaderProgram_iResolution = gl.getUniformLocation(shaderProgram, 'iResolution')
+}
+
+loadShaderProgram()
+
+if (import.meta.hot) {
+  const reload = () => {
+    debug_log('reloading shaders')
+    gl.deleteProgram(shaderProgram)
+    loadShaderProgram()
   }
-})
-
-gl.useProgram(shaderProgram)
-
-export const shaderProgram_iResolution = gl.getUniformLocation(shaderProgram, 'iResolution')
+  import.meta.hot.on('/src/shaders/vertex.vert', reload)
+  import.meta.hot.on('/src/shaders/fragment.frag', reload)
+}

@@ -1,31 +1,40 @@
 import { UserConfig as ViteUserConfig } from 'vite'
 
 import { createServerPluginImportText } from '../server/server-plugin-import-text'
+import { createServerPluginImportShader } from '../server/server-plugin-import-shader'
 
 import paths from './builder-paths'
 import { serverPluginImportHtml } from '../server/server-plugin-import-html'
 
 export interface ViteConfig extends ViteUserConfig {
   textExtensions: string[]
+  shaderExtensions: string[]
   buildSourcemap: boolean
 }
 
 /** List of aliases available only during local server development mode */
-const devModeAliases = new Map<string, string>([['/src/debug', paths.resolve('./src/_debug/_debug.ts')]])
+const devModeAliases = new Map<string, string>([['/src/debug', 'src/_debug/_debug.ts']])
 
 const devModeResolver = {
   fileToRequest(filePath: string, _root: string) {
-    return devModeAliases.get(filePath)
+    const found = devModeAliases.get(filePath)
+    return found && `/${found}`
   },
   requestToFile(filePath: string, _root: string) {
-    return devModeAliases.get(filePath)
+    const found = devModeAliases.get(filePath)
+    return found && paths.resolve(found)
   }
 }
 
 const viteConfig: ViteConfig = {
   textExtensions: paths.textExtensions,
+  shaderExtensions: paths.shaderExtensions,
 
-  configureServer: [createServerPluginImportText(paths.textExtensions), serverPluginImportHtml],
+  configureServer: [
+    createServerPluginImportText(paths.textExtensions),
+    createServerPluginImportShader(paths.shaderExtensions),
+    serverPluginImportHtml
+  ],
 
   root: paths.root,
   assetsDir: '_assets',

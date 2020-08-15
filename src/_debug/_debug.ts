@@ -1,9 +1,16 @@
 import { updateGraph } from './_debug-info'
 
-export { debug_reportClear, debug_report, debug_trycatch, debug_trycatch_wrap } from './_debug-report'
+export {
+  debug_reportClear,
+  debug_report,
+  debug_trycatch,
+  debug_trycatch_wrap,
+  debug_checkShaderCompileStatus,
+  debug_checkShaderProgramLinkStatus
+} from './_debug-report'
 
 /** Prints debug information. Call to debug_log will disappear in release mode. */
-export const debug_log = console.info.bind(console)
+export const debug_log = console.log.bind(console)
 
 debug_log('debug mode activated')
 
