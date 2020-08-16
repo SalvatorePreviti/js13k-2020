@@ -107,10 +107,12 @@ Object.defineProperty(ADMZipMethods, 'Deflater', {
   enumerable: true
 })
 
+const { round } = Math
+
 function ZLibDeflater(input: Buffer) {
   const options = {
     ...zipBundleOptions.zlib,
-    chunkSize: (Math.round(input.length / 1024) + 1) * 1024
+    chunkSize: (round(input.length / 1024) + 1) * 1024
   }
   return {
     deflate() {

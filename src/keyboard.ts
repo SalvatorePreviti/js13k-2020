@@ -2,9 +2,9 @@ export const KEY_FORWARD = 1
 
 export const KEY_BACKWARD = 2
 
-export const KEY_LEFT = 3
+export const KEY_STRAFE_LEFT = 3
 
-export const KEY_RIGHT = 4
+export const KEY_STRAFE_RIGHT = 4
 
 export const KEY_RUN = 5
 
@@ -12,12 +12,12 @@ export const KEY_FLY_UP = 10
 
 export const KEY_FLY_DOWN = 11
 
-const _pressedKeys: boolean[] = []
+let _pressedKeys: boolean[] = []
 
 /** Returns true if the given gey is pressed */
 export const isKeyPressed = (keyId: number) => !!_pressedKeys[keyId]
 
-const _keyMap = {
+const _keyMap: Record<string, number> = {
   w: KEY_FORWARD,
   W: KEY_FORWARD,
   ArrowUp: KEY_FORWARD,
@@ -26,29 +26,33 @@ const _keyMap = {
   S: KEY_BACKWARD,
   ArrowDown: KEY_BACKWARD,
 
-  a: KEY_LEFT,
-  A: KEY_LEFT,
-  ArrowLeft: KEY_LEFT,
+  a: KEY_STRAFE_LEFT,
+  A: KEY_STRAFE_LEFT,
+  ArrowLeft: KEY_STRAFE_LEFT,
 
-  d: KEY_RIGHT,
-  D: KEY_RIGHT,
-  ArrowRight: KEY_RIGHT,
+  d: KEY_STRAFE_RIGHT,
+  D: KEY_STRAFE_RIGHT,
+  ArrowRight: KEY_STRAFE_RIGHT,
 
   Shift: KEY_RUN,
 
-  r: KEY_FLY_UP,
-  R: KEY_FLY_UP,
+  f: KEY_FLY_UP,
+  F: KEY_FLY_UP,
   '+': KEY_FLY_UP,
 
-  f: KEY_FLY_DOWN,
-  F: KEY_FLY_DOWN,
+  r: KEY_FLY_DOWN,
+  R: KEY_FLY_DOWN,
   '-': KEY_FLY_DOWN
 }
 
-const _setKeyPressed = (ev: KeyboardEvent, value: boolean) => {
-  const keyId = _keyMap[ev.key]
-  if (keyId) {
-    _pressedKeys[keyId] = value
+const _setKeyPressed = (e: KeyboardEvent, value: boolean) => {
+  if (!e.keyCode || e.metaKey || !document.activeElement) {
+    _pressedKeys = [] // Clear pressed status to prevent key sticking when alt+tabbing
+  } else {
+    const keyId = _keyMap[e.key]
+    if (keyId) {
+      _pressedKeys[keyId] = value
+    }
   }
 }
 

@@ -27,6 +27,9 @@ uniform int iFrame;
 // Camera position
 uniform vec3 iCameraPos;
 
+// Camera directiom
+uniform vec3 iCameraDir;
+
 // Output color
 out vec4 oColor;
 
@@ -79,15 +82,12 @@ void main() {
   vec2 uv = fragCoord / iResolution;
 
   float cameraDistance = 10.0;
-  // vec3 cameraPosition = vec3(10.0 * sin(iTime), 2.0, 10.0 * cos(iTime));
-  vec3 cameraDirection = normalize(vec3(-1.0 * sin(iTime), -0.2, -1.0 * cos(iTime)));
   vec3 cameraUp = vec3(0.0, 1.0, 0.0);
 
   vec2 camUV = uv * 2.0 - vec2(1.0, 1.0);
-  vec3 nright = normalize(cross(cameraUp, cameraDirection));
+  vec3 nright = normalize(cross(cameraUp, iCameraDir));
 
-  vec3 pixel =
-      iCameraPos + cameraDirection + nright * camUV.x * PROJECTION_LEN.x + cameraUp * camUV.y * PROJECTION_LEN.y;
+  vec3 pixel = iCameraPos + iCameraDir + nright * camUV.x * PROJECTION_LEN.x + cameraUp * camUV.y * PROJECTION_LEN.y;
 
   vec3 rayDirection = normalize(pixel - iCameraPos);
 

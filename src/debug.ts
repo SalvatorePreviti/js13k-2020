@@ -46,4 +46,8 @@ export const debug_checkShaderProgramLinkStatus = (
   _info: DebugReportInfo
 ): void => undefined
 
-export const debug_updateCameraInfo = (_position: Readonly<Vec3>) => {}
+export const debug_updateCameraPosition = (_position: Readonly<Vec3>) => {}
+
+export const debug_updateCameraDirection = (_direction: Readonly<Vec3>) => {}
+
+export const debug_updateCameraEulerAngles = (_eulerAngles: Readonly<Vec2>) => {}

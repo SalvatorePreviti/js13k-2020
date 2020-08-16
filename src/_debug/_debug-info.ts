@@ -1,5 +1,6 @@
 import './_debug.less'
 import debugInfoHtmlString from './_debug.html'
+import { max, RAD_TO_DEG } from '../math/scalar'
 
 function appendDebugInfoHtmlToBody() {
   const tempDiv = document.createElement('div')
@@ -22,7 +23,7 @@ const GRAPH_PANELS_COUNT = 2
 const GRAPH_X = GRAPH_SPACING
 
 const GRAPH_Y = TEXT_HEIGHT + 1
-const GRAPH_WIDTH = 95
+const GRAPH_WIDTH = 100
 const GRAPH_HEIGHT = 45
 
 const GRAPHS_DRAW_BG_COLORS = ['#013', '#021']
@@ -32,10 +33,12 @@ const GRAPHS_DRAW_FG_COLORS = ['#0bf', '#0d7']
 const SCREEN_RESOLUTION_TEXT_Y = 15
 
 const DEBUG_INFO_TIME_Y = (GRAPH_Y + GRAPH_HEIGHT) * GRAPH_PANELS_COUNT + GRAPH_SPACING + TEXT_HEIGHT + 5
-const DEBUG_INFO_CAMERA_Y = DEBUG_INFO_TIME_Y + TEXT_HEIGHT * 2 + GRAPH_SPACING
+const DEBUG_INFO_CAMERA_POS_Y = DEBUG_INFO_TIME_Y + TEXT_HEIGHT * 2 + GRAPH_SPACING
+const DEBUG_INFO_CAMERA_DIR_Y = DEBUG_INFO_CAMERA_POS_Y + TEXT_HEIGHT * 4 + GRAPH_SPACING
+const DEBUG_INFO_CAMERA_EULER_Y = DEBUG_INFO_CAMERA_DIR_Y + TEXT_HEIGHT * 4 + GRAPH_SPACING
 
 const DEBUG_INFO_CANVAS_WIDTH = GRAPH_X + GRAPH_WIDTH + GRAPH_SPACING
-const DEBUG_INFO_CANVAS_HEIGHT = DEBUG_INFO_CAMERA_Y + TEXT_HEIGHT * 4 + GRAPH_SPACING
+const DEBUG_INFO_CANVAS_HEIGHT = DEBUG_INFO_CAMERA_EULER_Y + TEXT_HEIGHT * 3 + GRAPH_SPACING
 
 debugInfoCanvas.width = DEBUG_INFO_CANVAS_WIDTH
 debugInfoCanvas.height = DEBUG_INFO_CANVAS_HEIGHT
@@ -65,14 +68,38 @@ export function initGraphs() {
   context.fillText('time', GRAPH_WIDTH, DEBUG_INFO_TIME_Y)
 
   context.fillStyle = '#012'
-  context.fillRect(GRAPH_SPACING, DEBUG_INFO_CAMERA_Y, DEBUG_INFO_CANVAS_WIDTH - GRAPH_SPACING * 2, TEXT_HEIGHT * 4)
+  context.fillRect(GRAPH_SPACING, DEBUG_INFO_CAMERA_POS_Y, DEBUG_INFO_CANVAS_WIDTH - GRAPH_SPACING * 2, TEXT_HEIGHT * 4)
   context.fillStyle = '#8ce'
   context.textAlign = 'right'
-  context.fillText('camera pos', GRAPH_WIDTH, DEBUG_INFO_CAMERA_Y)
+  context.fillText('camera pos', GRAPH_WIDTH, DEBUG_INFO_CAMERA_POS_Y)
   context.textAlign = 'left'
-  context.fillText('x', GRAPH_SPACING, DEBUG_INFO_CAMERA_Y + TEXT_HEIGHT)
-  context.fillText('y', GRAPH_SPACING, DEBUG_INFO_CAMERA_Y + TEXT_HEIGHT * 2)
-  context.fillText('z', GRAPH_SPACING, DEBUG_INFO_CAMERA_Y + TEXT_HEIGHT * 3)
+  context.fillText('x', GRAPH_SPACING, DEBUG_INFO_CAMERA_POS_Y + TEXT_HEIGHT)
+  context.fillText('y', GRAPH_SPACING, DEBUG_INFO_CAMERA_POS_Y + TEXT_HEIGHT * 2)
+  context.fillText('z', GRAPH_SPACING, DEBUG_INFO_CAMERA_POS_Y + TEXT_HEIGHT * 3)
+
+  context.fillStyle = '#120'
+  context.fillRect(
+    GRAPH_SPACING,
+    DEBUG_INFO_CAMERA_EULER_Y,
+    DEBUG_INFO_CANVAS_WIDTH - GRAPH_SPACING * 2,
+    TEXT_HEIGHT * 4
+  )
+  context.fillStyle = '#ec8'
+  context.textAlign = 'right'
+  context.fillText('camera rot', GRAPH_WIDTH, DEBUG_INFO_CAMERA_EULER_Y)
+  context.textAlign = 'left'
+  context.fillText('yaw', GRAPH_SPACING, DEBUG_INFO_CAMERA_EULER_Y + TEXT_HEIGHT)
+  context.fillText('pitch', GRAPH_SPACING, DEBUG_INFO_CAMERA_EULER_Y + TEXT_HEIGHT * 2)
+
+  context.fillStyle = '#021'
+  context.fillRect(GRAPH_SPACING, DEBUG_INFO_CAMERA_DIR_Y, DEBUG_INFO_CANVAS_WIDTH - GRAPH_SPACING * 2, TEXT_HEIGHT * 4)
+  context.fillStyle = '#8ec'
+  context.textAlign = 'right'
+  context.fillText('camera dir', GRAPH_WIDTH, DEBUG_INFO_CAMERA_DIR_Y)
+  context.textAlign = 'left'
+  context.fillText('x', GRAPH_SPACING, DEBUG_INFO_CAMERA_DIR_Y + TEXT_HEIGHT)
+  context.fillText('y', GRAPH_SPACING, DEBUG_INFO_CAMERA_DIR_Y + TEXT_HEIGHT * 2)
+  context.fillText('z', GRAPH_SPACING, DEBUG_INFO_CAMERA_DIR_Y + TEXT_HEIGHT * 3)
 }
 
 function initGraph(index: number, name: string) {
@@ -90,7 +117,7 @@ function initGraph(index: number, name: string) {
   context.globalAlpha = 1
   context.fillText(name, GRAPH_X + 2, GRAPH_SPACING + translation)
 
-  GRAPH_TEXT_VALUE_X = Math.max(GRAPH_TEXT_VALUE_X, 4 + context.measureText(name).width)
+  GRAPH_TEXT_VALUE_X = max(GRAPH_TEXT_VALUE_X, 4 + context.measureText(name).width)
 }
 
 export function updateGraph(index: number, maxValue: number, value: number, text: string) {
@@ -116,7 +143,7 @@ export function updateGraph(index: number, maxValue: number, value: number, text
   } else if (value < 0) {
     value = 0
   }
-  const d = Math.max(0, (1 - value / maxValue) * GRAPH_HEIGHT)
+  const d = max(0, (1 - value / maxValue) * GRAPH_HEIGHT)
 
   context.fillStyle = GRAPHS_DRAW_FG_COLORS[index]
   context.fillRect(GRAPH_X + GRAPH_WIDTH - 1, GRAPH_Y + d + translation, 1, GRAPH_HEIGHT - d)
@@ -159,19 +186,48 @@ export function updateGraphInfo(timeInSeconds?: number) {
   }
 }
 
-export function updateCameraInfo(position: Readonly<Vec3>) {
+export function updateCameraPosition(position: Readonly<Vec3>) {
   context.fillStyle = '#012'
   context.fillRect(
     GRAPH_SPACING + 8,
-    DEBUG_INFO_CAMERA_Y + TEXT_HEIGHT,
+    DEBUG_INFO_CAMERA_POS_Y + TEXT_HEIGHT,
     GRAPH_WIDTH - GRAPH_SPACING - 8,
     TEXT_HEIGHT * 3
   )
   context.fillStyle = '#9ef'
   context.textAlign = 'right'
-  context.fillText(position.x.toFixed(3), GRAPH_WIDTH, DEBUG_INFO_CAMERA_Y + TEXT_HEIGHT)
-  context.fillText(position.y.toFixed(3), GRAPH_WIDTH, DEBUG_INFO_CAMERA_Y + TEXT_HEIGHT * 2)
-  context.fillText(position.z.toFixed(3), GRAPH_WIDTH, DEBUG_INFO_CAMERA_Y + TEXT_HEIGHT * 3)
+  context.fillText(position.x.toFixed(3), GRAPH_WIDTH, DEBUG_INFO_CAMERA_POS_Y + TEXT_HEIGHT)
+  context.fillText(position.y.toFixed(3), GRAPH_WIDTH, DEBUG_INFO_CAMERA_POS_Y + TEXT_HEIGHT * 2)
+  context.fillText(position.z.toFixed(3), GRAPH_WIDTH, DEBUG_INFO_CAMERA_POS_Y + TEXT_HEIGHT * 3)
+}
+
+export function updateCameraDirection(direction: Readonly<Vec3>) {
+  context.fillStyle = '#021'
+  context.fillRect(
+    GRAPH_SPACING + 8,
+    DEBUG_INFO_CAMERA_DIR_Y + TEXT_HEIGHT,
+    GRAPH_WIDTH - GRAPH_SPACING - 8,
+    TEXT_HEIGHT * 3
+  )
+  context.fillStyle = '#9fe'
+  context.textAlign = 'right'
+  context.fillText(direction.x.toFixed(4), GRAPH_WIDTH, DEBUG_INFO_CAMERA_DIR_Y + TEXT_HEIGHT)
+  context.fillText(direction.y.toFixed(4), GRAPH_WIDTH, DEBUG_INFO_CAMERA_DIR_Y + TEXT_HEIGHT * 2)
+  context.fillText(direction.z.toFixed(4), GRAPH_WIDTH, DEBUG_INFO_CAMERA_DIR_Y + TEXT_HEIGHT * 3)
+}
+
+export function updateCameraEulerAngles(eulerAngles: Readonly<Vec2>) {
+  context.fillStyle = '#120'
+  context.fillRect(
+    GRAPH_SPACING + 7 * 6,
+    DEBUG_INFO_CAMERA_EULER_Y + TEXT_HEIGHT,
+    GRAPH_WIDTH - GRAPH_SPACING - 8,
+    TEXT_HEIGHT * 2
+  )
+  context.fillStyle = '#ef9'
+  context.textAlign = 'right'
+  context.fillText((eulerAngles.x * RAD_TO_DEG).toFixed(1), GRAPH_WIDTH, DEBUG_INFO_CAMERA_EULER_Y + TEXT_HEIGHT)
+  context.fillText((eulerAngles.y * RAD_TO_DEG).toFixed(1), GRAPH_WIDTH, DEBUG_INFO_CAMERA_EULER_Y + TEXT_HEIGHT * 2)
 }
 
 initGraphs()

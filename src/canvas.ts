@@ -1,3 +1,5 @@
+import { min, round } from './math/scalar'
+
 export const canvasElement = document.getElementById('C') as HTMLCanvasElement
 
 /** The main element that holds the canvas. */
@@ -13,22 +15,22 @@ export const MAIN_ELEMENT_ASPECT_RATIO = 1.5
 export const MAIN_ELEMENT_MAX_WIDTH = 999
 
 /** Keeps track of the actual canvas size, updated on resize. */
-export const canvasSize = {
+export const canvasSize: Vec2 = {
   /** Canvas width */
-  w: 0,
+  x: 0,
   /** Canvas height */
-  h: 0
+  y: 0
 }
 
 /** Handle resize event to update canvas size. */
 const handleResize = () => {
-  let cw = Math.min(MAIN_ELEMENT_MAX_WIDTH, innerWidth - MAIN_ELEMENT_PADDING)
+  let cw = min(MAIN_ELEMENT_MAX_WIDTH, innerWidth - MAIN_ELEMENT_PADDING)
   let ch = innerHeight - MAIN_ELEMENT_PADDING
   const targetAspectRatio = cw / ch
   if (MAIN_ELEMENT_ASPECT_RATIO >= targetAspectRatio) {
-    ch = Math.round(cw / MAIN_ELEMENT_ASPECT_RATIO)
+    ch = round(cw / MAIN_ELEMENT_ASPECT_RATIO)
   } else {
-    cw = Math.round(ch * MAIN_ELEMENT_ASPECT_RATIO)
+    cw = round(ch * MAIN_ELEMENT_ASPECT_RATIO)
   }
 
   mainElement.style.width = `${cw}px`
@@ -36,9 +38,9 @@ const handleResize = () => {
 
   const w = mainElement.clientWidth
   const h = mainElement.clientHeight
-  if (canvasSize.w !== w || canvasSize.h !== h) {
-    canvasSize.w = w
-    canvasSize.h = h
+  if (canvasSize.x !== w || canvasSize.y !== h) {
+    canvasSize.x = w
+    canvasSize.y = h
     canvasElement.width = w
     canvasElement.height = h
   }

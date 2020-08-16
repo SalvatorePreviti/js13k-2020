@@ -1,4 +1,11 @@
-import { updateGraph, updateGraphInfo, updateCameraInfo } from './_debug-info'
+import {
+  updateGraph,
+  updateGraphInfo,
+  updateCameraPosition,
+  updateCameraDirection,
+  updateCameraEulerAngles
+} from './_debug-info'
+import { max } from '../math/scalar'
 
 export {
   debug_reportClear,
@@ -53,9 +60,13 @@ export function debug_updateInfo(timeInSeconds?: number) {
 
   updateGraphInfo(timeInSeconds)
 
-  _durationMs = Math.max(_durationMs, time - _msTime)
+  _durationMs = max(_durationMs, time - _msTime)
 
   _msTime = time
 }
 
-export const debug_updateCameraInfo = updateCameraInfo
+export const debug_updateCameraPosition = updateCameraPosition
+
+export const debug_updateCameraDirection = updateCameraDirection
+
+export const debug_updateCameraEulerAngles = updateCameraEulerAngles
