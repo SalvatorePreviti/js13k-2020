@@ -15,8 +15,7 @@ const animationFrame = debug_trycatch_wrap(
 
     gl.viewport(0, 0, canvasSize.w, canvasSize.h)
 
-    // Width and height in pixel and pixel aspect ratio, tat we assume to be 1
-    gl.uniform3f(shaderProgram_iResolution, canvasSize.w, canvasSize.h, 1)
+    gl.uniform2f(shaderProgram_iResolution, canvasSize.w, canvasSize.h)
 
     // Time in seconds
     gl.uniform1f(shaderProgram_iTime, timeSeconds)

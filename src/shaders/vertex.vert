@@ -1,10 +1,11 @@
 #version 300 es
 #pragma STDGL invariant(all)
 
-uniform vec3 iResolution;
+uniform vec2 iResolution;
 
-out vec2 vFrag;
+out vec2 fragCoord;
 void main() {
-  gl_Position = vec4(float((gl_VertexID & 1) << 2), float((gl_VertexID & 2) << 1), 1., 2.) - 1.;
-  vFrag = (.5 * gl_Position.xy * iResolution.xy) / iResolution.x;
+  vec2 t = vec2(float((gl_VertexID & 1) << 2), float((gl_VertexID & 2) << 1));
+  gl_Position = vec4(t.xy - 1., 0., 1.);
+  fragCoord = t.xy * iResolution * .5;
 }
