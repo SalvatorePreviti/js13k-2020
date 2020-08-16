@@ -13,7 +13,13 @@ export let shaderProgram: WebGLProgram
 
 export let shaderProgram_iResolution: WebGLUniformLocation
 
-const _loadShaderCode = (type: number, sourceCode: string) => {
+export let shaderProgram_iTime: WebGLUniformLocation
+
+export let shaderProgram_iFrame: WebGLUniformLocation
+
+export let shaderProgram_iMouse: WebGLUniformLocation
+
+const loadShaderCode = (type: number, sourceCode: string) => {
   const shader = gl.createShader(type)
   gl.shaderSource(shader, sourceCode)
   gl.compileShader(shader)
@@ -29,12 +35,18 @@ const _loadShaderCode = (type: number, sourceCode: string) => {
 }
 
 const loadShaderProgram = () => {
+  // A new program
+
   shaderProgram = gl.createProgram()
 
   debug_reportClear('compile-shader', import.meta.url)
 
-  const vertexShader = _loadShaderCode(gl.VERTEX_SHADER, vertexShaderCode)
-  const fragmentShader = _loadShaderCode(gl.FRAGMENT_SHADER, fragmentShaderCode)
+  // Compile vertex and pixel shader
+
+  const vertexShader = loadShaderCode(gl.VERTEX_SHADER, vertexShaderCode)
+  const fragmentShader = loadShaderCode(gl.FRAGMENT_SHADER, fragmentShaderCode)
+
+  // Link them together
 
   gl.linkProgram(shaderProgram)
 
@@ -44,12 +56,22 @@ const loadShaderProgram = () => {
     file: import.meta.url
   })
 
+  // Activate the program
+
   gl.useProgram(shaderProgram)
+
+  // We don't need the shaders anymore, let's free some memory
 
   gl.deleteShader(vertexShader)
   gl.deleteShader(fragmentShader)
 
-  shaderProgram_iResolution = gl.getUniformLocation(shaderProgram, 'iResolution')
+  // Loads uniforms
+
+  const getUniformLocation = (name) => gl.getUniformLocation(shaderProgram, name)
+
+  shaderProgram_iResolution = getUniformLocation('iResolution')
+  shaderProgram_iTime = getUniformLocation('iTime')
+  shaderProgram_iFrame = getUniformLocation('iFrame')
 }
 
 loadShaderProgram()

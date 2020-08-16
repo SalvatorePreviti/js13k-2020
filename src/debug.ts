@@ -16,7 +16,7 @@ export const debug_log = (..._args: any): void => undefined
 export const debug_exec = <T>(_fn: () => T): void => undefined
 
 /** Updates the debug info HUD, must be called every frame */
-export const debug_updateInfo = (): void => undefined
+export const debug_updateInfo = (_timeInSeconds?: number): void => undefined
 
 /** Shows a message on screen */
 export const debug_report = (

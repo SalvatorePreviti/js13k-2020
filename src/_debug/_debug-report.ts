@@ -321,14 +321,24 @@ export function debug_checkShaderProgramLinkStatus(
   shaderProgram: WebGLProgram,
   info: DebugReportInfo
 ): void {
-  gl.validateProgram(shaderProgram)
   if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
     debug_report('error', gl.getProgramInfoLog(shaderProgram) || 'link failed', info)
   } else {
-    const infoLog = gl.getProgramInfoLog(shaderProgram)
+    let infoLog = gl.getProgramInfoLog(shaderProgram)
     if (infoLog) {
       if (infoLog.indexOf('WARN') >= 0) {
         debug_report('warn', infoLog, info)
+      }
+    }
+    gl.validateProgram(shaderProgram)
+    if (!gl.getProgramParameter(shaderProgram, gl.VALIDATE_STATUS)) {
+      debug_report('error', gl.getProgramInfoLog(shaderProgram) || 'validation failed', info)
+    } else {
+      infoLog = gl.getProgramInfoLog(shaderProgram)
+      if (infoLog) {
+        if (infoLog.indexOf('WARN') >= 0) {
+          debug_report('warn', infoLog, info)
+        }
       }
     }
   }

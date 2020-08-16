@@ -2,18 +2,31 @@ import './css/styles.less'
 import { gl } from './gl'
 import { canvasSize } from './canvas'
 import { debug_updateInfo, debug_trycatch_wrap } from './debug'
-import { shaderProgram_iResolution } from './shader-program'
+import { shaderProgram_iResolution, shaderProgram_iTime, shaderProgram_iFrame } from './shader-program'
+
+let frameIndex: number = 1
 
 const animationFrame = debug_trycatch_wrap(
-  () => {
+  (timeMilliseconds: number) => {
+    const timeSeconds = timeMilliseconds / 1000
+
     requestAnimationFrame(animationFrame)
-    debug_updateInfo()
+    debug_updateInfo(timeSeconds)
 
     gl.viewport(0, 0, canvasSize.w, canvasSize.h)
 
-    gl.uniform2f(shaderProgram_iResolution, canvasSize.w, canvasSize.h)
+    // Width and height in pixel and pixel aspect ratio, tat we assume to be 1
+    gl.uniform3f(shaderProgram_iResolution, canvasSize.w, canvasSize.h, 1)
+
+    // Time in seconds
+    gl.uniform1f(shaderProgram_iTime, timeSeconds)
+
+    // Frame counter
+    gl.uniform1i(shaderProgram_iFrame, frameIndex)
 
     gl.drawArrays(gl.TRIANGLES, 0, 3)
+
+    frameIndex++
   },
   { rethrow: false, file: import.meta.url }
 )

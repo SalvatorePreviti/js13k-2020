@@ -1,4 +1,4 @@
-import { updateGraph } from './_debug-info'
+import { updateGraph, updateGraphInfo } from './_debug-info'
 
 export {
   debug_reportClear,
@@ -33,7 +33,7 @@ function debug_exec(fn: () => void | Promise<any>): void | Promise<void> {
 export { debug_exec }
 
 /** Update graphs and the debug info. Call to this function will disappear in release mode. */
-export function debug_updateInfo() {
+export function debug_updateInfo(timeInSeconds?: number, frameIndex?: number) {
   const time = performance.now()
 
   ++_fpsFrames
@@ -50,6 +50,8 @@ export function debug_updateInfo() {
     updateGraph(1, 200, _durationMs, _durationMs.toFixed(2))
     _durationMs = 0
   }
+
+  updateGraphInfo(timeInSeconds)
 
   _durationMs = Math.max(_durationMs, time - _msTime)
 

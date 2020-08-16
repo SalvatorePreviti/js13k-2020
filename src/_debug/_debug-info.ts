@@ -31,8 +31,10 @@ const GRAPHS_DRAW_FG_COLORS = ['#0bf', '#0d7']
 
 const SCREEN_RESOLUTION_TEXT_Y = 15
 
+const DEBUG_INFO_TIME_Y = (GRAPH_Y + GRAPH_HEIGHT) * GRAPH_PANELS_COUNT + GRAPH_SPACING + TEXT_HEIGHT + 5
+
 const DEBUG_INFO_CANVAS_WIDTH = GRAPH_X + GRAPH_WIDTH + GRAPH_SPACING
-const DEBUG_INFO_CANVAS_HEIGHT = (GRAPH_Y + GRAPH_HEIGHT) * GRAPH_PANELS_COUNT + GRAPH_SPACING + TEXT_HEIGHT + 5
+const DEBUG_INFO_CANVAS_HEIGHT = DEBUG_INFO_TIME_Y + TEXT_HEIGHT * 2 + GRAPH_SPACING
 
 debugInfoCanvas.width = DEBUG_INFO_CANVAS_WIDTH
 debugInfoCanvas.height = DEBUG_INFO_CANVAS_HEIGHT
@@ -54,6 +56,12 @@ export function initGraphs() {
   initGraph(0, 'fps')
   initGraph(1, 'ms')
   updateCanvasSize()
+
+  context.fillStyle = '#202'
+  context.fillRect(GRAPH_SPACING, DEBUG_INFO_TIME_Y, DEBUG_INFO_CANVAS_WIDTH - GRAPH_SPACING * 2, TEXT_HEIGHT * 2)
+  context.fillStyle = '#aaf'
+  context.textAlign = 'right'
+  context.fillText('time', GRAPH_WIDTH, DEBUG_INFO_TIME_Y)
 }
 
 function initGraph(index: number, name: string) {
@@ -126,6 +134,18 @@ export function updateCanvasSize() {
   context.fillStyle = '#aae'
   context.textAlign = 'center'
   context.fillText(`${canvas.width}⨯${canvas.height} px`, DEBUG_INFO_CANVAS_WIDTH / 2, 5, GRAPH_WIDTH)
+}
+
+export function updateGraphInfo(timeInSeconds?: number) {
+  if (typeof timeInSeconds === 'number') {
+    context.fillStyle = '#202'
+    context.fillRect(GRAPH_SPACING, DEBUG_INFO_TIME_Y + TEXT_HEIGHT, GRAPH_WIDTH - GRAPH_SPACING, TEXT_HEIGHT)
+
+    context.fillStyle = '#aaf'
+    context.textAlign = 'right'
+
+    context.fillText(timeInSeconds.toFixed(3), GRAPH_WIDTH, DEBUG_INFO_TIME_Y + TEXT_HEIGHT)
+  }
 }
 
 initGraphs()
