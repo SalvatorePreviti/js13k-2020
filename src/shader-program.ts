@@ -19,6 +19,8 @@ export let shaderProgram_iFrame: WebGLUniformLocation
 
 export let shaderProgram_iMouse: WebGLUniformLocation
 
+export let shaderProgram_iCameraPos: WebGLUniformLocation
+
 const loadShaderCode = (type: number, sourceCode: string) => {
   const shader = gl.createShader(type)
   gl.shaderSource(shader, sourceCode)
@@ -72,6 +74,7 @@ const loadShaderProgram = () => {
   shaderProgram_iResolution = getUniformLocation('iResolution')
   shaderProgram_iTime = getUniformLocation('iTime')
   shaderProgram_iFrame = getUniformLocation('iFrame')
+  shaderProgram_iCameraPos = getUniformLocation('iCameraPos')
 }
 
 loadShaderProgram()

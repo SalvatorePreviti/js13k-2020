@@ -32,9 +32,10 @@ const GRAPHS_DRAW_FG_COLORS = ['#0bf', '#0d7']
 const SCREEN_RESOLUTION_TEXT_Y = 15
 
 const DEBUG_INFO_TIME_Y = (GRAPH_Y + GRAPH_HEIGHT) * GRAPH_PANELS_COUNT + GRAPH_SPACING + TEXT_HEIGHT + 5
+const DEBUG_INFO_CAMERA_Y = DEBUG_INFO_TIME_Y + TEXT_HEIGHT * 2 + GRAPH_SPACING
 
 const DEBUG_INFO_CANVAS_WIDTH = GRAPH_X + GRAPH_WIDTH + GRAPH_SPACING
-const DEBUG_INFO_CANVAS_HEIGHT = DEBUG_INFO_TIME_Y + TEXT_HEIGHT * 2 + GRAPH_SPACING
+const DEBUG_INFO_CANVAS_HEIGHT = DEBUG_INFO_CAMERA_Y + TEXT_HEIGHT * 4 + GRAPH_SPACING
 
 debugInfoCanvas.width = DEBUG_INFO_CANVAS_WIDTH
 debugInfoCanvas.height = DEBUG_INFO_CANVAS_HEIGHT
@@ -62,6 +63,16 @@ export function initGraphs() {
   context.fillStyle = '#aaf'
   context.textAlign = 'right'
   context.fillText('time', GRAPH_WIDTH, DEBUG_INFO_TIME_Y)
+
+  context.fillStyle = '#012'
+  context.fillRect(GRAPH_SPACING, DEBUG_INFO_CAMERA_Y, DEBUG_INFO_CANVAS_WIDTH - GRAPH_SPACING * 2, TEXT_HEIGHT * 4)
+  context.fillStyle = '#8ce'
+  context.textAlign = 'right'
+  context.fillText('camera pos', GRAPH_WIDTH, DEBUG_INFO_CAMERA_Y)
+  context.textAlign = 'left'
+  context.fillText('x', GRAPH_SPACING, DEBUG_INFO_CAMERA_Y + TEXT_HEIGHT)
+  context.fillText('y', GRAPH_SPACING, DEBUG_INFO_CAMERA_Y + TEXT_HEIGHT * 2)
+  context.fillText('z', GRAPH_SPACING, DEBUG_INFO_CAMERA_Y + TEXT_HEIGHT * 3)
 }
 
 function initGraph(index: number, name: string) {
@@ -146,6 +157,21 @@ export function updateGraphInfo(timeInSeconds?: number) {
 
     context.fillText(timeInSeconds.toFixed(3), GRAPH_WIDTH, DEBUG_INFO_TIME_Y + TEXT_HEIGHT)
   }
+}
+
+export function updateCameraInfo(position: Readonly<Vec3>) {
+  context.fillStyle = '#012'
+  context.fillRect(
+    GRAPH_SPACING + 8,
+    DEBUG_INFO_CAMERA_Y + TEXT_HEIGHT,
+    GRAPH_WIDTH - GRAPH_SPACING - 8,
+    TEXT_HEIGHT * 3
+  )
+  context.fillStyle = '#9ef'
+  context.textAlign = 'right'
+  context.fillText(position.x.toFixed(3), GRAPH_WIDTH, DEBUG_INFO_CAMERA_Y + TEXT_HEIGHT)
+  context.fillText(position.y.toFixed(3), GRAPH_WIDTH, DEBUG_INFO_CAMERA_Y + TEXT_HEIGHT * 2)
+  context.fillText(position.z.toFixed(3), GRAPH_WIDTH, DEBUG_INFO_CAMERA_Y + TEXT_HEIGHT * 3)
 }
 
 initGraphs()

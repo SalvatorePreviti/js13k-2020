@@ -2,18 +2,20 @@
 precision highp float;
 
 const float PI = 3.14159265359;
-const float fov = 50.0;
 
 // Aspect ratio is fixed to 1.5 by design
 const float SCREEN_ASPECT_RATIO = 1.5;
 
 // The field of view, in radians
-const float PROJECTION_FIELD_OF_VIEW = radians(50.0);
+const float FIELD_OF_VIEW = radians(50.0);
 
 // Projection matrix
-const vec2 PROJECTION_LEN = tan(.5 * PROJECTION_FIELD_OF_VIEW / vec2(1., SCREEN_ASPECT_RATIO));
+const vec2 PROJECTION_LEN = tan(.5 * FIELD_OF_VIEW / vec2(1., SCREEN_ASPECT_RATIO));
 
-// Screen resolution in pixels. z component is always 1
+// Screen position, in pixels. Bottom left is (0, 0), top right is (iResolution.x-1, iResolution.y-1).
+in vec2 fragCoord;
+
+// Screen resolution in pixels.
 uniform vec2 iResolution;
 
 // Time in seconds
@@ -22,8 +24,8 @@ uniform float iTime;
 // Frame index, should not be used but useful for debugging
 uniform int iFrame;
 
-// Screen position, in pixels. Bottom left is (0, 0), top right is (1, 1).
-in vec2 fragCoord;
+// Camera position
+uniform vec3 iCameraPos;
 
 // Output color
 out vec4 oColor;
@@ -77,7 +79,7 @@ void main() {
   vec2 uv = fragCoord / iResolution;
 
   float cameraDistance = 10.0;
-  vec3 cameraPosition = vec3(10.0 * sin(iTime), 2.0, 10.0 * cos(iTime));
+  // vec3 cameraPosition = vec3(10.0 * sin(iTime), 2.0, 10.0 * cos(iTime));
   vec3 cameraDirection = normalize(vec3(-1.0 * sin(iTime), -0.2, -1.0 * cos(iTime)));
   vec3 cameraUp = vec3(0.0, 1.0, 0.0);
 
@@ -85,10 +87,10 @@ void main() {
   vec3 nright = normalize(cross(cameraUp, cameraDirection));
 
   vec3 pixel =
-      cameraPosition + cameraDirection + nright * camUV.x * PROJECTION_LEN.x + cameraUp * camUV.y * PROJECTION_LEN.y;
+      iCameraPos + cameraDirection + nright * camUV.x * PROJECTION_LEN.x + cameraUp * camUV.y * PROJECTION_LEN.y;
 
-  vec3 rayDirection = normalize(pixel - cameraPosition);
+  vec3 rayDirection = normalize(pixel - iCameraPos);
 
-  vec3 pixelColour = intersectWithWorld(cameraPosition, rayDirection);
+  vec3 pixelColour = intersectWithWorld(iCameraPos, rayDirection);
   oColor = vec4(pixelColour, 1.0);
 }

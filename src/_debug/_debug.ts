@@ -1,4 +1,4 @@
-import { updateGraph, updateGraphInfo } from './_debug-info'
+import { updateGraph, updateGraphInfo, updateCameraInfo } from './_debug-info'
 
 export {
   debug_reportClear,
@@ -33,7 +33,7 @@ function debug_exec(fn: () => void | Promise<any>): void | Promise<void> {
 export { debug_exec }
 
 /** Update graphs and the debug info. Call to this function will disappear in release mode. */
-export function debug_updateInfo(timeInSeconds?: number, frameIndex?: number) {
+export function debug_updateInfo(timeInSeconds?: number) {
   const time = performance.now()
 
   ++_fpsFrames
@@ -57,3 +57,5 @@ export function debug_updateInfo(timeInSeconds?: number, frameIndex?: number) {
 
   _msTime = time
 }
+
+export const debug_updateCameraInfo = updateCameraInfo

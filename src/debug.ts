@@ -45,3 +45,5 @@ export const debug_checkShaderProgramLinkStatus = (
   _shaderProgram: WebGLProgram,
   _info: DebugReportInfo
 ): void => undefined
+
+export const debug_updateCameraInfo = (_position: Readonly<Vec3>) => {}
