@@ -222,12 +222,6 @@ export const vec3Project = (out: Vec3Out, a: Vec3In, b: Vec3In) =>
 
 export const vec3Direction = (out: Vec3Out, a: Vec3In, b: Vec3In) => vec3Normalize(vec3Subtract(out, b, a))
 
-/** Direction vector from yaw and pitch */
-export const vec3FromYawAndPitch = (out: Vec3Out, { x: yaw, y: pitch }: Vec2In) => {
-  const cosPitch = cos(pitch)
-  vec3Normalize(vec3Set(out, cos(yaw * cosPitch), sin(pitch), sin(yaw * cosPitch)))
-}
-
 export const vec3Slide = (out: Vec3Out, a: Vec3In, normal: Vec3In) => vec3AddScale(out, a, normal, -vec3Dot(a, normal))
 
 export const vec3Lerp = (out: Vec3Out, a: Vec3In, b: Vec3In, t: number) => vec3SetEachVecVecScalar(out, a, b, t, lerp)

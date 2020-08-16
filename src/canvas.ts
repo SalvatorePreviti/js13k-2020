@@ -1,4 +1,5 @@
 import { min, round } from './math/scalar'
+import { vec2NewValue } from './math/vec2'
 
 export const canvasElement = document.getElementById('C') as HTMLCanvasElement
 
@@ -15,12 +16,7 @@ export const MAIN_ELEMENT_ASPECT_RATIO = 1.5
 export const MAIN_ELEMENT_MAX_WIDTH = 999
 
 /** Keeps track of the actual canvas size, updated on resize. */
-export const canvasSize: Vec2 = {
-  /** Canvas width */
-  x: 0,
-  /** Canvas height */
-  y: 0
-}
+export const canvasSize: Vec2 = vec2NewValue()
 
 /** Handle resize event to update canvas size. */
 const handleResize = () => {

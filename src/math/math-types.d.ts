@@ -7,7 +7,7 @@ interface Vec2 {
   y: float
 }
 
-type Vec2In = Readonly<Vec3>
+type Vec2In = Readonly<Vec2>
 type Vec2Out = Vec2
 
 interface Vec3 {

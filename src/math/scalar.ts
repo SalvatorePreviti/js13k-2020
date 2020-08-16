@@ -159,7 +159,7 @@ export const clamp = (value: number, minimum: number, maximum: number): number =
 
 export const wrapAngleInRadians = (angle: number): number => {
   const x = (angle + PI) % TWO_PI
-  return x < 0 ? x + TWO_PI : x - PI
+  return almostZero(x) ? -PI : x < 0 ? x + TWO_PI : x - PI
 }
 
 export const smoothStep = (from: number, to: number, t: number): number => {
