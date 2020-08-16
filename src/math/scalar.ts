@@ -172,3 +172,45 @@ export const smoothStep = (from: number, to: number, t: number): number => {
 
 export const scalarSnap = (value: number, step: number): number =>
   step !== 0 ? floor(value / step + 0.5) * step : value
+
+export const scalarAdd = (a: number, b: number): number => a + b
+
+export const scalarSubtract = (a: number, b: number): number => a - b
+
+export const scalarMultiply = (a: number, b: number): number => a * b
+
+export const scalarDivide = (a: number, b: number): number => a / b
+
+export const scalarModulus = (a: number, b: number): number => a % b
+
+export const scalarSquared = (value: number): number => value * value
+
+export const scalarNegate = (value: number): number => -value
+
+export const scalarInvert = (value: number): number => 1 / value
+
+export const scalarAddScale = (a: number, b: number, scale: number): number => a + b * scale
+
+export const scalarDistance = (a: number, b: number) => abs(b - a)
+
+export const scalarDistanceSquared = (a: number, b: number) => (b - a) ** 2
+
+export const scalarLengthSquared1 = scalarSquared
+
+export const scalarLengthSquared2 = (a: number, b: number): number => a * a + b * b
+
+export const scalarLengthSquared3 = (a: number, b: number, c: number): number => a * a + b * b + c * c
+
+export const scalarLengthSquared4 = (a: number, b: number, c: number, d: number): number =>
+  a * a + b * b + c * c + d * d
+
+export const scalarLength1 = abs
+
+export const scalarLength2 = (a: number, b: number): number => sqrt(scalarLengthSquared2(a, b))
+
+export const scalarLength3 = (a: number, b: number, c: number): number => sqrt(scalarLengthSquared3(a, b, c))
+
+export const scalarLength4 = (a: number, b: number, c: number, d: number): number =>
+  sqrt(scalarLengthSquared4(a, b, c, d))
+
+export const normalizedFloatToInt16 = (value: number): number => clamp((value * 32767) | 0, -32767, 32767)

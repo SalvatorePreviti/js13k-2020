@@ -11,9 +11,10 @@ import {
 
 import { debug_updateCameraPosition, debug_updateCameraDirection, debug_updateCameraEulerAngles } from './debug'
 import { canvasElement, MAIN_ELEMENT_ASPECT_RATIO } from './canvas'
-import { cos, sin, wrapAngleInRadians, PI, PI_OVER_TWO } from './math/scalar'
+import { cos, sin, wrapAngleInRadians, PI_OVER_TWO } from './math/scalar'
+import { vec3Temp0, vec3Add, vec3ScalarMultiply, vec3Normalize, vec3Cross, VEC3_UNIT_Y } from './math/vec3'
 
-const CAMERA_SPEED_DEFAULT = 5
+const CAMERA_SPEED_DEFAULT = 10
 
 const CAMERA_SPEED_RUN = 20
 
@@ -39,39 +40,42 @@ const updateCameraDirFromEulerAngles = () => {
   debug_updateCameraDirection(cameraDir)
 }
 
-export const updateCamera = (timeDelta: number) => {
-  let movementX = 0
-  let movementY = 0
-  let movementZ = 0
+export const cameraMoveForward = (amount: number) => {
+  cameraPos.x += amount * cameraDir.x
+  cameraPos.z += amount * cameraDir.z
+}
 
-  const speed = isKeyPressed(KEY_RUN) ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT
+export const cameraStrafe = (amount: number) => {
+  vec3Add(cameraPos, vec3ScalarMultiply(vec3Normalize(vec3Cross(vec3Temp0, cameraDir, VEC3_UNIT_Y)), amount))
+}
+
+export const cameraMoveDown = (amount: number) => {
+  cameraPos.y += amount
+}
+
+export const updateCamera = (timeDelta: number) => {
+  const speed = (isKeyPressed(KEY_RUN) ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * timeDelta
 
   if (isKeyPressed(KEY_FORWARD)) {
-    movementZ -= speed
+    cameraMoveForward(speed)
   }
   if (isKeyPressed(KEY_BACKWARD)) {
-    movementZ += speed
+    cameraMoveForward(-speed)
   }
   if (isKeyPressed(KEY_STRAFE_LEFT)) {
-    movementX += speed
+    cameraStrafe(speed)
   }
   if (isKeyPressed(KEY_STRAFE_RIGHT)) {
-    movementX -= speed
+    cameraStrafe(-speed)
   }
   if (isKeyPressed(KEY_FLY_UP)) {
-    movementY -= speed
+    cameraMoveDown(-speed)
   }
   if (isKeyPressed(KEY_FLY_DOWN)) {
-    movementY += speed
+    cameraMoveDown(speed)
   }
 
-  if (movementX || movementY || movementZ) {
-    cameraPos.x += movementX * timeDelta
-    cameraPos.y += movementY * timeDelta
-    cameraPos.z += movementZ * timeDelta
-
-    debug_updateCameraPosition(cameraPos)
-  }
+  debug_updateCameraPosition(cameraPos)
 }
 
 updateCameraDirFromEulerAngles()

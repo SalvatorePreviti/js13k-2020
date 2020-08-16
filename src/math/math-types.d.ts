@@ -7,11 +7,17 @@ interface Vec2 {
   y: float
 }
 
+type Vec2In = Readonly<Vec3>
+type Vec2Out = Vec2
+
 interface Vec3 {
   x: float
   y: float
   z: float
 }
+
+type Vec3In = Readonly<Vec3>
+type Vec3Out = Vec3
 
 interface Vec4 {
   x: float
@@ -19,3 +25,6 @@ interface Vec4 {
   z: float
   w: float
 }
+
+type Vec4In = Readonly<Vec3>
+type Vec4Out = Vec4
