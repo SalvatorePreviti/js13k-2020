@@ -14,8 +14,6 @@ import chalk from 'chalk'
 import cheerio from 'cheerio'
 import type { BuilderMainHtmlExtraction } from './builder-main-html'
 import { cheerioOptions } from '../config/cheerio-options'
-import { esbuildTransform } from '../lib/esbuild'
-import viteConfig from '../config/vite.config'
 
 export async function builderBundle(input: BuilderMainHtmlExtraction, optimize: boolean): Promise<string> {
   devBeginOperation('bundle', optimize ? chalk.greenBright('<optimized>') : chalk.yellow('<unoptimized>'))
@@ -67,17 +65,12 @@ export async function builderBundle(input: BuilderMainHtmlExtraction, optimize: 
 }
 
 export async function builderJsOptimize(globalJs: string, modulesJs: string) {
-  const terserNameCache = {}
-
   devBeginOperation('minify modules')
 
   modulesJs = (
     await terserMinify(
       modulesJs,
-      getTerserMinifyOptions(
-        { sourceType: 'module', mangle: false, preserve_annotations: true, passes: 3 },
-        terserNameCache
-      )
+      getTerserMinifyOptions({ sourceType: 'module', mangle: false, preserve_annotations: true, passes: 3 })
     )
   ).code
 
@@ -100,23 +93,9 @@ export async function builderJsOptimize(globalJs: string, modulesJs: string) {
   }
 
   allJs = (
-    await esbuildTransform(allJs, '__js_modules__.js', {
-      sourcemap: false,
-      target: viteConfig.esbuildTarget,
-      minify: true,
-      minifyIdentifiers: true,
-      minifySyntax: true,
-      minifyWhitespace: true
-    })
-  ).code
-
-  allJs = (
     await terserMinify(
       allJs,
-      getTerserMinifyOptions(
-        { sourceType: 'script', mangle: true, preserve_annotations: true, passes: 5 },
-        terserNameCache
-      )
+      getTerserMinifyOptions({ sourceType: 'script', mangle: true, preserve_annotations: true, passes: 5 })
     )
   ).code
   devEndOperation()
@@ -139,10 +118,7 @@ export async function builderJsOptimize(globalJs: string, modulesJs: string) {
   allJs = (
     await terserMinify(
       allJs,
-      getTerserMinifyOptions(
-        { sourceType: 'script', mangle: false, preserve_annotations: false, passes: 4 },
-        terserNameCache
-      )
+      getTerserMinifyOptions({ sourceType: 'script', mangle: false, preserve_annotations: false, passes: 4 })
     )
   ).code
   devEndOperation()

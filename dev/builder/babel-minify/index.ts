@@ -9,6 +9,9 @@ import babelPluginMinifyTypeConstructors from 'babel-plugin-minify-type-construc
 import babelPluginMergeSiblingVariables from 'babel-plugin-transform-merge-sibling-variables'
 import babelPluginSimplifyComparisonOperators from 'babel-plugin-transform-simplify-comparison-operators'
 import babelPluginMinifyFlipComparisons from 'babel-plugin-minify-flip-comparisons'
+import babelPluginMinifyNumericLiterals from 'babel-plugin-minify-numeric-literals'
+import babelPluginMinifyBuiltins from 'babel-plugin-minify-builtins'
+import babelPluginTransformInlineConsecutiveAdds from 'babel-plugin-transform-inline-consecutive-adds'
 
 import babelPluginMinifyObjectArgs from './babel-plugin-minify-object-args'
 import babelPluginMinifyTemplateLiterals from './babel-plugin-minify-template-literals'
@@ -33,6 +36,7 @@ export function babelMinify(code: string) {
     },
     plugins: [
       babelPluginMinifyDeadCodeElimination,
+      babelPluginTransformInlineConsecutiveAdds,
       babelPluginMinifyEmptyFunction,
       babelPluginMinifyConstantFolding,
       babelPluginMinifySimplify,
@@ -40,6 +44,8 @@ export function babelMinify(code: string) {
       babelPluginMergeSiblingVariables,
       babelPluginMinifyFlipComparisons,
       babelPluginSimplifyComparisonOperators,
+      babelPluginMinifyNumericLiterals,
+      babelPluginMinifyBuiltins,
       babelPluginMinifyObjectArgs,
       babelPluginMinifyTemplateLiterals
     ]

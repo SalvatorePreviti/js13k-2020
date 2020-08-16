@@ -30,6 +30,9 @@ uniform vec3 iCameraPos;
 // Camera directiom
 uniform vec3 iCameraDir;
 
+// Heightmap texture
+uniform sampler2D iHeightmap;
+
 // Output color
 out vec4 oColor;
 
@@ -93,4 +96,6 @@ void main() {
 
   vec3 pixelColour = intersectWithWorld(iCameraPos, rayDirection);
   oColor = vec4(pixelColour, 1.0);
+
+  oColor.x = texture(iHeightmap, uv).x;
 }

@@ -33,8 +33,6 @@ export function getESLintMinifyOptions({ maxPasses, sourceType }: ESLintMinifySe
         env: { browser: true, es2020: true },
         globals: knownBrowserGlobalsAsObject,
         rules: {
-          yoda: 1,
-          eqeqeq: 1,
           quotes: [1, 'single', { avoidEscape: true, allowTemplateLiterals: false }],
           'no-extra-boolean-cast': 1,
           'no-extra-parens': [
