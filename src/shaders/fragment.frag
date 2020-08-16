@@ -40,16 +40,27 @@ out vec4 oColor;
 const float S = 0.01;
 const float EPSILON = 0.01;
 
+// maximums
+const int MAX_ITERATIONS = 50;
+const float MAX_DIST = 200.;
+
 // const delta vectors for normal calculation
 const vec3 deltax = vec3(S, 0, 0);
 const vec3 deltay = vec3(0, S, 0);
 const vec3 deltaz = vec3(0, 0, S);
 
-float distanceToNearestSurface(vec3 p) {
-  vec3 q = vec3(mod(p.x, 3.0) - 1.5, p.yz);
-  float s = 1.0;
-  vec3 d = abs(q) - vec3(s);
+float cuboid(vec3 p, vec3 s) {
+  vec3 d = abs(p) - s;
   return min(max(d.x, max(d.y, d.z)), 0.0) + length(max(d, 0.0));
+}
+
+float terrain(vec3 p) {
+  return p.y - texture(iHeightmap, p.xz / 100.).x * 10.;
+}
+
+float distanceToNearestSurface(vec3 p) {
+  return terrain(p);
+  return cuboid(p, vec3(1));
 }
 
 // better normal implementation with half the sample points
@@ -60,25 +71,37 @@ vec3 computeSurfaceNormal(vec3 p) {
       distanceToNearestSurface(p + deltaz) - d));
 }
 
-vec3 computeLambert(vec3 p, vec3 n, vec3 l) {
-  return vec3(dot(normalize(l - p), n));
+float computeLambert(vec3 p, vec3 n, vec3 l) {
+  return dot(normalize(l - p), n);
 }
 
-vec3 intersectWithWorld(vec3 p, vec3 dir) {
+float rayMarch(vec3 p, vec3 dir) {
   float dist = 0.0;
-  float nearest = 0.0;
-  vec3 result = vec3(0.0);
-  for (int i = 0; i < 40; i++) {
-    nearest = distanceToNearestSurface(p + dir * dist);
-    if (nearest < EPSILON) {
-      vec3 hit = p + dir * dist;
-      vec3 light = vec3(100.0 * sin(iTime), 30.0, 50.0 * cos(iTime));
-      result = computeLambert(hit, computeSurfaceNormal(hit), light);
-      break;
+  for (int i = 0; i < MAX_ITERATIONS && dist < MAX_DIST; i++) {
+    float nearest = distanceToNearestSurface(p + dir * dist);
+    if (abs(nearest) < EPSILON) {
+      return dist;
     }
     dist += nearest;
   }
-  return result;
+  return dist;
+}
+
+vec3 intersectWithWorld(vec3 p, vec3 dir) {
+  float dist = rayMarch(p, dir);
+  if (dist >= MAX_DIST) {
+    return vec3(.4,.8,1); //sky colour
+  }
+
+  vec3 hit = p + dir*dist;
+  vec3 normal = computeSurfaceNormal(hit);
+
+  //calculate lighting:
+  vec3 lightPosition = vec3(100.0 * sin(iTime), 30.0, 50.0 * cos(iTime));
+  float lightIntensity = computeLambert(hit, normal, lightPosition);
+
+  vec3 color = normal.y > 0.9999 ? vec3(.2,.2,1) : vec3(.5,.8,.5);
+  return color * lightIntensity;
 }
 
 void main() {
@@ -96,6 +119,4 @@ void main() {
 
   vec3 pixelColour = intersectWithWorld(iCameraPos, rayDirection);
   oColor = vec4(pixelColour, 1.0);
-
-  oColor.x = texture(iHeightmap, uv).x;
 }
