@@ -10,7 +10,7 @@ import {
 } from './keyboard'
 
 import { debug_updateCameraPosition, debug_updateCameraDirection, debug_updateCameraEulerAngles } from './debug'
-import { canvasElement, MAIN_ELEMENT_ASPECT_RATIO } from './canvas'
+import { canvasElement } from './canvas'
 import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD } from './math/scalar'
 import {
   vec3Temp0,
