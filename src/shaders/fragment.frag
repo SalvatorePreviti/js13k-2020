@@ -125,12 +125,21 @@ float distanceToNearestSurface(vec3 p) {
 }
 
 //s is used to vary the "accuracy" of the normal calculation
-vec3 computeSurfaceNormal(vec3 p, float s) {
-  vec2 S=vec2(s,0);
-  float d = distanceToNearestSurface(p);
-  float a = distanceToNearestSurface(p + S.xyy);
-  float b = distanceToNearestSurface(p + S.yxy);
-  float c = distanceToNearestSurface(p + S.yyx);
+vec3 computeNonTerrainNormal(vec3 p) {
+  vec2 S=vec2(0.1,0);
+  float d = nonTerrain(p);
+  float a = nonTerrain(p + S.xyy);
+  float b = nonTerrain(p + S.yxy);
+  float c = nonTerrain(p + S.yyx);
+  return normalize(vec3(a, b, c) - d);
+}
+
+vec3 computeTerrainNormal(vec3 p) {
+  vec2 S=vec2(1.0,0);
+  float d = terrain(p);
+  float a = terrain(p + S.xyy);
+  float b = terrain(p + S.yxy);
+  float c = terrain(p + S.yyx);
   return normalize(vec3(a, b, c) - d);
 }
 
@@ -164,7 +173,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   int m = material;
 
   vec3 hit = p + dir * dist;
-  vec3 normal = m == 0 ? computeSurfaceNormal(hit, 1.) : computeSurfaceNormal(hit, 0.1);
+  vec3 normal = m == 0 ? computeTerrainNormal(hit) : computeNonTerrainNormal(hit);
 
   // calculate lighting:
   vec3 lightPosition = vec3(0,100,0);
