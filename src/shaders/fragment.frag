@@ -46,7 +46,7 @@ out vec4 oColor;
 const float EPSILON = 0.01;
 
 // maximums
-const int MAX_ITERATIONS = 50;
+const int MAX_ITERATIONS = 55;
 const float MAX_DIST = 200.;
 
 // const delta vectors for normal calculation
@@ -111,20 +111,17 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   vec3 lightPosition = vec3(100.0 * sin(iTime), 30.0, 50.0 * cos(iTime));
   float lightIntensity = computeLambert(hit, normal, lightPosition);
 
-  vec3 color = normal.y > 0.9999 ? vec3(.2, .2, 1) : vec3(.5, .8, .5);
-  return color * lightIntensity;
-}
-
-vec3 calcPrimaryRay(vec2 screen) {
-  return normalize(vec3(-screen.x * SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
+  // vec3 color = normal.y > 0.9999 ? vec3(.2, .2, 1) : vec3(.5, .8, .5);
+  return vec3(.8) * lightIntensity;
 }
 
 void main() {
-  vec2 uv = fragCoord / iResolution;
+  vec2 screen = fragCoord / (iResolution * 0.5) - 1.;
 
-  vec3 rd = iCameraMat3 * calcPrimaryRay(uv * 2.0 - 1.0);
+  vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
 
-  vec3 pixelColour = intersectWithWorld(iCameraPos, rd);
+  vec3 pixelColour = intersectWithWorld(iCameraPos, ray);
   oColor = vec4(pixelColour, 1.0);
-  oColor.x = float(iterations) / (float(MAX_ITERATIONS));
+
+  // oColor.x = float(iterations) / (float(MAX_ITERATIONS));
 }
