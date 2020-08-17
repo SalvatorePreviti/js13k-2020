@@ -25,6 +25,8 @@ export let shaderProgram_iCameraDir: WebGLUniformLocation
 
 export let shaderProgram_iCameraEuler: WebGLUniformLocation
 
+export let shaderProgram_iCameraMat3: WebGLUniformLocation
+
 const loadShaderCode = (type: number, sourceCode: string) => {
   const shader = gl.createShader(type)
   gl.shaderSource(shader, sourceCode)
@@ -81,6 +83,7 @@ const loadShaderProgram = () => {
   shaderProgram_iCameraPos = getUniformLocation('iCameraPos')
   shaderProgram_iCameraDir = getUniformLocation('iCameraDir')
   shaderProgram_iCameraEuler = getUniformLocation('iCameraEuler')
+  shaderProgram_iCameraMat3 = getUniformLocation('iCameraMat3')
 }
 
 loadShaderProgram()

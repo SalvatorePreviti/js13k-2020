@@ -10,7 +10,7 @@ const float SCREEN_ASPECT_RATIO = 1.5;
 const float FIELD_OF_VIEW = radians(50.0);
 
 // Projection matrix
-const vec2 PROJECTION_LEN = tan(.5 * FIELD_OF_VIEW / vec2(1., SCREEN_ASPECT_RATIO));
+const float PROJECTION_LEN = 1. / tan(.5 * FIELD_OF_VIEW);
 
 // Screen position, in pixels. Bottom left is (0, 0), top right is (iResolution.x-1, iResolution.y-1).
 in vec2 fragCoord;
@@ -32,6 +32,9 @@ uniform vec3 iCameraDir;
 
 // Camera rotation x is yaw, y is pitch.
 uniform vec2 iCameraEuler;
+
+// Camera rotation matrix
+uniform mat3 iCameraMat3;
 
 // Heightmap texture
 uniform sampler2D iHeightmap;
@@ -107,19 +110,15 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   return color * lightIntensity;
 }
 
+vec3 calcPrimaryRay(vec2 screen) {
+  return normalize(vec3(-screen.x * SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
+}
+
 void main() {
   vec2 uv = fragCoord / iResolution;
 
-  float cameraDistance = 10.0;
-  vec3 cameraUp = vec3(0.0, 1.0, 0.0);
+  vec3 rd = iCameraMat3 * calcPrimaryRay(uv * 2.0 - 1.0);
 
-  vec2 camUV = uv * 2.0 - vec2(1.0, 1.0);
-  vec3 nright = normalize(cross(cameraUp, iCameraDir));
-
-  vec3 pixel = iCameraPos + iCameraDir + nright * camUV.x * PROJECTION_LEN.x + cameraUp * camUV.y * PROJECTION_LEN.y;
-
-  vec3 rayDirection = normalize(pixel - iCameraPos);
-
-  vec3 pixelColour = intersectWithWorld(iCameraPos, rayDirection);
+  vec3 pixelColour = intersectWithWorld(iCameraPos, rd);
   oColor = vec4(pixelColour, 1.0);
 }

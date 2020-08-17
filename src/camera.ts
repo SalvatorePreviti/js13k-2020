@@ -30,7 +30,7 @@ const CAMERA_SPEED_DEFAULT = 10
 const CAMERA_SPEED_RUN = 20
 
 const MOUSE_ROTATION_SENSITIVITY_X = 0.001
-const MOUSE_ROTATION_SENSITIVITY_Y = MOUSE_ROTATION_SENSITIVITY_X / MAIN_ELEMENT_ASPECT_RATIO
+const MOUSE_ROTATION_SENSITIVITY_Y = MOUSE_ROTATION_SENSITIVITY_X
 
 /** Camera position */
 export const cameraPos: Vec3 = vec3New(0, 1, 20)
@@ -40,6 +40,9 @@ export const cameraEuler: Vec2 = vec2New(0, 0)
 
 /** Camera direction, calculated from cameraEulerAngles */
 export const cameraDir: Vec3 = vec3NewValue()
+
+/** Camera rotation matrix */
+export const cameraMat3: Mat3 = new Float32Array(9)
 
 export const cameraMoveForward = (amount: number) => {
   cameraPos.x += amount * cameraDir.x
@@ -64,10 +67,10 @@ export const updateCamera = (timeDelta: number) => {
     cameraMoveForward(-speed)
   }
   if (isKeyPressed(KEY_STRAFE_LEFT)) {
-    cameraStrafe(speed)
+    cameraStrafe(-speed)
   }
   if (isKeyPressed(KEY_STRAFE_RIGHT)) {
-    cameraStrafe(-speed)
+    cameraStrafe(speed)
   }
   if (isKeyPressed(KEY_FLY_UP)) {
     cameraMoveDown(-speed)
@@ -83,7 +86,23 @@ const updateCameraDirFromEulerAngles = () => {
   //vec3FromYawAndPitch(cameraDir, cameraEulerAngles)
   const { x: yaw, y: pitch } = cameraEuler
 
-  vec3Normalize(vec3Set(cameraDir, sin(-yaw), sin(pitch), cos(-yaw)))
+  const sinYaw = sin(yaw)
+  const cosYaw = cos(yaw)
+  const sinPitch = sin(pitch)
+  const cosPitch = cos(pitch)
+
+  vec3Normalize(vec3Set(cameraDir, sinYaw, sinPitch, cosYaw))
+
+  // Update rotation matrix
+
+  cameraMat3[0] = cosYaw
+  cameraMat3[2] = -sinYaw
+  cameraMat3[3] = sinYaw * sinPitch
+  cameraMat3[4] = cosPitch
+  cameraMat3[5] = cosYaw * sinPitch
+  cameraMat3[6] = sinYaw * cosPitch
+  cameraMat3[7] = -sinPitch
+  cameraMat3[8] = cosYaw * cosPitch
 
   debug_updateCameraEulerAngles(cameraEuler)
   debug_updateCameraDirection(cameraDir)
@@ -102,11 +121,7 @@ canvasElement.addEventListener('mousedown', (e) => {
 document.addEventListener('mousemove', (e) => {
   if (document.pointerLockElement === canvasElement) {
     cameraEuler.x = wrapAngleInRadians(cameraEuler.x - e.movementX * MOUSE_ROTATION_SENSITIVITY_X)
-    cameraEuler.y = clamp(
-      wrapAngleInRadians(cameraEuler.y - e.movementY * MOUSE_ROTATION_SENSITIVITY_Y),
-      -85 * DEG_TO_RAD,
-      85 * DEG_TO_RAD
-    )
+    cameraEuler.y = clamp(cameraEuler.y + e.movementY * MOUSE_ROTATION_SENSITIVITY_Y, -87 * DEG_TO_RAD, 87 * DEG_TO_RAD)
     updateCameraDirFromEulerAngles()
   }
 })

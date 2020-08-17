@@ -8,9 +8,10 @@ import {
   shaderProgram_iFrame,
   shaderProgram_iCameraPos,
   shaderProgram_iCameraDir,
-  shaderProgram_iCameraEuler
+  shaderProgram_iCameraEuler,
+  shaderProgram_iCameraMat3
 } from './shader-program'
-import { cameraPos, updateCamera, cameraDir, cameraEuler } from './camera'
+import { cameraPos, updateCamera, cameraDir, cameraEuler, cameraMat3 } from './camera'
 
 import heightmapUrl from './heightmap.jpg'
 
@@ -79,6 +80,9 @@ const animationFrame = debug_trycatch_wrap(
 
     // Camera rotation, x is yaw and y is pitch
     gl.uniform2f(shaderProgram_iCameraEuler, cameraEuler.x, cameraEuler.y)
+
+    // Camera rotation matrix
+    gl.uniformMatrix3fv(shaderProgram_iCameraMat3, false, cameraMat3)
 
     gl.drawArrays(gl.TRIANGLES, 0, 3)
 
