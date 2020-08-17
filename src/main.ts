@@ -7,9 +7,10 @@ import {
   shaderProgram_iTime,
   shaderProgram_iFrame,
   shaderProgram_iCameraPos,
-  shaderProgram_iCameraDir
+  shaderProgram_iCameraDir,
+  shaderProgram_iCameraEuler
 } from './shader-program'
-import { cameraPos, updateCamera, cameraDir } from './camera'
+import { cameraPos, updateCamera, cameraDir, cameraEuler } from './camera'
 
 import heightmapUrl from './heightmap.jpg'
 
@@ -32,20 +33,22 @@ function loadHeightmapTexture() {
   const pixel = new Uint8Array([0, 0, 0, 0])
   gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, pixel)
 
+  gl.hint(gl.GENERATE_MIPMAP_HINT, gl.NICEST)
+
   const image = new Image()
   image.onload = () => {
     gl.bindTexture(gl.TEXTURE_2D, texture)
     gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, srcFormat, srcType, image)
 
-    gl.generateMipmap(gl.TEXTURE_2D)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
   }
   image.src = heightmapUrl
 }
 
-const heightmapTexture = loadHeightmapTexture()
+loadHeightmapTexture()
 
 const animationFrame = debug_trycatch_wrap(
   (timeMilliseconds: number) => {
@@ -73,6 +76,9 @@ const animationFrame = debug_trycatch_wrap(
 
     // Camera direction
     gl.uniform3f(shaderProgram_iCameraDir, cameraDir.x, cameraDir.y, cameraDir.z)
+
+    // Camera rotation, x is yaw and y is pitch
+    gl.uniform2f(shaderProgram_iCameraEuler, cameraEuler.x, cameraEuler.y)
 
     gl.drawArrays(gl.TRIANGLES, 0, 3)
 

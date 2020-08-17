@@ -30,6 +30,9 @@ uniform vec3 iCameraPos;
 // Camera directiom
 uniform vec3 iCameraDir;
 
+// Camera rotation x is yaw, y is pitch.
+uniform vec2 iCameraEuler;
+
 // Heightmap texture
 uniform sampler2D iHeightmap;
 
@@ -90,17 +93,17 @@ float rayMarch(vec3 p, vec3 dir) {
 vec3 intersectWithWorld(vec3 p, vec3 dir) {
   float dist = rayMarch(p, dir);
   if (dist >= MAX_DIST) {
-    return vec3(.4,.8,1); //sky colour
+    return vec3(.4, .8, 1);  // sky colour
   }
 
-  vec3 hit = p + dir*dist;
+  vec3 hit = p + dir * dist;
   vec3 normal = computeSurfaceNormal(hit);
 
-  //calculate lighting:
+  // calculate lighting:
   vec3 lightPosition = vec3(100.0 * sin(iTime), 30.0, 50.0 * cos(iTime));
   float lightIntensity = computeLambert(hit, normal, lightPosition);
 
-  vec3 color = normal.y > 0.9999 ? vec3(.2,.2,1) : vec3(.5,.8,.5);
+  vec3 color = normal.y > 0.9999 ? vec3(.2, .2, 1) : vec3(.5, .8, .5);
   return color * lightIntensity;
 }
 

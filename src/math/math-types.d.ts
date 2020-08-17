@@ -28,3 +28,11 @@ interface Vec4 {
 
 type Vec4In = Readonly<Vec3>
 type Vec4Out = Vec4
+
+type Mat3 = Float32Array
+type Mat3In = Float32Array
+type Mat3Out = Float32Array
+
+type Mat4 = Float32Array
+type Mat4In = Float32Array
+type Mat4Out = Float32Array
