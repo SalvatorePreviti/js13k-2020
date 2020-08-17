@@ -59,7 +59,7 @@ float terrain(vec3 p) {
 }
 
 float water(vec3 p) {
-  return p.y - .2+sin(iTime + p.z)*.1;
+  return p.y - .2 + sin(iTime + p.z) * .1;
 }
 
 int material = 0;
@@ -67,7 +67,7 @@ int material = 0;
 float distanceToNearestSurface(vec3 p) {
   float t = terrain(p);
   float w = water(p);
-  if (w<t) {
+  if (w < t) {
     material = 1;
     return w;
   }
@@ -75,9 +75,9 @@ float distanceToNearestSurface(vec3 p) {
   return t;
 }
 
-//s is used to vary the "accuracy" of the normal calculation
+// s is used to vary the "accuracy" of the normal calculation
 vec3 computeSurfaceNormal(vec3 p, float s) {
-  vec2 S=vec2(s,0);
+  vec2 S = vec2(s, 0);
   float d = distanceToNearestSurface(p);
   float a = distanceToNearestSurface(p + S.xyy);
   float b = distanceToNearestSurface(p + S.yxy);
@@ -99,7 +99,7 @@ float rayMarch(vec3 p, vec3 dir) {
     }
     if (nearest < 0.) {
       dist -= prevNear;
-      nearest = prevNear/3.;
+      nearest = prevNear / 3.;
     }
     prevNear = nearest;
     dist += nearest;
@@ -109,7 +109,7 @@ float rayMarch(vec3 p, vec3 dir) {
 
 vec3 intersectWithWorld(vec3 p, vec3 dir) {
   float dist = rayMarch(p, dir);
-  if (dist >= MAX_DIST-1.) {
+  if (dist >= MAX_DIST - 1.) {
     return vec3(.4, .8, 1);  // sky colour
   }
   int m = material;
@@ -118,10 +118,10 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   vec3 normal = m == 0 ? computeSurfaceNormal(hit, 1.) : computeSurfaceNormal(hit, 0.1);
 
   // calculate lighting:
-  vec3 lightPosition = vec3(0,100,0);
+  vec3 lightPosition = vec3(0, 100, 0);
   float lightIntensity = computeLambert(hit, normal, lightPosition);
 
-  vec3 color = m == 0 ? vec3(.8) : vec3(vec2(sin(iTime + hit.z)*.2+.2),1);
+  vec3 color = m == 0 ? vec3(.8) : vec3(vec2(sin(iTime + hit.z) * .2 + .2), 1);
   return color * lightIntensity;
 }
 

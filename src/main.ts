@@ -108,6 +108,10 @@ if (import.meta.hot) {
   const reloadHeightmap = () => {
     debug_log('reloading heightmap')
     buildHeightmapTexture()
+
+    // TODO: remove this, is temporary -
+    reloadMainShader()
+
     gl.useProgram(shaderProgram) // Switch back to the main program
   }
 
