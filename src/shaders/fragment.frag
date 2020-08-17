@@ -43,7 +43,6 @@ uniform sampler2D iHeightmap;
 out vec4 oColor;
 
 // epsilon-type values
-const float S = 0.01;
 const float EPSILON = 0.01;
 
 // maximums
@@ -51,6 +50,7 @@ const int MAX_ITERATIONS = 50;
 const float MAX_DIST = 200.;
 
 // const delta vectors for normal calculation
+const float S = 0.01;
 const vec3 deltax = vec3(S, 0, 0);
 const vec3 deltay = vec3(0, S, 0);
 const vec3 deltaz = vec3(0, 0, S);
@@ -73,13 +73,17 @@ float distanceToNearestSurface(vec3 p) {
 // used in the blog post method
 vec3 computeSurfaceNormal(vec3 p) {
   float d = distanceToNearestSurface(p);
-  return normalize(vec3(distanceToNearestSurface(p + deltax) - d, distanceToNearestSurface(p + deltay) - d,
-      distanceToNearestSurface(p + deltaz) - d));
+  float a = distanceToNearestSurface(p + deltax);
+  float b = distanceToNearestSurface(p + deltay);
+  float c = distanceToNearestSurface(p + deltaz);
+  return normalize(vec3(a, b, c) - d);
 }
 
 float computeLambert(vec3 p, vec3 n, vec3 l) {
   return dot(normalize(l - p), n);
 }
+
+int iterations = 0;
 
 float rayMarch(vec3 p, vec3 dir) {
   float dist = 0.0;
@@ -88,6 +92,7 @@ float rayMarch(vec3 p, vec3 dir) {
     if (abs(nearest) < EPSILON) {
       return dist;
     }
+    ++iterations;
     dist += nearest;
   }
   return dist;
@@ -121,4 +126,5 @@ void main() {
 
   vec3 pixelColour = intersectWithWorld(iCameraPos, rd);
   oColor = vec4(pixelColour, 1.0);
+  oColor.x = float(iterations) / (float(MAX_ITERATIONS));
 }
