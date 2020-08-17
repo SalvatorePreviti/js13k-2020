@@ -1,7 +1,7 @@
 import './css/styles.less'
-import { gl } from './gl'
+import { gl, glDrawFullScreenTriangle } from './gl'
 import { canvasSize } from './canvas'
-import { debug_updateInfo, debug_trycatch_wrap } from './debug'
+import { debug_updateInfo, debug_trycatch_wrap, debug_log } from './debug'
 import {
   shaderProgram_iResolution,
   shaderProgram_iTime,
@@ -9,11 +9,14 @@ import {
   shaderProgram_iCameraPos,
   shaderProgram_iCameraDir,
   shaderProgram_iCameraEuler,
-  shaderProgram_iCameraMat3
+  shaderProgram_iCameraMat3,
+  loadMainShaderProgram,
+  shaderProgram
 } from './shader-program'
 import { cameraPos, updateCamera, cameraDir, cameraEuler, cameraMat3 } from './camera'
 
 import heightmapUrl from './heightmap.jpg'
+import { buildHeightmapTexture } from './heightmap'
 
 let frameIndex: number = 1
 let prevTime = 0
@@ -49,7 +52,9 @@ function loadHeightmapTexture() {
   image.src = heightmapUrl
 }
 
+buildHeightmapTexture()
 loadHeightmapTexture()
+loadMainShaderProgram()
 
 const animationFrame = debug_trycatch_wrap(
   (timeMilliseconds: number) => {
@@ -84,7 +89,7 @@ const animationFrame = debug_trycatch_wrap(
     // Camera rotation matrix
     gl.uniformMatrix3fv(shaderProgram_iCameraMat3, false, cameraMat3)
 
-    gl.drawArrays(gl.TRIANGLES, 0, 3)
+    glDrawFullScreenTriangle()
 
     frameIndex++
     prevTime = time
@@ -93,3 +98,24 @@ const animationFrame = debug_trycatch_wrap(
 )
 
 requestAnimationFrame(animationFrame)
+
+if (import.meta.hot) {
+  const reloadMainShader = () => {
+    debug_log('reloading main shader')
+    loadMainShaderProgram()
+  }
+
+  const reloadHeightmap = () => {
+    debug_log('reloading heightmap')
+    buildHeightmapTexture()
+    gl.useProgram(shaderProgram) // Switch back to the main program
+  }
+
+  import.meta.hot.on('/src/shaders/vertex.vert', () => {
+    reloadHeightmap()
+    reloadMainShader()
+  })
+
+  import.meta.hot.on('/src/shaders/fragment.frag', reloadMainShader)
+  import.meta.hot.on('/src/shaders/heightmap.frag', reloadHeightmap)
+}

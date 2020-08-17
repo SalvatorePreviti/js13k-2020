@@ -19,6 +19,12 @@ export {
 /** Prints debug information. Call to debug_log will disappear in release mode. */
 export const debug_log = console.log.bind(console)
 
+/** Console.time, only for development mode */
+export const debug_time = console.time.bind(console)
+
+/** Console.timeEnd, only for development mode */
+export const debug_timeEnd = console.timeEnd.bind(console)
+
 debug_log('debug mode activated')
 
 let _msTime = performance.now()
