@@ -192,9 +192,9 @@ float rayMarch(vec3 p, vec3 dir) {
 
     if (nearest < 0.) {
       dist -= prevNear;
-      nearest = prevNear / 3.;
+      nearest = prevNear / 2.;
     }
-    prevNear = nearest;
+
     dist += nearest;
 
     float distPercent = dist / MAX_DIST;
@@ -202,6 +202,8 @@ float rayMarch(vec3 p, vec3 dir) {
     if (abs(nearest) < epsilon || distPercent > 1.) {
       break;
     }
+
+    prevNear = nearest;
   }
   return dist;
 }
