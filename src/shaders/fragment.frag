@@ -181,13 +181,13 @@ float computeLambert(vec3 p, vec3 n, vec3 l) {
   return dot(normalize(l - p), n);
 }
 
-float iterations = 0.;
+// float iterations = 0.;
 
 float rayMarch(vec3 p, vec3 dir) {
   float dist = 0.0;
   float prevNear = MAX_DIST;
   for (int i = 0; i < MAX_ITERATIONS; i++) {
-    ++iterations;
+    //++iterations;
     float nearest = distanceToNearestSurface(p + dir * dist);
 
     if (nearest < 0.) {
@@ -234,7 +234,7 @@ void main() {
 
   // oColor = vec4(unpackFloat(texture(iHeightmap, (screen + 1.) * .5)));
 
-  oColor.x = float(iterations) / (float(MAX_ITERATIONS));
+  // oColor.x = float(iterations) / (float(MAX_ITERATIONS));
   // oColor.y = float(iterations) / (float(MAX_ITERATIONS));
   // oColor.z = float(iterations) / (float(MAX_ITERATIONS));
 }
