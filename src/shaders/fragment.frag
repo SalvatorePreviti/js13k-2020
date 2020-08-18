@@ -47,7 +47,7 @@ const float EPSILON = 0.01;
 
 // maximums
 const int MAX_ITERATIONS = 100;
-const float MAX_DIST = 1000.;
+const float MAX_DIST = 500.;
 
 float unpackFloat(vec4 rgba) {
   return dot(rgba, vec4(1.0, 1. / 255., 1. / 65025., 1. / 160581375.));
@@ -58,34 +58,91 @@ float cuboid(vec3 p, vec3 s) {
   return min(max(d.x, max(d.y, d.z)), 0.0) + length(max(d, 0.0));
 }
 
-float terrain(vec3 p) {
-  return p.y - unpackFloat(texture(iHeightmap, p.xz / 1000.)) * 98.;
+float cylinder(vec3 p, float r, float l) {
+  float d = length(p.xy) - r;
+  d = max(d, abs(p.z) - l);
+  return d;
+}
+
+// hg_sdf: http://mercury.sexy/hg_sdf/
+// splits world up with limits
+float pModInterval(inout float p, float size, float start, float stop) {
+  float halfsize = size * 0.5;
+  float c = floor((p + halfsize) / size);
+  p = mod(p + halfsize, size) - halfsize;
+  if (c > stop) {
+    p += size * (c - stop);
+    c = stop;
+  }
+  if (c < start) {
+    p += size * (c - start);
+    c = start;
+  }
+  return c;
+}
+
+// s is number of segments (*2 + 1, so 5 = 11 segments)
+float bridge(vec3 p, float s) {
+  p.y += cos(p.z * 2. / s);
+  p.x = abs(p.x);
+  float ropes = cylinder(p - vec3(.8, 1., 0), .05, s);
+  pModInterval(p.z, 1.0, -s, s);
+  ropes = min(ropes, cylinder(p.xzy - vec3(.8, 0, .5), .05, .5));
+  float boards = cuboid(p, vec3(.8, .05, .4));
+  return min(boards, ropes);
 }
 
 float water(vec3 p) {
   return p.y - .2 + sin(iTime + p.z) * .1;
 }
 
+float terrain(vec3 p) {
+  return p.y - unpackFloat(texture(iHeightmap, p.xz / 500.)) * 98.;
+
+  // return p.y - texture(iHeightmap, p.xz / 100.).x * 8.;
+}
+
+mat2 rot(float a) {
+  float c = cos(a), s = sin(a);
+  return mat2(c, s, -s, c);
+}
+
+float nonTerrain(vec3 p) {
+  float w = water(p);
+  p.xz *= rot(.4);
+  float b = bridge(p - vec3(60, 6.5, 25), 10.);
+  return min(w, b);
+}
+
 int material = 0;
 
 float distanceToNearestSurface(vec3 p) {
   float t = terrain(p);
-  float w = water(p);
-  if (w < t) {
-    material = 1;
-    return w;
+  float n = nonTerrain(p);
+  if (t < n) {
+    material = 0;
+    return t;
   }
-  material = 0;
-  return t;
+  material = 1;
+  return n;
 }
 
 // s is used to vary the "accuracy" of the normal calculation
-vec3 computeSurfaceNormal(vec3 p, float s) {
-  vec2 S = vec2(s, 0);
-  float d = distanceToNearestSurface(p);
-  float a = distanceToNearestSurface(p + S.xyy);
-  float b = distanceToNearestSurface(p + S.yxy);
-  float c = distanceToNearestSurface(p + S.yyx);
+vec3 computeNonTerrainNormal(vec3 p) {
+  vec2 S = vec2(0.1, 0);
+  float d = nonTerrain(p);
+  float a = nonTerrain(p + S.xyy);
+  float b = nonTerrain(p + S.yxy);
+  float c = nonTerrain(p + S.yyx);
+  return normalize(vec3(a, b, c) - d);
+}
+
+vec3 computeTerrainNormal(vec3 p) {
+  vec2 S = vec2(1.0, 0);
+  float d = terrain(p);
+  float a = terrain(p + S.xyy);
+  float b = terrain(p + S.yxy);
+  float c = terrain(p + S.yyx);
   return normalize(vec3(a, b, c) - d);
 }
 
@@ -119,13 +176,13 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   int m = material;
 
   vec3 hit = p + dir * dist;
-  vec3 normal = m == 0 ? computeSurfaceNormal(hit, 1.) : computeSurfaceNormal(hit, 0.1);
+  vec3 normal = m == 0 ? computeTerrainNormal(hit) : computeNonTerrainNormal(hit);
 
   // calculate lighting:
   vec3 lightPosition = vec3(0, 100, 0);
   float lightIntensity = computeLambert(hit, normal, lightPosition);
 
-  vec3 color = m == 0 ? vec3(.8) : vec3(vec2(sin(iTime + hit.z) * .2 + .2), 1);
+  vec3 color = vec3(.8);
   return color * lightIntensity;
 }
 
