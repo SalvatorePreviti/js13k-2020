@@ -13,7 +13,7 @@ export const MAIN_ELEMENT_PADDING = 30
 export const MAIN_ELEMENT_ASPECT_RATIO = 1.5
 
 /** The maximum width of the main element, and the canvas. */
-export const MAIN_ELEMENT_MAX_WIDTH = 999
+export const MAIN_ELEMENT_MAX_WIDTH = 1400
 
 /** Keeps track of the actual canvas size, updated on resize. */
 export const canvasSize: Vec2 = vec2NewValue()
