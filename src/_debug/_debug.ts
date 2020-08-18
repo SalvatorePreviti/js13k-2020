@@ -32,6 +32,8 @@ let _fpsFrames = 0
 let _fpsTime = _msTime
 let _msDisplayTime = _msTime
 let _durationMs = 0
+let _renderTimeStart = 0
+let _renderTimeMs = 0
 
 /**
  * Executes a function. This call and the called function will disappear in release mode.
@@ -46,11 +48,15 @@ function debug_exec(fn: () => void | Promise<any>): void | Promise<void> {
 export { debug_exec }
 
 /** Update graphs and the debug info. Call to this function will disappear in release mode. */
-export function debug_updateInfo(timeInSeconds?: number) {
+export function debug_beginTime() {
   const time = performance.now()
+  _renderTimeStart = time
 
   ++_fpsFrames
+}
 
+export function debug_endTime(timeInSeconds?: number) {
+  const time = performance.now()
   if (time >= _fpsTime + 1000) {
     const fps = (_fpsFrames * 1000) / (time - _fpsTime)
     updateGraph(0, 65, fps, fps.toFixed(1))
@@ -62,12 +68,14 @@ export function debug_updateInfo(timeInSeconds?: number) {
     _msDisplayTime = time
     updateGraph(1, 200, _durationMs, _durationMs.toFixed(2))
     _durationMs = 0
+    updateGraph(2, 30, _renderTimeMs, _renderTimeMs.toFixed(2))
+    _renderTimeMs = 0
   }
 
   updateGraphInfo(timeInSeconds)
 
   _durationMs = max(_durationMs, time - _msTime)
-
+  _renderTimeMs = max(_renderTimeMs, time - _renderTimeStart)
   _msTime = time
 }
 

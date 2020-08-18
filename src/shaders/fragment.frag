@@ -43,7 +43,8 @@ uniform sampler2D iHeightmap;
 out vec4 oColor;
 
 // epsilon-type values
-const float EPSILON = 0.01;
+const float MIN_EPSILON = 0.01;
+const float MAX_EPSILON = 0.35;
 
 // maximums
 const int MAX_ITERATIONS = 100;
@@ -55,7 +56,7 @@ float unpackFloat(vec4 rgba) {
 
 //=== PRIMITIVES ===
 float sphere(vec3 p, float s) {
-  return length(p)-s;
+  return length(p) - s;
 }
 
 float cuboid(vec3 p, vec3 s) {
@@ -87,9 +88,8 @@ float pModInterval(inout float p, float size, float start, float stop) {
   return c;
 }
 
-float opOnion( in float sdf, in float thickness )
-{
-    return abs(sdf)-thickness;
+float opOnion(in float sdf, in float thickness) {
+  return abs(sdf) - thickness;
 }
 
 mat2 rot(float a) {
@@ -110,27 +110,23 @@ float bridge(vec3 p, float s) {
   return min(boards, ropes);
 }
 
-//rotation.x controls elevation/altitude, rotation.y controls azimuth
+// rotation.x controls elevation/altitude, rotation.y controls azimuth
 float antenna(vec3 p, vec2 rotation) {
   float size = 30.;
   p.y -= size;
   vec3 q = p;
   q.xz *= rot(rotation.y);
   q.xy *= rot(rotation.x);
-  q.y-=size;
-  float r = max(
-    opOnion(
-      sphere(q, size), 
-      size/50.
-    ), 
-    q.y+size/2. //cut the sphere part-way up
+  q.y -= size;
+  float r = max(opOnion(sphere(q, size), size / 50.),
+      q.y + size / 2.  // cut the sphere part-way up
   );
-  r = min(r, cylinder(q.xzy+vec3(0,0,size*.5),size*.02, size*.5));
-  r = min(r, sphere(q, size/20.));
-  p.y += size*.75;
-  r = min(r, cuboid(p,vec3(size/4., size/3., size/2.)));
-  p.y -= size*.25;
-  r = min(r, cylinder(p.xzy,size*.05,size*.5));
+  r = min(r, cylinder(q.xzy + vec3(0, 0, size * .5), size * .02, size * .5));
+  r = min(r, sphere(q, size / 20.));
+  p.y += size * .75;
+  r = min(r, cuboid(p, vec3(size / 4., size / 3., size / 2.)));
+  p.y -= size * .25;
+  r = min(r, cylinder(p.xzy, size * .05, size * .5));
   return r;
 }
 
@@ -147,7 +143,7 @@ float nonTerrain(vec3 p) {
   p.xz *= rot(.4);
   float b = bridge(p - vec3(60, 6.5, 25), 10.);
   float a = antenna(p - vec3(380, 35, 80), vec2(0.5, iTime));
-  return min(w, min(b,a));
+  return min(w, min(b, a));
 }
 
 int material = 0;
@@ -185,20 +181,27 @@ float computeLambert(vec3 p, vec3 n, vec3 l) {
   return dot(normalize(l - p), n);
 }
 
+float iterations = 0.;
+
 float rayMarch(vec3 p, vec3 dir) {
   float dist = 0.0;
   float prevNear = MAX_DIST;
-  for (int i = 0; i < MAX_ITERATIONS && dist < MAX_DIST; i++) {
+  for (int i = 0; i < MAX_ITERATIONS; i++) {
+    ++iterations;
     float nearest = distanceToNearestSurface(p + dir * dist);
-    if (abs(nearest) < EPSILON) {
-      return dist;
-    }
+
     if (nearest < 0.) {
       dist -= prevNear;
       nearest = prevNear / 3.;
     }
     prevNear = nearest;
     dist += nearest;
+
+    float distPercent = dist / MAX_DIST;
+    float epsilon = mix(MIN_EPSILON, MAX_EPSILON, distPercent * distPercent);
+    if (abs(nearest) < epsilon || distPercent > 1.) {
+      break;
+    }
   }
   return dist;
 }
@@ -231,5 +234,7 @@ void main() {
 
   // oColor = vec4(unpackFloat(texture(iHeightmap, (screen + 1.) * .5)));
 
-  // oColor.x = float(iterations) / (float(MAX_ITERATIONS));
+  oColor.x = float(iterations) / (float(MAX_ITERATIONS));
+  // oColor.y = float(iterations) / (float(MAX_ITERATIONS));
+  // oColor.z = float(iterations) / (float(MAX_ITERATIONS));
 }

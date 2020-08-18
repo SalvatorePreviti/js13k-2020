@@ -21,8 +21,11 @@ export const debug_timeEnd = (_label: string): void => undefined
 /** Executes a piece of code only when running in development mode in the browser */
 export const debug_exec = <T>(_fn: () => T): void => undefined
 
-/** Updates the debug info HUD, must be called every frame */
-export const debug_updateInfo = (_timeInSeconds?: number): void => undefined
+/** To be called on frame begin */
+export const debug_beginTime = (): void => undefined
+
+/** To be called on frame end */
+export const debug_endTime = (_timeInSeconds?: number): void => undefined
 
 /** Shows a message on screen */
 export const debug_report = (
