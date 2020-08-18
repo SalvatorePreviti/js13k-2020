@@ -1,14 +1,14 @@
-import { gl, loadShaderProgram, glDrawFullScreenTriangle } from './gl'
+import { gl, loadShaderProgram, glDrawFullScreenTriangle, glSetTextureLinearSampling } from './gl'
 
 import { code as vertexShaderCode } from './shaders/vertex.vert'
 import { code as heightmapShaderCode } from './shaders/heightmap.frag'
 import { debug_time, debug_timeEnd } from './debug'
 
-export const HEIGHTMAP_TETURE_SIZE = 1024
+export const HEIGHTMAP_TETURE_SIZE = 4096
 
 export const heightmapTexture: WebGLTexture = gl.createTexture()
 
-export const buildHeightmapTexture = () => {
+export const buildHeightmapTexture = (seed: number = 0) => {
   debug_time(buildHeightmapTexture.name)
 
   gl.bindTexture(gl.TEXTURE_2D, heightmapTexture)
@@ -24,9 +24,7 @@ export const buildHeightmapTexture = () => {
     null
   )
 
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+  glSetTextureLinearSampling()
 
   // Create and bind the framebuffer
 
@@ -41,10 +39,10 @@ export const buildHeightmapTexture = () => {
 
   const shaderProgram = loadShaderProgram(vertexShaderCode, heightmapShaderCode, 'heightmap')
   gl.uniform2f(gl.getUniformLocation(shaderProgram, 'iResolution'), HEIGHTMAP_TETURE_SIZE, HEIGHTMAP_TETURE_SIZE)
+  gl.uniform1f(gl.getUniformLocation(shaderProgram, 'iTime'), seed)
 
   // Render
 
-  gl.clearColor(0, 0, 1, 1)
   glDrawFullScreenTriangle()
 
   gl.finish()
@@ -54,6 +52,8 @@ export const buildHeightmapTexture = () => {
   gl.bindFramebuffer(gl.FRAMEBUFFER, null)
   gl.deleteProgram(shaderProgram)
   gl.deleteFramebuffer(fb)
+
+  gl.bindTexture(gl.TEXTURE_2D, heightmapTexture)
 
   debug_timeEnd(buildHeightmapTexture.name)
 }

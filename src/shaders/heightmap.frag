@@ -1,5 +1,8 @@
 #version 300 es
 precision highp float;
+precision highp int;
+
+const uint RANDOM_SEED = 4398249u;
 
 const float PI = 3.14159265359;
 
@@ -12,135 +15,109 @@ uniform vec2 iResolution;
 // Output color
 out vec4 oColor;
 
-/*
-const mat2 m = mat2(0.8, -0.6, 0.6, 0.8);
-
-vec4 permute(vec4 x) {
-  return mod(((x * 34.0) + 1.0) * x, 289.0);
-}
-vec4 taylorInvSqrt(vec4 r) {
-  return 1.79284291400159 - 0.85373472095314 * r;
+vec4 packFloat(float v) {
+  vec4 enc = clamp(v, 0., 1.) * (vec4(1., 255., 65025., 160581375.) * .999998);
+  enc = fract(enc);
+  enc -= enc.yzww * vec4(1. / 255., 1. / 255., 1. / 255., 0.);
+  return enc;
 }
 
-float snoise(vec3 v) {
-  const vec2 C = vec2(1.0 / 6.0, 1.0 / 3.0);
-  const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+///////////////////////////
 
-  // First corner
-  vec3 i = floor(v + dot(v, C.yyy));
-  vec3 x0 = v - i + dot(i, C.xxx);
-
-  // Other corners
-  vec3 g = step(x0.yzx, x0.xyz);
-  vec3 l = 1.0 - g;
-  vec3 i1 = min(g.xyz, l.zxy);
-  vec3 i2 = max(g.xyz, l.zxy);
-
-  //  x0 = x0 - 0. + 0.0 * C
-  vec3 x1 = x0 - i1 + 1.0 * C.xxx;
-  vec3 x2 = x0 - i2 + 2.0 * C.xxx;
-  vec3 x3 = x0 - 1. + 3.0 * C.xxx;
-
-  // Permutations
-  i = mod(i, 289.0);
-  vec4 p = permute(permute(permute(i.z + vec4(0.0, i1.z, i2.z, 1.0)) + i.y + vec4(0.0, i1.y, i2.y, 1.0)) + i.x +
-      vec4(0.0, i1.x, i2.x, 1.0));
-
-  // Gradients
-  // ( N*N points uniformly over a square, mapped onto an octahedron.)
-  float n_ = 1.0 / 7.0;  // N=7
-  vec3 ns = n_ * D.wyz - D.xzx;
-
-  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,N*N)
-
-  vec4 x_ = floor(j * ns.z);
-  vec4 y_ = floor(j - 7.0 * x_);  // mod(j,N)
-
-  vec4 x = x_ * ns.x + ns.yyyy;
-  vec4 y = y_ * ns.x + ns.yyyy;
-  vec4 h = 1.0 - abs(x) - abs(y);
-
-  vec4 b0 = vec4(x.xy, y.xy);
-  vec4 b1 = vec4(x.zw, y.zw);
-
-  vec4 s0 = floor(b0) * 2.0 + 1.0;
-  vec4 s1 = floor(b1) * 2.0 + 1.0;
-  vec4 sh = -step(h, vec4(0.0));
-
-  vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
-  vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
-
-  vec3 p0 = vec3(a0.xy, h.x);
-  vec3 p1 = vec3(a0.zw, h.y);
-  vec3 p2 = vec3(a1.xy, h.z);
-  vec3 p3 = vec3(a1.zw, h.w);
-
-  // Normalise gradients
-  vec4 norm = taylorInvSqrt(vec4(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));
-  p0 *= norm.x;
-  p1 *= norm.y;
-  p2 *= norm.z;
-  p3 *= norm.w;
-
-  // Mix final noise value
-  vec4 m = max(0.6 - vec4(dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)), 0.0);
-  m = m * m;
-  return 42.0 * dot(m * m, vec4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
+float rand(float n) {
+  return fract(cos(n * 89.42) * 343.42);
+}
+vec2 rand(vec2 n) {
+  return vec2(rand(n.x * 23.62 - 300.0 + n.y * 34.35), rand(n.x * 45.13 + 256.0 + n.y * 38.89));
 }
 
-vec4 noised(in vec3 x) {
-  vec3 p = floor(x);
-  vec3 w = fract(x);
-
-  vec3 u = w * w * w * (w * (w * 6.0 - 15.0) + 10.0);
-  vec3 du = 30.0 * w * w * (w * (w - 2.0) + 1.0);
-
-  float a = snoise(p + vec3(0, 0, 0));
-  float b = snoise(p + vec3(1, 0, 0));
-  float c = snoise(p + vec3(0, 1, 0));
-  float d = snoise(p + vec3(1, 1, 0));
-  float e = snoise(p + vec3(0, 0, 1));
-  float f = snoise(p + vec3(1, 0, 1));
-  float g = snoise(p + vec3(0, 1, 1));
-  float h = snoise(p + vec3(1, 1, 1));
-
-  float k0 = a;
-  float k1 = b - a;
-  float k2 = c - a;
-  float k3 = e - a;
-  float k4 = a - b - c + d;
-  float k5 = a - c - e + g;
-  float k6 = a - b - e + f;
-  float k7 = -a + b + c - d + e - f - g + h;
-
-  return vec4(-1.0 +
-          2.0 *
-              (k0 + k1 * u.x + k2 * u.y + k3 * u.z + k4 * u.x * u.y + k5 * u.y * u.z + k6 * u.z * u.x +
-                  k7 * u.x * u.y * u.z),
-      2.0 * du *
-          vec3(k1 + k4 * u.y + k6 * u.z + k7 * u.y * u.z, k2 + k5 * u.z + k4 * u.x + k7 * u.z * u.x,
-              k3 + k6 * u.x + k5 * u.y + k7 * u.x * u.y));
-}
-
-uniform float iTime;
-
-float terrain(in vec2 p) {
-  float a = 0.1;
-  float b = 10.0;
-  vec2 d = vec2(-iTime);
-  for (int i = 0; i < 15; i++) {
-    vec4 n = noised(p.xxy);
-    d += n.yz;
-    a += b * n.x / (1.0 + dot(d, d));
-    b *= 0.5;
-    p = m * p * 2.0;
+// returns (dx, dy, distance)
+vec3 worley(vec2 n, float s) {
+  vec3 ret = vec3(s * 10.);
+  // look in 9 cells (n, plus 8 surrounding)
+  for (int x = -1; x < 2; x++) {
+    for (int y = -1; y < 2; y++) {
+      vec2 xy = vec2(x, y);  // xy can be thought of as both # of cells distance to n, and
+      vec2 cellIndex = floor(n / s) + xy;
+      vec2 worleyPoint = rand(cellIndex);  // random point in this cell (0-1)
+      worleyPoint += xy - fract(n / s);  // turn it into distance to n. ;
+      float d = dot(worleyPoint, worleyPoint) * s;
+      if (d < ret.z)
+        ret = vec3(worleyPoint, d);
+    }
   }
-  return a;
+  return ret;
 }
-*/
+
+///////////////////////////
+
+////////////////////////////////////////////////////////////////////////
+////// Integer hash by Iq, https://www.shadertoy.com/view/4tXyWN
+////// The MIT License, Copyright © 2017 Inigo Quilez
+////////////////////////////////////////////////////////////////////////
+uint baseHash(uvec2 p) {
+  uvec2 q = 1103515245U * ((p >> 1U) ^ p.yx + RANDOM_SEED);
+  return 1103515245U * (q.x ^ (q.y >> 3U));
+}
+
+vec2 hash22(vec2 x) {
+  uint n = baseHash(uvec2(x * 99999.));
+  uvec2 rz = uvec2(n, n * 48271U);
+  return vec2(rz.xy) / float(0x7fffffff) - 1.;
+}
+
+////////////////////////////////////////////////////////////////////////
+////// Simplex Noise by Iq, https://www.shadertoy.com/view/Msf3WH
+////// The MIT License, Copyright © 2013 Inigo Quilez
+////////////////////////////////////////////////////////////////////////
+float simplex(in vec2 p) {
+  const float K1 = (sqrt(3.) - 1.) / 2.;
+  const float K2 = (3. - sqrt(3.)) / 6.;
+
+  vec2 i = floor(p + (p.x + p.y) * K1);
+  vec2 a = p - i + (i.x + i.y) * K2;
+  float m = step(a.y, a.x);
+  vec2 o = vec2(m, 1. - m);
+  vec2 b = a - o + K2;
+  vec2 c = a - 1. + 2. * K2;
+  vec3 h = max(.5 - vec3(dot(a, a), dot(b, b), dot(c, c)), .0);
+  vec3 n = h * h * h * h * vec3(dot(a, hash22(i)), dot(b, hash22(i + o)), dot(c, hash22(i + 1.)));
+  return dot(n, vec3(70.));
+}
+////////////////////////////////////////////////////////////////////////
+
+float simplexFBM(float size, float persistence, vec2 coord) {
+  float c = 1.;
+  float p = 1.0;
+  float n = 0.0;
+
+  float vmin = 10.;
+  float vmax = -10.;
+  for (int i = 1; i <= 7; i++) {
+    c += simplex(coord * size) * p;
+    n += p;
+    size *= 1.8;  // Scale
+    p *= persistence;
+  }
+  c /= n;  // Normalize
+
+  return c;
+}
+
+float squareGradient(vec2 pos) {
+  // square gradient
+  vec2 distV = pos * 2.0 - 1.0;
+  float maxDist = max(abs(distV.x), abs(distV.y));
+  float circular = length(distV);
+  float square = maxDist;
+  return (1. - mix(circular, square, maxDist));
+}
 
 void main() {
-  vec2 screen = fragCoord / (iResolution * 0.5) - 1.;
+  vec2 pos = fragCoord / iResolution;
+  pos.y = 1. - pos.y;
 
-  oColor = vec4(screen.x);
+  float n = simplexFBM(3.0, 0.5, pos);
+
+  oColor = packFloat(n * squareGradient(pos));
 }

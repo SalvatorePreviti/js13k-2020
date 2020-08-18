@@ -47,7 +47,11 @@ const float EPSILON = 0.01;
 
 // maximums
 const int MAX_ITERATIONS = 100;
-const float MAX_DIST = 100.;
+const float MAX_DIST = 1000.;
+
+float unpackFloat(vec4 rgba) {
+  return dot(rgba, vec4(1.0, 1. / 255., 1. / 65025., 1. / 160581375.));
+}
 
 float cuboid(vec3 p, vec3 s) {
   vec3 d = abs(p) - s;
@@ -55,7 +59,7 @@ float cuboid(vec3 p, vec3 s) {
 }
 
 float terrain(vec3 p) {
-  return p.y - texture(iHeightmap, p.xz / 100.).x * 8.;
+  return p.y - unpackFloat(texture(iHeightmap, p.xz / 1000.)) * 98.;
 }
 
 float water(vec3 p) {
@@ -132,6 +136,8 @@ void main() {
 
   vec3 pixelColour = intersectWithWorld(iCameraPos, ray);
   oColor = vec4(pixelColour, 1.0);
+
+  // oColor = vec4(unpackFloat(texture(iHeightmap, (screen + 1.) * .5)));
 
   // oColor.x = float(iterations) / (float(MAX_ITERATIONS));
 }

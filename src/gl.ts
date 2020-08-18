@@ -72,3 +72,10 @@ export const loadShaderProgram = (vertexSourceCode: string, fragmentSourceCode: 
 
   return result
 }
+
+export const glSetTextureLinearSampling = (target = gl.TEXTURE_2D) => {
+  gl.texParameteri(target, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+  gl.texParameteri(target, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+  gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+  gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+}

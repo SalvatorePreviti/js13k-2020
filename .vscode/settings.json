@@ -48,5 +48,6 @@
   },
   "typescript.format.enable": true,
   "typescript.format.semicolons": "remove",
-  "eslint.validate": []
+  "eslint.validate": [],
+  "git.ignoreLimitWarning": true
 }

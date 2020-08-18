@@ -1,7 +1,7 @@
 import { gl, loadShaderProgram } from './gl'
 
 import { code as vertexShaderCode } from './shaders/vertex.vert'
-import { code as fragmentShaderCode } from './shaders/heightmap.frag' // './shaders/fragment.frag'
+import { code as fragmentShaderCode } from './shaders/fragment.frag'
 import { debug_exec } from './debug'
 
 export let shaderProgram: WebGLProgram

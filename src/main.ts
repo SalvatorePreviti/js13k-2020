@@ -1,5 +1,5 @@
 import './css/styles.less'
-import { gl, glDrawFullScreenTriangle } from './gl'
+import { gl, glDrawFullScreenTriangle, glSetTextureLinearSampling } from './gl'
 import { canvasSize } from './canvas'
 import { debug_updateInfo, debug_trycatch_wrap, debug_log } from './debug'
 import {
@@ -16,7 +16,7 @@ import {
 import { cameraPos, updateCamera, cameraDir, cameraEuler, cameraMat3 } from './camera'
 
 import heightmapUrl from './heightmap.jpg'
-import { buildHeightmapTexture } from './heightmap'
+import { buildHeightmapTexture } from './texture-heightmap'
 
 let frameIndex: number = 1
 let prevTime = 0
@@ -44,16 +44,13 @@ function loadHeightmapTexture() {
     gl.bindTexture(gl.TEXTURE_2D, texture)
     gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, srcFormat, srcType, image)
 
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+    glSetTextureLinearSampling()
   }
   image.src = heightmapUrl
 }
 
 buildHeightmapTexture()
-loadHeightmapTexture()
+//loadHeightmapTexture()
 loadMainShaderProgram()
 
 const animationFrame = debug_trycatch_wrap(
@@ -107,13 +104,11 @@ if (import.meta.hot) {
 
   const reloadHeightmap = () => {
     debug_log('reloading heightmap')
-    buildHeightmapTexture()
-
-    // TODO: remove this, is temporary -
-    reloadMainShader()
-
+    buildHeightmapTexture(prevTime)
     gl.useProgram(shaderProgram) // Switch back to the main program
   }
+
+  //setInterval(reloadHeightmap, 300)
 
   import.meta.hot.on('/src/shaders/vertex.vert', () => {
     reloadHeightmap()
