@@ -53,6 +53,11 @@ float unpackFloat(vec4 rgba) {
   return dot(rgba, vec4(1.0, 1. / 255., 1. / 65025., 1. / 160581375.));
 }
 
+//=== PRIMITIVES ===
+float sphere(vec3 p, float s) {
+  return length(p)-s;
+}
+
 float cuboid(vec3 p, vec3 s) {
   vec3 d = abs(p) - s;
   return min(max(d.x, max(d.y, d.z)), 0.0) + length(max(d, 0.0));
@@ -64,6 +69,7 @@ float cylinder(vec3 p, float r, float l) {
   return d;
 }
 
+//=== OPERATIONS ===
 // hg_sdf: http://mercury.sexy/hg_sdf/
 // splits world up with limits
 float pModInterval(inout float p, float size, float start, float stop) {
@@ -81,6 +87,18 @@ float pModInterval(inout float p, float size, float start, float stop) {
   return c;
 }
 
+float opOnion( in float sdf, in float thickness )
+{
+    return abs(sdf)-thickness;
+}
+
+mat2 rot(float a) {
+  float c = cos(a), s = sin(a);
+  return mat2(c, s, -s, c);
+}
+
+// === GEOMETRY ===
+
 // s is number of segments (*2 + 1, so 5 = 11 segments)
 float bridge(vec3 p, float s) {
   p.y += cos(p.z * 2. / s);
@@ -92,26 +110,44 @@ float bridge(vec3 p, float s) {
   return min(boards, ropes);
 }
 
+//rotation.x controls elevation/altitude, rotation.y controls azimuth
+float antenna(vec3 p, vec2 rotation) {
+  float size = 30.;
+  p.y -= size;
+  vec3 q = p;
+  q.xz *= rot(rotation.y);
+  q.xy *= rot(rotation.x);
+  q.y-=size;
+  float r = max(
+    opOnion(
+      sphere(q, size), 
+      size/50.
+    ), 
+    q.y+size/2. //cut the sphere part-way up
+  );
+  r = min(r, cylinder(q.xzy+vec3(0,0,size*.5),size*.02, size*.5));
+  r = min(r, sphere(q, size/20.));
+  p.y += size*.75;
+  r = min(r, cuboid(p,vec3(size/4., size/3., size/2.)));
+  p.y -= size*.25;
+  r = min(r, cylinder(p.xzy,size*.05,size*.5));
+  return r;
+}
+
 float water(vec3 p) {
   return p.y - .2 + sin(iTime + p.z) * .1;
 }
 
 float terrain(vec3 p) {
-  return p.y - unpackFloat(texture(iHeightmap, p.xz / 500.)) * 98.;
-
-  // return p.y - texture(iHeightmap, p.xz / 100.).x * 8.;
-}
-
-mat2 rot(float a) {
-  float c = cos(a), s = sin(a);
-  return mat2(c, s, -s, c);
+  return p.y - unpackFloat(texture(iHeightmap, p.xz / 500.)) * 98. + 10.;
 }
 
 float nonTerrain(vec3 p) {
   float w = water(p);
   p.xz *= rot(.4);
   float b = bridge(p - vec3(60, 6.5, 25), 10.);
-  return min(w, b);
+  float a = antenna(p - vec3(380, 35, 80), vec2(0.5, iTime));
+  return min(w, min(b,a));
 }
 
 int material = 0;
@@ -127,9 +163,8 @@ float distanceToNearestSurface(vec3 p) {
   return n;
 }
 
-// s is used to vary the "accuracy" of the normal calculation
 vec3 computeNonTerrainNormal(vec3 p) {
-  vec2 S = vec2(0.1, 0);
+  vec2 S = vec2(0.01, 0);
   float d = nonTerrain(p);
   float a = nonTerrain(p + S.xyy);
   float b = nonTerrain(p + S.yxy);
@@ -138,7 +173,7 @@ vec3 computeNonTerrainNormal(vec3 p) {
 }
 
 vec3 computeTerrainNormal(vec3 p) {
-  vec2 S = vec2(1.0, 0);
+  vec2 S = vec2(0.1, 0);
   float d = terrain(p);
   float a = terrain(p + S.xyy);
   float b = terrain(p + S.yxy);
