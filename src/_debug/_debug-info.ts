@@ -18,7 +18,7 @@ const context = debugInfoCanvas.getContext('2d')
 
 const GRAPH_SPACING = 3
 const TEXT_HEIGHT = 17
-const GRAPH_PANELS_COUNT = 2
+const GRAPH_PANELS_COUNT = 3
 
 const GRAPH_X = GRAPH_SPACING
 
@@ -26,9 +26,9 @@ const GRAPH_Y = TEXT_HEIGHT + 1
 const GRAPH_WIDTH = 100
 const GRAPH_HEIGHT = 45
 
-const GRAPHS_DRAW_BG_COLORS = ['#013', '#021']
-const GRAPHS_TEXT_BG_COLORS = ['#024', '#031']
-const GRAPHS_DRAW_FG_COLORS = ['#0bf', '#0d7']
+const GRAPHS_DRAW_BG_COLORS = ['#013', '#021', '#012']
+const GRAPHS_TEXT_BG_COLORS = ['#024', '#031', '#013']
+const GRAPHS_DRAW_FG_COLORS = ['#0bf', '#0d7', '#07d']
 
 const SCREEN_RESOLUTION_TEXT_Y = 15
 
@@ -39,6 +39,9 @@ const DEBUG_INFO_CAMERA_EULER_Y = DEBUG_INFO_CAMERA_DIR_Y + TEXT_HEIGHT * 4 + GR
 
 const DEBUG_INFO_CANVAS_WIDTH = GRAPH_X + GRAPH_WIDTH + GRAPH_SPACING
 const DEBUG_INFO_CANVAS_HEIGHT = DEBUG_INFO_CAMERA_EULER_Y + TEXT_HEIGHT * 3 + GRAPH_SPACING
+
+const BIG_FONT = `14px courier,arial,helvetica`
+const SMALL_FONT = `12px arial,helvetica`
 
 debugInfoCanvas.width = DEBUG_INFO_CANVAS_WIDTH
 debugInfoCanvas.height = DEBUG_INFO_CANVAS_HEIGHT
@@ -56,9 +59,10 @@ export function initGraphs() {
   context.fillRect(0, 0, DEBUG_INFO_CANVAS_WIDTH, DEBUG_INFO_CANVAS_HEIGHT)
   context.textBaseline = 'top'
   context.textAlign = 'left'
-  context.font = `14px courier,arial,helvetica`
-  initGraph(0, 'fps')
-  initGraph(1, 'ms')
+  context.font = BIG_FONT
+  initGraph(0, 'FPS')
+  initGraph(1, 'frame')
+  initGraph(2, 'render')
   updateCanvasSize()
 
   context.fillStyle = '#202'
@@ -115,9 +119,10 @@ function initGraph(index: number, name: string) {
   context.fillStyle = GRAPHS_DRAW_FG_COLORS[index]
   context.fillRect(GRAPH_X, GRAPH_Y - 2 + translation, GRAPH_WIDTH, 1)
   context.globalAlpha = 1
-  context.fillText(name, GRAPH_X + 2, GRAPH_SPACING + translation)
-
+  context.font = SMALL_FONT
+  context.fillText(name, GRAPH_X + 2, GRAPH_SPACING + translation + 1)
   GRAPH_TEXT_VALUE_X = max(GRAPH_TEXT_VALUE_X, 4 + context.measureText(name).width)
+  context.font = BIG_FONT
 }
 
 export function updateGraph(index: number, maxValue: number, value: number, text: string) {

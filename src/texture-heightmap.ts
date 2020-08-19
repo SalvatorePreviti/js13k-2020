@@ -4,7 +4,7 @@ import { code as vertexShaderCode } from './shaders/vertex.vert'
 import { code as heightmapShaderCode } from './shaders/heightmap.frag'
 import { debug_time, debug_timeEnd } from './debug'
 
-export const HEIGHTMAP_TETURE_SIZE = 4096
+export const HEIGHTMAP_TETURE_SIZE = 2048
 
 export const heightmapTexture: WebGLTexture = gl.createTexture()
 

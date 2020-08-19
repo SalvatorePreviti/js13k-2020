@@ -1,6 +1,11 @@
 #version 300 es
 precision highp float;
 
+#define MATERIAL_SKY 0
+#define MATERIAL_WATER 1
+#define MATERIAL_TERRAIN 2
+#define MATERIAL_BUILDINGS 3
+
 const float PI = 3.14159265359;
 
 // Aspect ratio is fixed to 1.5 by design
@@ -43,10 +48,15 @@ uniform sampler2D iHeightmap;
 out vec4 oColor;
 
 // epsilon-type values
-const float EPSILON = 0.01;
+const float MIN_EPSILON = 0.01;
+const float MAX_EPSILON = 0.35;
+
+const float MIN_TERRAIN_EPSILON = 0.08;
+const float MAX_TERRAIN_EPSILON = 2.1;
 
 // maximums
 const int MAX_ITERATIONS = 100;
+const float MIN_DIST = 0.4;
 const float MAX_DIST = 500.;
 
 float unpackFloat(vec4 rgba) {
@@ -55,7 +65,7 @@ float unpackFloat(vec4 rgba) {
 
 //=== PRIMITIVES ===
 float sphere(vec3 p, float s) {
-  return length(p)-s;
+  return length(p) - s;
 }
 
 float cuboid(vec3 p, vec3 s) {
@@ -87,9 +97,8 @@ float pModInterval(inout float p, float size, float start, float stop) {
   return c;
 }
 
-float opOnion( in float sdf, in float thickness )
-{
-    return abs(sdf)-thickness;
+float opOnion(in float sdf, in float thickness) {
+  return abs(sdf) - thickness;
 }
 
 mat2 rot(float a) {
@@ -110,56 +119,61 @@ float bridge(vec3 p, float s) {
   return min(boards, ropes);
 }
 
-//rotation.x controls elevation/altitude, rotation.y controls azimuth
+// rotation.x controls elevation/altitude, rotation.y controls azimuth
 float antenna(vec3 p, vec2 rotation) {
   float size = 30.;
   p.y -= size;
   vec3 q = p;
   q.xz *= rot(rotation.y);
   q.xy *= rot(rotation.x);
-  q.y-=size;
-  float r = max(
-    opOnion(
-      sphere(q, size), 
-      size/50.
-    ), 
-    q.y+size/2. //cut the sphere part-way up
+  q.y -= size;
+  float r = max(opOnion(sphere(q, size), size / 50.),
+      q.y + size / 2.  // cut the sphere part-way up
   );
-  r = min(r, cylinder(q.xzy+vec3(0,0,size*.5),size*.02, size*.5));
-  r = min(r, sphere(q, size/20.));
-  p.y += size*.75;
-  r = min(r, cuboid(p,vec3(size/4., size/3., size/2.)));
-  p.y -= size*.25;
-  r = min(r, cylinder(p.xzy,size*.05,size*.5));
+  r = min(r, cylinder(q.xzy + vec3(0, 0, size * .5), size * .02, size * .5));
+  r = min(r, sphere(q, size / 20.));
+  p.y += size * .75;
+  r = min(r, cuboid(p, vec3(size / 4., size / 3., size / 2.)));
+  p.y -= size * .25;
+  r = min(r, cylinder(p.xzy, size * .05, size * .5));
   return r;
 }
 
-float water(vec3 p) {
-  return p.y - .2 + sin(iTime + p.z) * .1;
+const vec3 TERRAIN_SIZE = vec3(500., 98., 500.);
+const float TERRAIN_OFFSET = 10.;
+
+float iterations = 0.;
+
+bool isOutsideTerrainArea(vec3 p) {
+  return p.x < 0. || p.x > TERRAIN_SIZE.x || p.z < 0. || p.z > TERRAIN_SIZE.z;
 }
 
 float terrain(vec3 p) {
-  return p.y - unpackFloat(texture(iHeightmap, p.xz / 500.)) * 98. + 10.;
+  if (p.y > TERRAIN_SIZE.y - TERRAIN_OFFSET || isOutsideTerrainArea(p)) {
+    return MAX_DIST;  // Outside of terrain, skip texture access
+  }
+  ++iterations;
+  float height = unpackFloat(texture(iHeightmap, p.xz / TERRAIN_SIZE.xz));
+  return p.y - height * TERRAIN_SIZE.y + TERRAIN_OFFSET;
 }
 
 float nonTerrain(vec3 p) {
-  float w = water(p);
   p.xz *= rot(.4);
   float b = bridge(p - vec3(60, 6.5, 25), 10.);
   float a = antenna(p - vec3(380, 35, 80), vec2(0.5, iTime));
-  return min(w, min(b,a));
+  return min(b, a);
 }
 
-int material = 0;
+int material = MATERIAL_SKY;
 
 float distanceToNearestSurface(vec3 p) {
   float t = terrain(p);
   float n = nonTerrain(p);
   if (t < n) {
-    material = 0;
+    material = MATERIAL_TERRAIN;
     return t;
   }
-  material = 1;
+  material = MATERIAL_BUILDINGS;
   return n;
 }
 
@@ -173,7 +187,7 @@ vec3 computeNonTerrainNormal(vec3 p) {
 }
 
 vec3 computeTerrainNormal(vec3 p) {
-  vec2 S = vec2(0.1, 0);
+  vec2 S = vec2(0.45, 0);
   float d = terrain(p);
   float a = terrain(p + S.xyy);
   float b = terrain(p + S.yxy);
@@ -186,32 +200,66 @@ float computeLambert(vec3 p, vec3 n, vec3 l) {
 }
 
 float rayMarch(vec3 p, vec3 dir) {
-  float dist = 0.0;
+  float dist = MIN_DIST;
   float prevNear = MAX_DIST;
-  for (int i = 0; i < MAX_ITERATIONS && dist < MAX_DIST; i++) {
+
+  for (int i = 0; i < MAX_ITERATIONS; i++) {
     float nearest = distanceToNearestSurface(p + dir * dist);
-    if (abs(nearest) < EPSILON) {
-      return dist;
-    }
+
     if (nearest < 0.) {
       dist -= prevNear;
-      nearest = prevNear / 3.;
+      nearest = prevNear / 2.;
     }
-    prevNear = nearest;
+
     dist += nearest;
+
+    float distPercent = dist / MAX_DIST;
+    distPercent *= distPercent;
+
+    float epsilon = material == MATERIAL_TERRAIN ? mix(MIN_TERRAIN_EPSILON, MAX_TERRAIN_EPSILON, distPercent)
+                                                 : mix(MIN_EPSILON, MAX_EPSILON, distPercent);
+
+    if (abs(nearest) < epsilon || distPercent > 1.) {
+      break;
+    }
+
+    prevNear = nearest;
   }
   return dist;
 }
 
+float rayTraceWater(vec3 p, vec3 dir) {
+  vec3 waterNormal = vec3(0., 1., 0.);
+  float denom = dot(waterNormal, dir);
+  if (abs(denom) > 0.0001f) {
+    float t = dot(-p, waterNormal) / denom;
+    if (t >= 0.) {
+      return t;
+    }
+  }
+  return MAX_DIST;
+}
+
 vec3 intersectWithWorld(vec3 p, vec3 dir) {
   float dist = rayMarch(p, dir);
+
+  float wdist = rayTraceWater(p, dir);
+  if (wdist < dist) {
+    dist = wdist;
+    material = MATERIAL_WATER;
+  }
+
   if (dist >= MAX_DIST - 1.) {
     return vec3(.4, .8, 1);  // sky colour
   }
-  int m = material;
 
   vec3 hit = p + dir * dist;
-  vec3 normal = m == 0 ? computeTerrainNormal(hit) : computeNonTerrainNormal(hit);
+  vec3 normal;
+  switch (material) {
+    case MATERIAL_TERRAIN: normal = computeTerrainNormal(hit); break;
+    case MATERIAL_WATER: normal = vec3(0., 1., 0.); break;
+    default: normal = computeNonTerrainNormal(hit); break;
+  }
 
   // calculate lighting:
   vec3 lightPosition = vec3(0, 100, 0);
@@ -232,4 +280,6 @@ void main() {
   // oColor = vec4(unpackFloat(texture(iHeightmap, (screen + 1.) * .5)));
 
   // oColor.x = float(iterations) / (float(MAX_ITERATIONS));
+  // oColor.y = float(iterations) / (float(MAX_ITERATIONS));
+  // oColor.z = float(iterations) / (float(MAX_ITERATIONS));
 }
