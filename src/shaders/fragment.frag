@@ -46,8 +46,12 @@ out vec4 oColor;
 const float MIN_EPSILON = 0.01;
 const float MAX_EPSILON = 0.35;
 
+const float MIN_TERRAIN_EPSILON = 0.08;
+const float MAX_TERRAIN_EPSILON = 2.1;
+
 // maximums
 const int MAX_ITERATIONS = 100;
+const float MIN_DIST = 0.4;
 const float MAX_DIST = 500.;
 
 float unpackFloat(vec4 rgba) {
@@ -134,12 +138,29 @@ float water(vec3 p) {
   return p.y - .2 + sin(iTime + p.z) * .1;
 }
 
+const vec3 TERRAIN_SIZE = vec3(500., 98., 500.);
+const float TERRAIN_OFFSET = 10.;
+
+float iterations = 0.;
+
+bool isOutsideTerrainArea(vec3 p) {
+  return p.x < 0. || p.x > TERRAIN_SIZE.x || p.z < 0. || p.z > TERRAIN_SIZE.z;
+}
+
 float terrain(vec3 p) {
-  return p.y - unpackFloat(texture(iHeightmap, p.xz / 500.)) * 98. + 10.;
+  if (p.y > TERRAIN_SIZE.y - TERRAIN_OFFSET || isOutsideTerrainArea(p)) {
+    return MAX_DIST;  // Outside of terrain, skip texture access
+  }
+  ++iterations;
+  float height = unpackFloat(texture(iHeightmap, p.xz / TERRAIN_SIZE.xz));
+  return p.y - height * TERRAIN_SIZE.y + TERRAIN_OFFSET;
 }
 
 float nonTerrain(vec3 p) {
   float w = water(p);
+  if (isOutsideTerrainArea(p)) {
+    return w;  // There is no other structure outside the island
+  }
   p.xz *= rot(.4);
   float b = bridge(p - vec3(60, 6.5, 25), 10.);
   float a = antenna(p - vec3(380, 35, 80), vec2(0.5, iTime));
@@ -169,7 +190,7 @@ vec3 computeNonTerrainNormal(vec3 p) {
 }
 
 vec3 computeTerrainNormal(vec3 p) {
-  vec2 S = vec2(0.1, 0);
+  vec2 S = vec2(0.45, 0);
   float d = terrain(p);
   float a = terrain(p + S.xyy);
   float b = terrain(p + S.yxy);
@@ -181,13 +202,10 @@ float computeLambert(vec3 p, vec3 n, vec3 l) {
   return dot(normalize(l - p), n);
 }
 
-// float iterations = 0.;
-
 float rayMarch(vec3 p, vec3 dir) {
-  float dist = 0.0;
+  float dist = MIN_DIST;
   float prevNear = MAX_DIST;
   for (int i = 0; i < MAX_ITERATIONS; i++) {
-    //++iterations;
     float nearest = distanceToNearestSurface(p + dir * dist);
 
     if (nearest < 0.) {
@@ -198,7 +216,11 @@ float rayMarch(vec3 p, vec3 dir) {
     dist += nearest;
 
     float distPercent = dist / MAX_DIST;
-    float epsilon = mix(MIN_EPSILON, MAX_EPSILON, distPercent * distPercent);
+    distPercent *= distPercent;
+
+    float epsilon = material == 0 ? mix(MIN_TERRAIN_EPSILON, MAX_TERRAIN_EPSILON, distPercent)
+                                  : mix(MIN_EPSILON, MAX_EPSILON, distPercent);
+
     if (abs(nearest) < epsilon || distPercent > 1.) {
       break;
     }
@@ -236,7 +258,7 @@ void main() {
 
   // oColor = vec4(unpackFloat(texture(iHeightmap, (screen + 1.) * .5)));
 
-  // oColor.x = float(iterations) / (float(MAX_ITERATIONS));
+  oColor.x = float(iterations) / (float(MAX_ITERATIONS));
   // oColor.y = float(iterations) / (float(MAX_ITERATIONS));
   // oColor.z = float(iterations) / (float(MAX_ITERATIONS));
 }
