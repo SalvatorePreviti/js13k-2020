@@ -258,7 +258,7 @@ void main() {
 
   // oColor = vec4(unpackFloat(texture(iHeightmap, (screen + 1.) * .5)));
 
-  oColor.x = float(iterations) / (float(MAX_ITERATIONS));
+  // oColor.x = float(iterations) / (float(MAX_ITERATIONS));
   // oColor.y = float(iterations) / (float(MAX_ITERATIONS));
   // oColor.z = float(iterations) / (float(MAX_ITERATIONS));
 }
