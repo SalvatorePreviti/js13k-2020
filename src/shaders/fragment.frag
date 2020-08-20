@@ -8,6 +8,9 @@ precision highp float;
 
 const float PI = 3.14159265359;
 
+// Size in pixels of the noise texture
+const float NOISE_TEXTURE_SIZE = 512.;
+
 // Aspect ratio is fixed to 1.5 by design
 const float SCREEN_ASPECT_RATIO = 1.5;
 
@@ -43,6 +46,9 @@ uniform mat3 iCameraMat3;
 
 // Heightmap texture
 uniform sampler2D iHeightmap;
+
+// Noise texture
+uniform sampler2D iNoise;
 
 // Output color
 out vec4 oColor;
@@ -178,7 +184,7 @@ float distanceToNearestSurface(vec3 p) {
 }
 
 vec3 computeNonTerrainNormal(vec3 p) {
-  vec2 S = vec2(0.01, 0);
+  const vec2 S = vec2(0.01, 0);
   float d = nonTerrain(p);
   float a = nonTerrain(p + S.xyy);
   float b = nonTerrain(p + S.yxy);
@@ -187,7 +193,7 @@ vec3 computeNonTerrainNormal(vec3 p) {
 }
 
 vec3 computeTerrainNormal(vec3 p) {
-  vec2 S = vec2(0.45, 0);
+  const vec2 S = vec2(0.45, 0);
   float d = terrain(p);
   float a = terrain(p + S.xyy);
   float b = terrain(p + S.yxy);
@@ -229,15 +235,56 @@ float rayMarch(vec3 p, vec3 dir) {
 }
 
 float rayTraceWater(vec3 p, vec3 dir) {
-  vec3 waterNormal = vec3(0., 1., 0.);
+  float angleOsc = cos(iTime * 1.4) / 133.;
+  float heightOsc = sin(iTime * 2. + 3.) * .5;
+  vec3 waterNormal = vec3(0., 1. - angleOsc, angleOsc);
   float denom = dot(waterNormal, dir);
-  if (abs(denom) > 0.0001f) {
-    float t = dot(-p, waterNormal) / denom;
+  if (abs(denom) > MIN_EPSILON) {
+    float t = dot(heightOsc - p, waterNormal) / denom;
     if (t >= 0.) {
       return t;
     }
   }
   return MAX_DIST;
+}
+
+vec3 waterNoise(vec2 o) {
+  vec2 f = fract(o);
+  vec4 T = texture(iNoise, (floor(o) + .45) / NOISE_TEXTURE_SIZE);
+  float a = T.x, b = T.y, c = T.z, d = T.w;
+  vec2 f2 = f * f, f3 = f2 * f;
+  vec2 t = 3.0 * f2 - 2.0 * f3, dt = 6.0 * f - 6.0 * f2;
+  float ba = b - a;
+  float e = d - c - ba;
+  float w = c - a + e * t.x;
+  float dx = (ba + e * t.y) * dt.x;
+  return vec3((ba + e * t.y) * dt.x, w * dt.y, a + ba * t.x + w * t.y);
+}
+
+vec3 waterFBM(vec2 p) {
+  float ps = 0.75;
+  vec3 f = vec3(0.0);
+  float tot = 0.0;
+  float a = 1.0;
+
+  float flow = 0.;
+
+  for (int i = 0; i < 4; i++) {
+    p += iTime;
+    flow *= -0.75;
+    vec3 v = waterNoise(p + sin(p.yx * .5 + iTime) * .5);
+    f += v * a;
+    p += v.xy * 0.43;
+    p *= 2.0;
+    tot += a;
+    a *= ps;
+  }
+  return f / tot;
+}
+
+vec4 waterHeightAndNormal(vec2 p) {
+  vec3 dxy = waterFBM(p / 10.);
+  return vec4(normalize(vec3(dxy.x, dxy.y, 1.)), dxy.z);
 }
 
 vec3 intersectWithWorld(vec3 p, vec3 dir) {
@@ -257,7 +304,10 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   vec3 normal;
   switch (material) {
     case MATERIAL_TERRAIN: normal = computeTerrainNormal(hit); break;
-    case MATERIAL_WATER: normal = vec3(0., 1., 0.); break;
+    case MATERIAL_WATER: /*normal = vec3(0., 1., 0.);*/
+      vec4 whn = waterHeightAndNormal(hit.xz);
+      normal = whn.yzw;
+      break;
     default: normal = computeNonTerrainNormal(hit); break;
   }
 
@@ -276,10 +326,4 @@ void main() {
 
   vec3 pixelColour = intersectWithWorld(iCameraPos, ray);
   oColor = vec4(pixelColour, 1.0);
-
-  // oColor = vec4(unpackFloat(texture(iHeightmap, (screen + 1.) * .5)));
-
-  // oColor.x = float(iterations) / (float(MAX_ITERATIONS));
-  // oColor.y = float(iterations) / (float(MAX_ITERATIONS));
-  // oColor.z = float(iterations) / (float(MAX_ITERATIONS));
 }

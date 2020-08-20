@@ -2,7 +2,7 @@ import { gl, loadShaderProgram } from './gl'
 
 import { code as vertexShaderCode } from './shaders/vertex.vert'
 import { code as fragmentShaderCode } from './shaders/fragment.frag'
-import { debug_exec } from './debug'
+import { debug_exec, debug_time, debug_timeEnd } from './debug'
 
 export let shaderProgram: WebGLProgram
 
@@ -22,7 +22,12 @@ export let shaderProgram_iCameraEuler: WebGLUniformLocation
 
 export let shaderProgram_iCameraMat3: WebGLUniformLocation
 
+export let shaderProgram_iHeightmap: WebGLUniformLocation
+
+export let shaderProgram_iNoise: WebGLUniformLocation
+
 export const loadMainShaderProgram = () => {
+  debug_time(loadMainShaderProgram)
   // A new program
 
   debug_exec(() => {
@@ -44,6 +49,11 @@ export const loadMainShaderProgram = () => {
   shaderProgram_iCameraDir = getUniformLocation('iCameraDir')
   shaderProgram_iCameraEuler = getUniformLocation('iCameraEuler')
   shaderProgram_iCameraMat3 = getUniformLocation('iCameraMat3')
+
+  shaderProgram_iHeightmap = getUniformLocation('iHeightmap')
+  shaderProgram_iNoise = getUniformLocation('iNoise')
+
+  debug_timeEnd(loadMainShaderProgram)
 
   return shaderProgram
 }
