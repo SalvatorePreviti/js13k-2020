@@ -157,6 +157,8 @@ export const angleLerp = (from: number, to: number, t: number): number => {
 
 export const clamp = (value: number, minimum: number, maximum: number): number => min(max(value, minimum), maximum)
 
+export const wrapNatural = (value: number, limit: number): number => ((value % limit) + limit) % limit
+
 export const wrapAngleInRadians = (angle: number): number => angle - TWO_PI * Math.floor((angle + PI) / TWO_PI)
 
 export const smoothStep = (from: number, to: number, t: number): number => {

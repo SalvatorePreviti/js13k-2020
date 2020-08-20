@@ -20,10 +20,14 @@ export {
 export const debug_log = console.log.bind(console)
 
 /** Console.time, only for development mode */
-export const debug_time = console.time.bind(console)
+export const debug_time = (f: string | Function) => {
+  console.time(typeof f === 'function' ? f.name : f)
+}
 
 /** Console.timeEnd, only for development mode */
-export const debug_timeEnd = console.timeEnd.bind(console)
+export const debug_timeEnd = (f: string | Function) => {
+  console.timeEnd(typeof f === 'function' ? f.name : f)
+}
 
 debug_log('debug mode activated')
 

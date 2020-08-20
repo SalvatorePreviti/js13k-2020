@@ -9,7 +9,7 @@ export const HEIGHTMAP_TETURE_SIZE = 2048
 export const heightmapTexture: WebGLTexture = gl.createTexture()
 
 export const buildHeightmapTexture = (seed: number = 0) => {
-  debug_time(buildHeightmapTexture.name)
+  debug_time(buildHeightmapTexture)
 
   gl.bindTexture(gl.TEXTURE_2D, heightmapTexture)
   gl.texImage2D(
@@ -55,5 +55,5 @@ export const buildHeightmapTexture = (seed: number = 0) => {
 
   gl.bindTexture(gl.TEXTURE_2D, heightmapTexture)
 
-  debug_timeEnd(buildHeightmapTexture.name)
+  debug_timeEnd(buildHeightmapTexture)
 }

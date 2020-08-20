@@ -13,10 +13,10 @@ export interface DebugReportInfo {
 export const debug_log = (..._args: any): void => undefined
 
 /** Console.time, only for development mode */
-export const debug_time = (_label: string): void => undefined
+export const debug_time = (_label: string | Function): void => undefined
 
 /** Console.timeEnd, only for development mode */
-export const debug_timeEnd = (_label: string): void => undefined
+export const debug_timeEnd = (_label: string | Function): void => undefined
 
 /** Executes a piece of code only when running in development mode in the browser */
 export const debug_exec = <T>(_fn: () => T): void => undefined

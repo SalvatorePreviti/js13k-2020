@@ -11,15 +11,19 @@ import {
   shaderProgram_iCameraEuler,
   shaderProgram_iCameraMat3,
   loadMainShaderProgram,
-  shaderProgram
+  shaderProgram,
+  shaderProgram_iHeightmap,
+  shaderProgram_iNoise
 } from './shader-program'
 import { cameraPos, updateCamera, cameraDir, cameraEuler, cameraMat3 } from './camera'
 
 import { buildHeightmapTexture } from './texture-heightmap'
+import { buildNoiseTexture } from './texture-noise'
 
 let frameIndex: number = 1
 let prevTime = 0
 
+buildNoiseTexture()
 buildHeightmapTexture()
 loadMainShaderProgram()
 
@@ -55,6 +59,9 @@ const animationFrame = debug_trycatch_wrap(
 
     // Camera rotation matrix
     gl.uniformMatrix3fv(shaderProgram_iCameraMat3, false, cameraMat3)
+
+    gl.uniform1i(shaderProgram_iHeightmap, 0)
+    gl.uniform1i(shaderProgram_iNoise, 1)
 
     glDrawFullScreenTriangle()
 

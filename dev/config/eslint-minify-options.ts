@@ -68,7 +68,7 @@ export function getESLintMinifyOptions({ maxPasses, sourceType }: ESLintMinifySe
           'prefer-numeric-literals': 1,
           'sort-vars': 1,
           'quote-props': [1, 'as-needed'],
-          'no-var': 1,
+          //'no-var': 1,
           'no-unused-labels': 1,
           'prefer-object-spread': 1,
           'no-trailing-spaces': 1,
