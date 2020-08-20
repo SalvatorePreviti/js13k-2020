@@ -103,6 +103,15 @@ float pModInterval(inout float p, float size, float start, float stop) {
   return c;
 }
 
+// Repeat around the origin a number of times
+void pModPolar(inout vec2 p, float repetitions) {
+	float angle = 2.*PI/repetitions;
+	float a = atan(p.y, p.x) + angle/2.;
+	float r = length(p);
+	a = mod(a,angle) - angle/2.;
+	p = vec2(cos(a), sin(a))*r;
+}
+
 float opOnion(in float sdf, in float thickness) {
   return abs(sdf) - thickness;
 }
@@ -116,12 +125,13 @@ mat2 rot(float a) {
 
 // s is number of segments (*2 + 1, so 5 = 11 segments)
 float bridge(vec3 p, float s) {
+
   p.y += cos(p.z * 2. / s);
   p.x = abs(p.x);
-  float ropes = cylinder(p - vec3(.8, 1., 0), .05, s);
-  pModInterval(p.z, 1.0, -s, s);
-  ropes = min(ropes, cylinder(p.xzy - vec3(.8, 0, .5), .05, .5));
-  float boards = cuboid(p, vec3(.8, .05, .4));
+  float ropes = cylinder(p - vec3(.5, 1., 0), .01, s);
+  pModInterval(p.z, .55, -s, s);
+  ropes = min(ropes, cylinder(p.xzy - vec3(.5, 0, .5), .01, .5));
+  float boards = cuboid(p, vec3(.5, .05, .2));
   return min(boards, ropes);
 }
 
@@ -145,8 +155,8 @@ float antenna(vec3 p, vec2 rotation) {
   return r;
 }
 
-const vec3 TERRAIN_SIZE = vec3(500., 98., 500.);
-const float TERRAIN_OFFSET = 10.;
+const vec3 TERRAIN_SIZE = vec3(500., 50., 500.);
+const float TERRAIN_OFFSET = 3.;
 
 float iterations = 0.;
 
@@ -163,11 +173,32 @@ float terrain(vec3 p) {
   return p.y - height * TERRAIN_SIZE.y + TERRAIN_OFFSET;
 }
 
+float monument(vec3 p) {
+  pModPolar(p.xz, 8.);
+  p.x -= 10.;
+  return cuboid(p, vec3(.5,5,1));
+}
+
+float prison(vec3 p) {
+  p.y -= 2.;
+  float r = max(
+    opOnion(cuboid(p, vec3(5,2,3)), 0.23),
+    -min(
+      cylinder(p, 1., 100.),
+      cuboid(p-vec3(5,-.77,1.5), vec3(2, 1,.53))
+    )
+  );
+  pModInterval(p.x, .3, -10., 10.);
+  p.z = abs(p.z);
+  return min(r, cylinder(p.xzy-vec3(0,3,0), .01, 1.));
+
+}
+
 float nonTerrain(vec3 p) {
-  p.xz *= rot(.4);
   float b = bridge(p - vec3(60, 6.5, 25), 10.);
   float a = antenna(p - vec3(380, 35, 80), vec2(0.5, iTime));
-  return min(b, a);
+  float m = prison(p);
+  return min(b, min(a,m));
 }
 
 int material = MATERIAL_SKY;

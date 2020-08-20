@@ -25,7 +25,7 @@ import {
 } from './math/vec3'
 import { vec2New } from './math/vec2'
 
-const CAMERA_SPEED_DEFAULT = 10
+const CAMERA_SPEED_DEFAULT = 1.4
 
 const CAMERA_SPEED_RUN = 40
 
