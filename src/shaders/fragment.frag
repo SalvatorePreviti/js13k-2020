@@ -317,6 +317,14 @@ vec4 waterHeightAndNormal(vec2 p) {
   return vec4(normalize(vec3(dxy.x, dxy.y, 1.)), dxy.z);
 }
 
+vec3 applyFog( vec3  rgb,       // original color of the pixel
+               float distance ) // camera to point distance
+{
+    float fogAmount = 1.0 - exp( -distance*0.009 );
+    vec3  fogColor  = vec3(.4, .8, 1);
+    return mix( rgb, fogColor, fogAmount );
+}
+
 vec3 getColorAt(vec3 hit, vec3 normal, int mat) {
   // calculate lighting:
   vec3 lightPosition = vec3(0, 100, 0);
@@ -366,11 +374,13 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
     default: normal = computeNonTerrainNormal(hit); break;
   }
   
-  return mix(
+  vec3 colWithTransparency = mix(
     getColorAt(hit, normal, material),
     waterColor,
     waterTransparencyMix
   );
+
+  return applyFog(colWithTransparency, min(wdist, dist));
 }
 
 void main() {
