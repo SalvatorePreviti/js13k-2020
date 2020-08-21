@@ -53,19 +53,25 @@ uniform sampler2D iNoise;
 // Output color
 out vec4 oColor;
 
+//=== COLORS ===
+
+const vec3 COLOR_SKY = vec3(.4, .8, 1);
+
 // epsilon-type values
-const float MIN_EPSILON = 0.01;
+const float MIN_EPSILON = 0.001;
 const float MAX_EPSILON = 0.35;
 
 const float MIN_TERRAIN_EPSILON = 0.08;
-const float MAX_TERRAIN_EPSILON = 2.1;
+const float MAX_TERRAIN_EPSILON = 0.8;
 
 const vec3 TERRAIN_SIZE = vec3(500., 50., 500.);
 const float TERRAIN_OFFSET = 3.;
 
+const vec3 TERRAIN_CENTER = TERRAIN_SIZE * .5;
+
 // maximums
 const int MAX_ITERATIONS = 100;
-const float MIN_DIST = 0.4;
+const float MIN_DIST = 0.15;
 const float MAX_DIST = 500.;
 
 float unpackFloat(vec4 rgba) {
@@ -160,8 +166,9 @@ float antenna(vec3 p, vec2 rotation) {
 float iterations = 0.;
 
 float terrain(vec3 p) {
-  float height = unpackFloat(texture(iHeightmap, p.xz / TERRAIN_SIZE.xz));
-  return p.y - height * TERRAIN_SIZE.y + TERRAIN_OFFSET;
+  float height = unpackFloat(texture(iHeightmap, p.xz / TERRAIN_SIZE.xz + .5)) * TERRAIN_SIZE.y;
+  vec2 d = abs(vec2(length(p.xz), p.y + 3. + TERRAIN_OFFSET)) - vec2(TERRAIN_SIZE.x * .5 * sqrt(2.), height + 3.);
+  return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
 }
 
 float monument(vec3 p) {
@@ -221,34 +228,62 @@ float computeLambert(vec3 p, vec3 n, vec3 l) {
   return dot(normalize(l - p), n);
 }
 
+const float MAX_OMEGA = 1.2;
+float iterationsR;
+
 float rayMarch(vec3 p, vec3 dir) {
+  float omega = MAX_OMEGA;
+
   float dist = MIN_DIST;
   float prevNear = MAX_DIST;
 
+  float stepLen = MIN_EPSILON;
+  float epsilon = MIN_EPSILON;
+
+  float funcSign = 1.;
+  iterationsR = 0.;
+
+  float result = MAX_DIST;
+
   for (int i = 0; i < MAX_ITERATIONS; i++) {
-    ++iterations;
-    float nearest = distanceToNearestSurface(p + dir * dist);
+    vec3 hit = p + dir * dist;
+
+    float nearest = funcSign * distanceToNearestSurface(hit);
 
     if (nearest < 0.) {
-      dist -= prevNear;
-      nearest = prevNear / 2.;
+      if (iterationsR == 0.) {
+        funcSign = -1.;
+        nearest = -nearest;
+      } else {
+        dist -= prevNear;
+        nearest = prevNear / 2.;
+      }
     }
 
-    dist += nearest;
+    float radius = abs(nearest);
 
-    float distPercent = dist / MAX_DIST;
-    distPercent *= distPercent;
+    // Inspired by https://erleuchtet.org/~cupe/permanent/enhanced_sphere_tracing.pdf
+    bool sorFail = omega > 1. && radius + prevNear + epsilon < stepLen;
+    stepLen = sorFail ? (1. - omega) * stepLen : omega * nearest;
+    omega = clamp(sorFail ? omega - max(radius, epsilon) : omega + max(radius, epsilon), 1., MAX_OMEGA);
 
-    float epsilon = material == MATERIAL_TERRAIN ? mix(MIN_TERRAIN_EPSILON, MAX_TERRAIN_EPSILON, distPercent)
-                                                 : mix(MIN_EPSILON, MAX_EPSILON, distPercent);
+    dist += stepLen;
 
-    if (abs(nearest) < epsilon || distPercent > 1.) {
-      break;
+    float distR = dist / MAX_DIST;
+    float epsAdjust = distR * max(distR + iterationsR * 8., 1.);
+
+    epsilon = material == MATERIAL_TERRAIN ? mix(MIN_TERRAIN_EPSILON, MAX_TERRAIN_EPSILON, epsAdjust)
+                                           : mix(MIN_EPSILON, MAX_EPSILON, epsAdjust);
+
+    if ((!sorFail && radius < epsilon) || dist > MAX_DIST) {
+      return dist;
     }
 
     prevNear = nearest;
+    iterationsR += 1. / float(MAX_ITERATIONS);
   }
-  return dist;
+
+  return MAX_DIST;
 }
 
 float rayTraceWater(vec3 p, vec3 dir) {
@@ -261,7 +296,7 @@ vec3 waterNoise(vec2 o) {
   vec4 T = texture(iNoise, (floor(o) + .45) / NOISE_TEXTURE_SIZE);
   float a = T.x, b = T.y, c = T.z, d = T.w;
   vec2 f2 = f * f, f3 = f2 * f;
-  vec2 t = 3.0 * f2 - 2.0 * f3, dt = 6.0 * f - 6.0 * f2;
+  vec2 t = 3. * f2 - 2. * f3, dt = 6. * (f - f2);
   float ba = b - a;
   float e = d - c - ba;
   float w = c - a + e * t.x;
@@ -295,12 +330,10 @@ vec4 waterHeightAndNormal(vec2 p) {
   return vec4(normalize(vec3(dxy.x, dxy.y, 1.)), dxy.z);
 }
 
-vec3 applyFog(vec3 rgb,  // original color of the pixel
-    float distance)  // camera to point distance
-{
-  float fogAmount = 1.0 - exp(-distance * 0.009);
-  vec3 fogColor = vec3(.4, .8, 1);
-  return mix(rgb, fogColor, fogAmount);
+vec3 applyFog(vec3 rgb, float camDist) {
+  float dRatio = camDist / MAX_DIST;
+  float fogAmount = clamp(pow(dRatio, 3.5) + 1.0 - exp(-(dRatio * dRatio) * .3), 0., 1.);
+  return mix(rgb, COLOR_SKY, fogAmount);
 }
 
 vec3 getColorAt(vec3 hit, vec3 normal, int mat) {
@@ -339,7 +372,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   }
 
   if (min(dist, wdist) >= MAX_DIST - 1.) {
-    return vec3(.4, .8, 1);  // sky colour
+    return COLOR_SKY;
   }
 
   vec3 hit = p + dir * dist;
@@ -361,6 +394,10 @@ void main() {
   vec3 c = iCameraPos;
   // c.y = unpackFloat(texture(iHeightmap, c.xz / TERRAIN_SIZE.xz)) * TERRAIN_SIZE.y - 1.;
   vec3 pixelColour = intersectWithWorld(c, ray);
-  oColor = vec4(pixelColour, 1.0);
-  oColor.x = iterations / float(MAX_ITERATIONS);
+
+  oColor = vec4(pixelColour * 0.5, 1.0);
+
+  // oColor.x = iterationsR;
+  // oColor.y = iterationsR;
+  // oColor.z = iterationsR;
 }
