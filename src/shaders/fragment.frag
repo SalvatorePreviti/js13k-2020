@@ -60,6 +60,9 @@ const float MAX_EPSILON = 0.35;
 const float MIN_TERRAIN_EPSILON = 0.08;
 const float MAX_TERRAIN_EPSILON = 2.1;
 
+const vec3 TERRAIN_SIZE = vec3(500., 50., 500.);
+const float TERRAIN_OFFSET = 3.;
+
 // maximums
 const int MAX_ITERATIONS = 100;
 const float MIN_DIST = 0.4;
@@ -105,11 +108,11 @@ float pModInterval(inout float p, float size, float start, float stop) {
 
 // Repeat around the origin a number of times
 void pModPolar(inout vec2 p, float repetitions) {
-	float angle = 2.*PI/repetitions;
-	float a = atan(p.y, p.x) + angle/2.;
-	float r = length(p);
-	a = mod(a,angle) - angle/2.;
-	p = vec2(cos(a), sin(a))*r;
+  float angle = 2. * PI / repetitions;
+  float a = atan(p.y, p.x) + angle / 2.;
+  float r = length(p);
+  a = mod(a, angle) - angle / 2.;
+  p = vec2(cos(a), sin(a)) * r;
 }
 
 float opOnion(in float sdf, in float thickness) {
@@ -125,7 +128,6 @@ mat2 rot(float a) {
 
 // s is number of segments (*2 + 1, so 5 = 11 segments)
 float bridge(vec3 p, float s) {
-
   p.y += cos(p.z * 2. / s);
   p.x = abs(p.x);
   float ropes = cylinder(p - vec3(.5, 1., 0), .01, s);
@@ -155,20 +157,9 @@ float antenna(vec3 p, vec2 rotation) {
   return r;
 }
 
-const vec3 TERRAIN_SIZE = vec3(500., 50., 500.);
-const float TERRAIN_OFFSET = 3.;
-
 float iterations = 0.;
 
-bool isOutsideTerrainArea(vec3 p) {
-  return p.x < 0. || p.x > TERRAIN_SIZE.x || p.z < 0. || p.z > TERRAIN_SIZE.z;
-}
-
 float terrain(vec3 p) {
-  if (p.y > TERRAIN_SIZE.y - TERRAIN_OFFSET || isOutsideTerrainArea(p)) {
-    return MAX_DIST;  // Outside of terrain, skip texture access
-  }
-  ++iterations;
   float height = unpackFloat(texture(iHeightmap, p.xz / TERRAIN_SIZE.xz));
   return p.y - height * TERRAIN_SIZE.y + TERRAIN_OFFSET;
 }
@@ -176,28 +167,23 @@ float terrain(vec3 p) {
 float monument(vec3 p) {
   pModPolar(p.xz, 8.);
   p.x -= 10.;
-  return cuboid(p, vec3(.5,5,1));
+  return cuboid(p, vec3(.5, 5, 1));
 }
 
 float prison(vec3 p) {
   p.y -= 2.;
-  float r = max(
-    opOnion(cuboid(p, vec3(5,2,3)), 0.23),
-    -min(
-      cylinder(p, 1., 100.),
-      cuboid(p-vec3(5,-.77,1.5), vec3(2, 1,.53))
-    )
-  );
+  float r = max(opOnion(cuboid(p, vec3(5, 2, 3)), 0.23),
+      -min(cylinder(p, 1., 100.), cuboid(p - vec3(5, -.77, 1.5), vec3(2, 1, .53))));
   pModInterval(p.x, .3, -10., 10.);
   p.z = abs(p.z);
-  return min(r, cylinder(p.xzy-vec3(0,3,0), .01, 1.));
+  return min(r, cylinder(p.xzy - vec3(0, 3, 0), .01, 1.));
 }
 
 float nonTerrain(vec3 p) {
   float b = bridge(p - vec3(60, 6.5, 25), 10.);
   float a = antenna(p - vec3(380, 35, 80), vec2(0.5, iTime));
   float m = prison(p);
-  return min(b, min(a,m));
+  return min(b, min(a, m));
 }
 
 int material = MATERIAL_SKY;
@@ -240,6 +226,7 @@ float rayMarch(vec3 p, vec3 dir) {
   float prevNear = MAX_DIST;
 
   for (int i = 0; i < MAX_ITERATIONS; i++) {
+    ++iterations;
     float nearest = distanceToNearestSurface(p + dir * dist);
 
     if (nearest < 0.) {
@@ -265,17 +252,8 @@ float rayMarch(vec3 p, vec3 dir) {
 }
 
 float rayTraceWater(vec3 p, vec3 dir) {
-  float angleOsc = cos(iTime * 1.4) / 133.;
-  float heightOsc = sin(iTime * 2. + 3.) * .5;
-  vec3 waterNormal = vec3(0., 1. - angleOsc, angleOsc);
-  float denom = dot(waterNormal, dir);
-  if (abs(denom) > MIN_EPSILON) {
-    float t = dot(heightOsc - p, waterNormal) / denom;
-    if (t >= 0.) {
-      return t;
-    }
-  }
-  return MAX_DIST;
+  float t = (sin(iTime * 2. + 3.) * .1 - p.y) / dir.y;
+  return t >= 0. ? t : MAX_DIST;
 }
 
 vec3 waterNoise(vec2 o) {
@@ -317,12 +295,12 @@ vec4 waterHeightAndNormal(vec2 p) {
   return vec4(normalize(vec3(dxy.x, dxy.y, 1.)), dxy.z);
 }
 
-vec3 applyFog( vec3  rgb,       // original color of the pixel
-               float distance ) // camera to point distance
+vec3 applyFog(vec3 rgb,  // original color of the pixel
+    float distance)  // camera to point distance
 {
-    float fogAmount = 1.0 - exp( -distance*0.009 );
-    vec3  fogColor  = vec3(.4, .8, 1);
-    return mix( rgb, fogColor, fogAmount );
+  float fogAmount = 1.0 - exp(-distance * 0.009);
+  vec3 fogColor = vec3(.4, .8, 1);
+  return mix(rgb, fogColor, fogAmount);
 }
 
 vec3 getColorAt(vec3 hit, vec3 normal, int mat) {
@@ -332,33 +310,30 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat) {
 
   vec3 color = vec3(.8);
   switch (mat) {
-    case MATERIAL_WATER:
-      color = vec3(.15, .52, .73);
-      break;
+    case MATERIAL_WATER: color = vec3(.15, .52, .73); break;
     case MATERIAL_TERRAIN:
-      color = mix(
-        vec3(.93, .8, .64),
-        mix(vec3(.69 + texture(iNoise, hit.xz * 0.0001).x, .67, .65),vec3(.38, .52, .23), dot(normal, vec3(0,1,0))),
-        clamp(hit.y*.5-1., 0., 1.)
-      ) + texture(iNoise, hit.xz * 0.05).x*0.1;
-    break;
+      color = mix(vec3(.93, .8, .64),
+                  mix(vec3(.69 + texture(iNoise, hit.xz * 0.0001).x, .67, .65), vec3(.38, .52, .23),
+                      dot(normal, vec3(0, 1, 0))),
+                  clamp(hit.y * .5 - 1., 0., 1.)) +
+          texture(iNoise, hit.xz * 0.05).x * 0.1;
+      break;
   }
   return color * lightIntensity;
 }
 
 vec3 intersectWithWorld(vec3 p, vec3 dir) {
-  
   float dist = rayMarch(p, dir);
   float wdist = rayTraceWater(p, dir);
 
   vec3 waterColor;
   float waterTransparencyMix = 0.;
   if (wdist < dist) {
-    //get the water color
+    // get the water color
     vec3 waterhit = p + dir * wdist;
     vec4 whn = waterHeightAndNormal(waterhit.xz);
     vec3 waterNormal = whn.yzw;
-    
+
     waterColor = getColorAt(waterhit, waterNormal, MATERIAL_WATER);
     waterTransparencyMix = clamp((dist - wdist) * .5, 0., 1.);
   }
@@ -373,12 +348,8 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
     case MATERIAL_TERRAIN: normal = computeTerrainNormal(hit); break;
     default: normal = computeNonTerrainNormal(hit); break;
   }
-  
-  vec3 colWithTransparency = mix(
-    getColorAt(hit, normal, material),
-    waterColor,
-    waterTransparencyMix
-  );
+
+  vec3 colWithTransparency = mix(getColorAt(hit, normal, material), waterColor, waterTransparencyMix);
 
   return applyFog(colWithTransparency, min(wdist, dist));
 }
@@ -388,7 +359,8 @@ void main() {
 
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
   vec3 c = iCameraPos;
-  //c.y = unpackFloat(texture(iHeightmap, c.xz / TERRAIN_SIZE.xz)) * TERRAIN_SIZE.y - 1.;
+  // c.y = unpackFloat(texture(iHeightmap, c.xz / TERRAIN_SIZE.xz)) * TERRAIN_SIZE.y - 1.;
   vec3 pixelColour = intersectWithWorld(c, ray);
   oColor = vec4(pixelColour, 1.0);
+  oColor.x = iterations / float(MAX_ITERATIONS);
 }
