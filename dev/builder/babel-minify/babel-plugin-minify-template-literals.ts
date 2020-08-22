@@ -1,6 +1,5 @@
 import { types, ConfigAPI, PluginObj, NodePath } from '@babel/core'
-
-const babelGenerator = require('@babel/generator').default
+import babelGenerator from '@babel/generator'
 
 export default function babelPluginMinifyTemplateLiterals(api: ConfigAPI): PluginObj {
   api.assertVersion(7)
@@ -39,8 +38,8 @@ function templateLiteral(path: NodePath<types.TemplateLiteral>): void {
     root = types.binaryExpression('+', root, nodes[i])
   }
 
-  const templateLength = babelGenerator(path.node, { comments: false, minified: true }, '').code.length
-  const es5Length = babelGenerator(root, { comments: false, minified: true }, '').code.length
+  const templateLength = babelGenerator(path.node, { comments: true, minified: true }, '').code.length
+  const es5Length = babelGenerator(root, { comments: true, minified: true }, '').code.length
 
   if (es5Length <= templateLength) {
     path.replaceWith(root)

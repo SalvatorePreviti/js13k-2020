@@ -22,6 +22,7 @@ export function babelMinify(code: string) {
     configFile: false,
     babelrc: false,
     envName: 'production',
+    comments: true,
     compact: true,
     cwd: paths.root,
     minified: true,
