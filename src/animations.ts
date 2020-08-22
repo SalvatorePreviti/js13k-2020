@@ -1,36 +1,41 @@
+import { objectValues } from './core/objects'
+
 interface Animation {
-  value: float
-  speed: float
-  initial: float
-  max: float
-  running: boolean
+  _value: float
+  _speed: float
+  _initial: float
+  _max: float
+  _running: boolean
 }
-const ANIMATIONS: { [k: string]: Animation } = {
-  prisonDoor: {
-    value: 0,
-    speed: 1,
-    initial: 0,
-    max: 1,
-    running: false
+
+const ANIMATIONS = {
+  _prisonDoor: {
+    _value: 0,
+    _speed: 1,
+    _initial: 0,
+    _max: 1,
+    _running: false
   }
 }
 
-function updateAnimations(dt) {
-  Object.values(ANIMATIONS).forEach((anim) => {
-    if (!anim.running) {
-      return
+const ANIMATIONS_LIST: Animation[] = objectValues(ANIMATIONS)
+
+function updateAnimations(dt: float) {
+  for (const anim of ANIMATIONS_LIST) {
+    if (!anim._running) {
+      continue
     }
-    anim.value += anim.speed * dt
-    if (anim.value >= anim.max) {
-      anim.value = anim.max
-      anim.running = false
+    anim._value += anim._speed * dt
+    if (anim._value >= anim._max) {
+      anim._value = anim._max
+      anim._running = false
     }
-  })
+  }
 }
 
 function runAnimation(anim: Animation) {
-  anim.value = anim.initial
-  anim.running = true
+  anim._value = anim._initial
+  anim._running = true
 }
 
 export { ANIMATIONS, runAnimation, updateAnimations }

@@ -50,6 +50,8 @@ export const loadShaderCode = (program: WebGLProgram, type: number, sourceCode: 
 export const loadShaderProgram = (vertexSourceCode: string, fragmentSourceCode: string, name: string): WebGLProgram => {
   // A new program
 
+  console.log(fragmentSourceCode)
+
   const result = gl_createProgram()
 
   debug_reportClear(`compile-shader-${name}`, import.meta.url)

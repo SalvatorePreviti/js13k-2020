@@ -139,8 +139,8 @@ mat2 rot(float a) {
 
 // s is number of segments (*2 + 1, so 5 = 11 segments)
 float bridge(vec3 p, float s) {
-  float bounds = length(p) - s;
-  if (bounds > 1.)
+  float bounds = length(p) - s * .6;
+  if (bounds > 4.)
     return bounds;
   p.y += cos(p.z * 2. / s);
   p.x = abs(p.x);
@@ -155,7 +155,7 @@ float bridge(vec3 p, float s) {
 float antenna(vec3 p, vec2 rotation) {
   float size = 30.;
   float bounds = length(p) - size * 2.;
-  if (bounds > 1.)
+  if (bounds > 15.)
     return bounds;
   p.y -= size;
   vec3 q = p;
@@ -175,8 +175,8 @@ float antenna(vec3 p, vec2 rotation) {
 }
 
 float ruinedBuildings(vec3 p) {
-  float bounds = length(p) - 100.;
-  if (bounds > 1.)
+  float bounds = length(p) - 95.;
+  if (bounds > 15.)
     return bounds;
   p.y += p.x * p.x * 0.001;  // slight bend
   p.xy *= rot(PI / 3.);
@@ -188,7 +188,7 @@ float ruinedBuildings(vec3 p) {
 
 float monument(vec3 p) {
   float bounds = length(p) - 12.;
-  if (bounds > 1.)
+  if (bounds > 3.)
     return bounds;
   pModPolar(p.xz, 8.);
   p.x -= 10.;
@@ -196,8 +196,8 @@ float monument(vec3 p) {
 }
 
 float prison(vec3 p) {
-  float bounds = length(p) - 10.;
-  if (bounds > 1.)
+  float bounds = length(p) - 8.;
+  if (bounds > 5.)
     return bounds;
   p.y -= 2.;
   float r = max(opOnion(cuboid(p, vec3(5, 2, 3)), 0.23),
@@ -440,7 +440,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   return applyFog(colWithTransparency, min(wdist, dist));
 }
 
-void main() {
+void main_() {
   vec2 screen = fragCoord / (iResolution * 0.5) - 1.;
 
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
@@ -453,4 +453,7 @@ void main() {
   // oColor.x = iterationsR;
   // oColor.y = iterationsR;
   // oColor.z = iterationsR;
+}
+
+void main_coll() {
 }

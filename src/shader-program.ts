@@ -10,10 +10,7 @@ const _loadMainShaderProgram = (mainFunction: string) => {
 
   const program = loadShaderProgram(
     vertexShaderCode,
-    fragmentShaderCode.replace(
-      '\n',
-      `#define main ${mainFunction}\n${debug_mode ? '#line 1 1\n' : ''}${fragmentShaderCode}`
-    ),
+    fragmentShaderCode.replace('\n', `\n#define ${mainFunction} main\n${debug_mode ? '#line 2 0\n' : ''}`),
     mainFunction
   )
   const uniforms = glNewUniformLocationGetter(program)
@@ -53,6 +50,6 @@ export const loadMainShader = () => {
     gl_deleteProgram(mainShader._program)
   }
 
-  mainShader = _loadMainShaderProgram('main_frag')
-  collisionShader = _loadMainShaderProgram('main_collision')
+  mainShader = _loadMainShaderProgram('main_')
+  collisionShader = _loadMainShaderProgram('main_coll')
 }

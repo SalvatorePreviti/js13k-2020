@@ -42,10 +42,10 @@ function setMainShaderUniforms(shader: MainShaderProgram) {
   gl_uniformMatrix3fv(shader._iCameraMat3, false, cameraMat3)
 
   //Key visibility
-  gl_uniform1i(shader._iGOKeyVisible, GAME_OBJECTS.key.visible ? 1 : 0)
+  gl_uniform1i(shader._iGOKeyVisible, GAME_OBJECTS._key._visible ? 1 : 0)
 
   //prison door, open-closed
-  gl_uniform1f(shader._iAnimPrisonDoor, ANIMATIONS.prisonDoor.value)
+  gl_uniform1f(shader._iAnimPrisonDoor, ANIMATIONS._prisonDoor._value)
 }
 
 const animationFrame = debug_trycatch_wrap(
