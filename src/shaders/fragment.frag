@@ -142,8 +142,8 @@ mat2 rot(float a) {
 
 // s is number of segments (*2 + 1, so 5 = 11 segments)
 float bridge(vec3 p, float s) {
-  float bounds = length(p)-s;
-  if (bounds > 1.) return bounds;
+  float bounds = length(p)-s*.6;
+  if (bounds > 4.) return bounds;
   p.y += cos(p.z * 2. / s);
   p.x = abs(p.x);
   float ropes = cylinder(p - vec3(.5, 1., 0), .01, s*.55);
@@ -157,7 +157,7 @@ float bridge(vec3 p, float s) {
 float antenna(vec3 p, vec2 rotation) {
   float size = 30.;
   float bounds = length(p)-size*2.;
-  if (bounds > 1.) return bounds;
+  if (bounds > 15.) return bounds;
   p.y -= size;
   vec3 q = p;
   q.xz *= rot(rotation.y);
@@ -176,8 +176,8 @@ float antenna(vec3 p, vec2 rotation) {
 }
 
 float ruinedBuildings(vec3 p) {
-  float bounds = length(p)-100.;
-  if (bounds > 1.) return bounds;
+  float bounds = length(p)-95.;
+  if (bounds > 15.) return bounds;
   p.y += p.x * p.x * 0.001; //slight bend
   p.xy *= rot(PI/3.);
   float r = cuboid(p-vec3(16,0,0), vec3(15, 74, 15));
@@ -188,15 +188,15 @@ float ruinedBuildings(vec3 p) {
 
 float monument(vec3 p) {
   float bounds = length(p)-12.;
-  if (bounds > 1.) return bounds;
+  if (bounds > 3.) return bounds;
   pModPolar(p.xz, 8.);
   p.x -= 10.;
   return cuboid(p, vec3(.5, 5, 1));
 }
 
 float prison(vec3 p) {
-  float bounds = length(p)-10.;
-  if (bounds > 1.) return bounds;
+  float bounds = length(p)-8.;
+  if (bounds > 5.) return bounds;
   p.y -= 2.;
   float r = max(opOnion(cuboid(p, vec3(5, 2, 3)), 0.23),
       -min(cylinder(p, 1., 100.), cuboid(p - vec3(5, -.77, 1.5), vec3(2, 1, .53))));
