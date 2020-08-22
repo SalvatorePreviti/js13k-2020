@@ -23,9 +23,6 @@ loadMainShader()
 function setMainShaderUniforms(shader: MainShaderProgram) {
   shader._use()
 
-  // Canvas resolution in pixels
-  gl_uniform2f(shader._iResolution, canvasSize.x, canvasSize.y)
-
   // Time in seconds
   gl_uniform1f(shader._iTime, time)
 
@@ -61,8 +58,12 @@ const animationFrame = debug_trycatch_wrap(
     updateGameObjects()
     updateText(timeDelta)
 
+    // Render main scene
+
     gl_viewport(0, 0, canvasSize.x, canvasSize.y)
+    gl_uniform2f(mainShader._iResolution, canvasSize.x, canvasSize.y)
     setMainShaderUniforms(mainShader)
+
     glDrawFullScreenTriangle()
 
     prevTime = time

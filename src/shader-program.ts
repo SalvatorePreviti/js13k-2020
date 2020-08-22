@@ -13,10 +13,10 @@ const _loadMainShaderProgram = (mainFunction: string) => {
     fragmentShaderCode.replace('\n', `\n#define ${mainFunction} main\n${debug_mode ? '#line 2 0\n' : ''}`),
     mainFunction
   )
-  const uniforms = glNewUniformLocationGetter(program)
 
-  gl_uniform1i(uniforms._iHeightmap, 0)
-  gl_uniform1i(uniforms._iNoise, 1)
+  const uniforms = glNewUniformLocationGetter(program)
+  gl_uniform1i(uniforms.iHeightmap, 0)
+  gl_uniform1i(uniforms.iNoise, 1)
 
   const result = {
     _program: program,
