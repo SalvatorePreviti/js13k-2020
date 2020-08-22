@@ -1,10 +1,10 @@
 const element = document.getElementById('T')
 interface Text {
-  text: string
-  timeout: number
+  _text: string
+  _timeout: number
 }
 
-const EMPTY: Text = { text: '', timeout: -1 }
+const EMPTY: Text = { _text: '', _timeout: -1 }
 
 let currentText: Text = EMPTY
 const textQueue: Text[] = []
@@ -16,7 +16,7 @@ const textQueue: Text[] = []
 //        replacing any other text with negative timeout at the back of the queue.
 //        This text will show until another setText is called
 function setText(text: string, timeout: number = -1) {
-  const textObject = { text, timeout }
+  const textObject = { _text: text, _timeout: timeout }
   //If the last item in the queue (we pop from the end of the queue, so last one is [0]) has a timeout of -1
   if (textQueue[0]) {
     //if the item we're adding also has a timeout of -1 then replace it:
@@ -36,13 +36,13 @@ function setText(text: string, timeout: number = -1) {
 }
 
 function updateText(dt) {
-  if (currentText && currentText.timeout > 0) {
-    currentText.timeout -= dt
+  if (currentText && currentText._timeout > 0) {
+    currentText._timeout -= dt
   }
 
-  if (currentText.timeout < 0 && textQueue[0]) {
+  if (currentText._timeout < 0 && textQueue[0]) {
     currentText = textQueue.pop()
-    element.innerHTML = currentText.text
+    element.innerHTML = currentText._text
   }
 }
 

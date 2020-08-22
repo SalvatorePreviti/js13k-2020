@@ -170,13 +170,25 @@ export function updateGraph(index: number, maxValue: number, value: number, text
   )
 }
 
-export function updateCanvasSize() {
+let _updateCanvasSizeTimer: any = null
+
+function doUpdateCanvasSize() {
   const canvas = document.getElementById('C') as HTMLCanvasElement
   context.fillStyle = '#005'
   context.fillRect(GRAPH_SPACING, GRAPH_SPACING, DEBUG_INFO_CANVAS_WIDTH - 2 * GRAPH_SPACING, TEXT_HEIGHT)
   context.fillStyle = '#aae'
   context.textAlign = 'center'
   context.fillText(`${canvas.width}⨯${canvas.height} px`, DEBUG_INFO_CANVAS_WIDTH / 2, 5, GRAPH_WIDTH)
+}
+
+export function updateCanvasSize() {
+  if (_updateCanvasSizeTimer) {
+    clearTimeout(_updateCanvasSizeTimer)
+  }
+  _updateCanvasSizeTimer = setTimeout(() => {
+    _updateCanvasSizeTimer = null
+    doUpdateCanvasSize()
+  }, 20)
 }
 
 export function updateGraphInfo(timeInSeconds?: number) {
@@ -238,3 +250,4 @@ export function updateCameraEulerAngles(eulerAngles: Readonly<Vec2>) {
 initGraphs()
 
 window.addEventListener('resize', updateCanvasSize)
+updateCanvasSize()

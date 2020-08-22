@@ -81,10 +81,10 @@ const animationFrame = debug_trycatch_wrap(
     gl_uniform1i(shaderProgram_iNoise, 1)
 
     //Key visibility
-    gl_uniform1i(shaderProgram_iGOKeyVisible, GAME_OBJECTS.key.visible ? 1 : 0)
+    gl_uniform1i(shaderProgram_iGOKeyVisible, GAME_OBJECTS._key._visible ? 1 : 0)
 
     //prison door, open-closed
-    gl_uniform1f(shaderProgram_iAnimPrisonDoor, ANIMATIONS.prisonDoor.value)
+    gl_uniform1f(shaderProgram_iAnimPrisonDoor, ANIMATIONS._prisonDoor._value)
 
     glDrawFullScreenTriangle()
 
