@@ -269,7 +269,7 @@ export function getTerserMinifyOptions(
             keep_quoted: true,
 
             // Pass a RegExp literal or pattern string to only mangle property matching the regular expression.
-            regex: /^\$/,
+            regex: /^[$_]/,
 
             // Do not mangle property names listed in the reserved array.
             reserved: undefined

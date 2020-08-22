@@ -303,7 +303,7 @@ document.getElementById('debug-report-close').addEventListener('click', () => {
   debug_reportClear()
 })
 
-window.addEventListener('error', (e) => {
+addEventListener('error', (e) => {
   debug_report('error', e.error || e.message, 'Uncaught')
 })
 

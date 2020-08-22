@@ -159,7 +159,7 @@ export const clamp = (value: number, minimum: number, maximum: number): number =
 
 export const wrapNatural = (value: number, limit: number): number => ((value % limit) + limit) % limit
 
-export const wrapAngleInRadians = (angle: number): number => angle - TWO_PI * Math.floor((angle + PI) / TWO_PI)
+export const wrapAngleInRadians = (angle: number): number => angle - TWO_PI * floor((angle + PI) / TWO_PI)
 
 export const smoothStep = (from: number, to: number, t: number): number => {
   if (abs(from - to) <= t * max(1, abs(from), abs(to))) {
