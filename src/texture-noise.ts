@@ -2,6 +2,20 @@ import { gl } from './gl'
 import { debug_time, debug_timeEnd } from './debug'
 import { wrapNatural } from './math/scalar'
 import { xoshiro128ss } from './math/rand'
+import {
+  GL_TEXTURE1,
+  GL_TEXTURE_2D,
+  GL_TEXTURE_WRAP_S,
+  GL_TEXTURE_MAG_FILTER,
+  GL_LINEAR,
+  GL_TEXTURE_MIN_FILTER,
+  GL_REPEAT,
+  GL_TEXTURE_WRAP_T,
+  GL_UNPACK_ALIGNMENT,
+  GL_RGBA,
+  GL_UNSIGNED_BYTE,
+  GL_TEXTURE0
+} from './core/gl-constants'
 
 export const NOISE_TEXTURE_SIZE = 512
 
@@ -10,8 +24,8 @@ export const noiseTexture: WebGLTexture = gl.createTexture()
 export const buildNoiseTexture = () => {
   debug_time(buildNoiseTexture)
 
-  gl.activeTexture(gl.TEXTURE1)
-  gl.bindTexture(gl.TEXTURE_2D, noiseTexture)
+  gl.activeTexture(GL_TEXTURE1)
+  gl.bindTexture(GL_TEXTURE_2D, noiseTexture)
 
   const nextRandom = xoshiro128ss(0x486666, 0xbadbeef, 0xc0ffee, 0xc05fefe)
 
@@ -39,17 +53,17 @@ export const buildNoiseTexture = () => {
     }
   }
 
-  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1)
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, NOISE_TEXTURE_SIZE, NOISE_TEXTURE_SIZE, 0, gl.RGBA, gl.UNSIGNED_BYTE, data)
+  gl.pixelStorei(GL_UNPACK_ALIGNMENT, 1)
+  gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, NOISE_TEXTURE_SIZE, NOISE_TEXTURE_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
 
-  gl.bindTexture(gl.TEXTURE_2D, noiseTexture)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+  gl.bindTexture(GL_TEXTURE_2D, noiseTexture)
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+  gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
-  gl.bindTexture(gl.TEXTURE_2D, noiseTexture)
-  gl.activeTexture(gl.TEXTURE0)
+  gl.bindTexture(GL_TEXTURE_2D, noiseTexture)
+  gl.activeTexture(GL_TEXTURE0)
 
   debug_timeEnd(buildNoiseTexture)
 }
