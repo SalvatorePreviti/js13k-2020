@@ -134,9 +134,11 @@ mat2 rot(float a) {
 
 // s is number of segments (*2 + 1, so 5 = 11 segments)
 float bridge(vec3 p, float s) {
+  float bounds = length(p)-s;
+  if (bounds > 1.) return bounds;
   p.y += cos(p.z * 2. / s);
   p.x = abs(p.x);
-  float ropes = cylinder(p - vec3(.5, 1., 0), .01, s);
+  float ropes = cylinder(p - vec3(.5, 1., 0), .01, s*.55);
   pModInterval(p.z, .55, -s, s);
   ropes = min(ropes, cylinder(p.xzy - vec3(.5, 0, .5), .01, .5));
   float boards = cuboid(p, vec3(.5, .05, .2));
@@ -146,6 +148,8 @@ float bridge(vec3 p, float s) {
 // rotation.x controls elevation/altitude, rotation.y controls azimuth
 float antenna(vec3 p, vec2 rotation) {
   float size = 30.;
+  float bounds = length(p)-size*2.;
+  if (bounds > 1.) return bounds;
   p.y -= size;
   vec3 q = p;
   q.xz *= rot(rotation.y);
@@ -163,15 +167,9 @@ float antenna(vec3 p, vec2 rotation) {
   return r;
 }
 
-float iterations = 0.;
-
-float terrain(vec3 p) {
-  float height = unpackFloat(texture(iHeightmap, p.xz / TERRAIN_SIZE.xz + .5)) * TERRAIN_SIZE.y;
-  vec2 d = abs(vec2(length(p.xz), p.y + 3. + TERRAIN_OFFSET)) - vec2(TERRAIN_SIZE.x * .5 * sqrt(2.), height + 3.);
-  return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
-}
-
 float ruinedBuildings(vec3 p) {
+  float bounds = length(p)-100.;
+  if (bounds > 1.) return bounds;
   p.y += p.x * p.x * 0.001; //slight bend
   p.xy *= rot(PI/3.);
   float r = cuboid(p-vec3(16,0,0), vec3(15, 74, 15));
@@ -181,26 +179,45 @@ float ruinedBuildings(vec3 p) {
 }
 
 float monument(vec3 p) {
+  float bounds = length(p)-12.;
+  if (bounds > 1.) return bounds;
   pModPolar(p.xz, 8.);
   p.x -= 10.;
   return cuboid(p, vec3(.5, 5, 1));
 }
 
 float prison(vec3 p) {
+  float bounds = length(p)-10.;
+  if (bounds > 1.) return bounds;
   p.y -= 2.;
   float r = max(opOnion(cuboid(p, vec3(5, 2, 3)), 0.23),
       -min(cylinder(p, 1., 100.), cuboid(p - vec3(5, -.77, 1.5), vec3(2, 1, .53))));
+  vec3 q = p-vec3(5,-.77,1);
+  float prisonDoorAnimation = 0.5+sin(iTime)*0.5; //0 to 1. TODO: move to a uniform
+  q.xz *= rot(-prisonDoorAnimation * PI/2.);
+  float door = cuboid(q-vec3(0,0,.52), vec3(.05, .99, .52));
   pModInterval(p.x, .3, -10., 10.);
   p.z = abs(p.z);
-  return min(r, cylinder(p.xzy - vec3(0, 3, 0), .01, 1.));
+  r = min(r, cylinder(p.xzy - vec3(0, 3, 0), .01, 1.));
+  return min(r,door);
+}
+
+
+float iterations = 0.;
+
+float terrain(vec3 p) {
+  float height = unpackFloat(texture(iHeightmap, p.xz / TERRAIN_SIZE.xz + .5)) * TERRAIN_SIZE.y;
+  vec2 d = abs(vec2(length(p.xz), p.y + 3. + TERRAIN_OFFSET)) - vec2(TERRAIN_SIZE.x * .5 * sqrt(2.), height + 3.);
+  return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
 }
 
 float nonTerrain(vec3 p) {
-  float b = bridge(p - vec3(60, 6.5, 25), 10.);
+  float b = bridge(p - vec3(60, 20.5, 25), 10.);
   float a = antenna(p - vec3(380, 35, 80), vec2(0.5, iTime));
-  float m = prison(p);
+  float m = monument(p-vec3(20));
+  float pr = prison(p);
   float r = ruinedBuildings(p-vec3(100,10,300));
-  return min(min(b,r), min(a, m));
+  return min(min(b,r), min(a, min(m,pr)));
 }
 
 int material = MATERIAL_SKY;
