@@ -10,6 +10,7 @@ interface GameObject {
   lookAtDistance: float
   onInteract: () => void //perform action when ACTION key is pressed while looking at
   onLookAt: () => string | void //return a string to display, or perform action
+  [additional: string]: any //Any additional properties that you might want to keep
 }
 
 const INVENTORY = {
@@ -24,6 +25,7 @@ const GAME_OBJECTS: { [k: string]: GameObject } = {
     onInteract() {
       this.visible = false
       INVENTORY.key = true
+      setText('You picked up the key', 2)
     },
     onLookAt: () => 'A key, how convenient!'
   },
@@ -36,8 +38,12 @@ const GAME_OBJECTS: { [k: string]: GameObject } = {
         this.visible = false
         runAnimation(ANIMATIONS.prisonDoor)
       }
+      this.checked = true
     },
-    onLookAt: () => 'A locked door'
+    checked: false,
+    onLookAt() {
+      return INVENTORY.key ? 'Open the door with the key' : this.checked ? 'A locked door' : 'A door'
+    }
   }
 }
 

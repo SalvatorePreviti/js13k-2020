@@ -32,6 +32,7 @@ import {
 } from './gl_context'
 import { updateAnimations, ANIMATIONS } from './animations'
 import { GAME_OBJECTS, updateGameObjects } from './objects'
+import { updateText } from './text'
 
 let frameIndex: number = 1
 let prevTime = 0
@@ -51,6 +52,7 @@ const animationFrame = debug_trycatch_wrap(
     updateCamera(timeDelta)
     updateAnimations(timeDelta)
     updateGameObjects()
+    updateText(timeDelta)
 
     gl_viewport(0, 0, canvasSize.x, canvasSize.y)
 
