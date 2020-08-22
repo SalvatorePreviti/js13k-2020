@@ -91,7 +91,7 @@ const updateCameraDirFromEulerAngles = () => {
   const sinPitch = sin(pitch)
   const cosPitch = cos(pitch)
 
-  vec3Normalize(vec3Set(cameraDir, sinYaw, sinPitch, cosYaw))
+  vec3Normalize(vec3Set(cameraDir, sinYaw, -sinPitch, cosYaw))
 
   // Update rotation matrix
 

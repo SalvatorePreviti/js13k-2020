@@ -50,6 +50,14 @@ uniform sampler2D iHeightmap;
 // Noise texture
 uniform sampler2D iNoise;
 
+//Game object uniforms
+//Key
+uniform bool iGOKeyVisible;
+
+//Animation uniforms
+//Prison Door 0 - closed, 1 - open
+uniform float iAnimPrisonDoor;
+
 // Output color
 out vec4 oColor;
 
@@ -193,13 +201,28 @@ float prison(vec3 p) {
   float r = max(opOnion(cuboid(p, vec3(5, 2, 3)), 0.23),
       -min(cylinder(p, 1., 100.), cuboid(p - vec3(5, -.77, 1.5), vec3(2, 1, .53))));
   vec3 q = p-vec3(5,-.77,1);
-  float prisonDoorAnimation = 0.5+sin(iTime)*0.5; //0 to 1. TODO: move to a uniform
-  q.xz *= rot(-prisonDoorAnimation * PI/2.);
+  q.xz *= rot(-iAnimPrisonDoor * PI/2.);
   float door = cuboid(q-vec3(0,0,.52), vec3(.05, .99, .52));
   pModInterval(p.x, .3, -10., 10.);
   p.z = abs(p.z);
   r = min(r, cylinder(p.xzy - vec3(0, 3, 0), .01, 1.));
   return min(r,door);
+}
+
+
+float gameObjectKey(vec3 p) {
+  if (!iGOKeyVisible) return MAX_DIST;
+  float bounds = length(p)-.3;
+  if (bounds > .3) return bounds;
+  float r = cylinder(p, .01, .06); //shaft
+  r = min(r, cylinder(p.yzx + vec3(0,.1,0), .04, .005)); //handle
+  r = min(r, cuboid(p-vec3(0,-.01,.04), vec3(.002,.02,.02)));
+
+  return r;
+}
+
+float gameObjects(vec3 p) {
+  return gameObjectKey(p-vec3(0,1,0));
 }
 
 
@@ -217,7 +240,7 @@ float nonTerrain(vec3 p) {
   float m = monument(p-vec3(20));
   float pr = prison(p);
   float r = ruinedBuildings(p-vec3(100,10,300));
-  return min(min(b,r), min(a, min(m,pr)));
+  return min(gameObjects(p), min(min(b,r), min(a, min(m,pr))));
 }
 
 int material = MATERIAL_SKY;
@@ -234,7 +257,7 @@ float distanceToNearestSurface(vec3 p) {
 }
 
 vec3 computeNonTerrainNormal(vec3 p) {
-  const vec2 S = vec2(0.01, 0);
+  const vec2 S = vec2(0.001, 0);
   float d = nonTerrain(p);
   float a = nonTerrain(p + S.xyy);
   float b = nonTerrain(p + S.yxy);

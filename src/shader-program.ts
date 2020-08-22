@@ -26,6 +26,10 @@ export let shaderProgram_iHeightmap: WebGLUniformLocation
 
 export let shaderProgram_iNoise: WebGLUniformLocation
 
+export let shaderProgram_iGOKeyVisible: WebGLUniformLocation
+
+export let shaderProgram_iAnimPrisonDoor: WebGLUniformLocation
+
 export const loadMainShaderProgram = () => {
   debug_time(loadMainShaderProgram)
   // A new program
@@ -52,6 +56,9 @@ export const loadMainShaderProgram = () => {
 
   shaderProgram_iHeightmap = getUniformLocation('iHeightmap')
   shaderProgram_iNoise = getUniformLocation('iNoise')
+
+  shaderProgram_iGOKeyVisible = getUniformLocation('iGOKeyVisible')
+  shaderProgram_iAnimPrisonDoor = getUniformLocation('iAnimPrisonDoor')
 
   debug_timeEnd(loadMainShaderProgram)
 
