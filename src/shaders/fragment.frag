@@ -171,6 +171,15 @@ float terrain(vec3 p) {
   return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
 }
 
+float ruinedBuildings(vec3 p) {
+  p.y += p.x * p.x * 0.001; //slight bend
+  p.xy *= rot(PI/3.);
+  float r = cuboid(p-vec3(16,0,0), vec3(15, 74, 15));
+  float r2 = cuboid(p-vec3(-16,20,0), vec3(15, 74, 15));
+  vec3 q = mod(p + 2., 4.) - 2.;
+  return max(min(r,r2), -cuboid(q, vec3(1.5)));
+}
+
 float monument(vec3 p) {
   pModPolar(p.xz, 8.);
   p.x -= 10.;
@@ -190,7 +199,8 @@ float nonTerrain(vec3 p) {
   float b = bridge(p - vec3(60, 6.5, 25), 10.);
   float a = antenna(p - vec3(380, 35, 80), vec2(0.5, iTime));
   float m = prison(p);
-  return min(b, min(a, m));
+  float r = ruinedBuildings(p-vec3(100,10,300));
+  return min(min(b,r), min(a, m));
 }
 
 int material = MATERIAL_SKY;
