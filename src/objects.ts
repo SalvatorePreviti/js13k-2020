@@ -8,8 +8,8 @@ interface GameObject {
   location: Vec3
   visible: boolean
   lookAtDistance: float
-  onCollect: () => void
-  lookAtMessage: string
+  onInteract: () => void //perform action when ACTION key is pressed while looking at
+  onLookAt: () => string | void //return a string to display, or perform action
 }
 
 const INVENTORY = {
@@ -21,21 +21,31 @@ const GAME_OBJECTS: { [k: string]: GameObject } = {
     location: vec3New(0, 1, 0),
     visible: true,
     lookAtDistance: 2,
-    onCollect: () => {
+    onInteract() {
+      this.visible = false
       INVENTORY.key = true
-      runAnimation(ANIMATIONS.prisonDoor) //Temporary until changing door to be a game object
     },
-    lookAtMessage: 'A key, how convenient!'
+    onLookAt: () => 'A key, how convenient!'
+  },
+  door: {
+    location: vec3New(5, 1.5, 1.5),
+    lookAtDistance: 2,
+    visible: true,
+    onInteract() {
+      if (INVENTORY.key) {
+        this.visible = false
+        runAnimation(ANIMATIONS.prisonDoor)
+      }
+    },
+    onLookAt: () => 'A locked door'
   }
-}
-
-function collectGameObject(object: GameObject) {
-  object.visible = false
-  object.onCollect()
 }
 
 function getVisibleObject(): GameObject {
   for (const gameObject of Object.values(GAME_OBJECTS)) {
+    if (!gameObject.visible) {
+      continue
+    }
     const objectLocation = gameObject.location
     if (vec3Distance(objectLocation, cameraPos) > gameObject.lookAtDistance) {
       continue
@@ -51,9 +61,9 @@ function getVisibleObject(): GameObject {
 function updateGameObjects() {
   const visibleObject = getVisibleObject()
   if (visibleObject) {
-    setText(visibleObject.lookAtMessage)
+    setText(visibleObject.onLookAt() || '')
     if (isKeyPressed(KEY_ACTION)) {
-      collectGameObject(visibleObject)
+      visibleObject.onInteract()
     }
   } else {
     setText('')
