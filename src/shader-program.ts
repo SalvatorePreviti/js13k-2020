@@ -27,30 +27,9 @@ export let shaderProgram_iHeightmap: WebGLUniformLocation
 
 export let shaderProgram_iNoise: WebGLUniformLocation
 
-/*const loadUniforms = () => {
+export let shaderProgram_iGOKeyVisible: WebGLUniformLocation
 
-
-function Uniform(value: number) {
-  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-    console.log('Uniform', value, target, propertyKey, descriptor)
-  }
-}
-
-  shaderProgram_iResolution = getUniformLocation('iResolution')
-  shaderProgram_iTime = getUniformLocation('iTime')
-  shaderProgram_iFrame = getUniformLocation('iFrame')
-  shaderProgram_iCameraPos = getUniformLocation('iCameraPos')
-  shaderProgram_iCameraDir = getUniformLocation('iCameraDir')
-  shaderProgram_iCameraEuler = getUniformLocation('iCameraEuler')
-  shaderProgram_iCameraMat3 = getUniformLocation('iCameraMat3')
-
-  shaderProgram_iHeightmap = getUniformLocation('iHeightmap')
-  shaderProgram_iNoise = getUniformLocation('iNoise')
-
-  return {
-    $iResolution
-  }
-}*/
+export let shaderProgram_iAnimPrisonDoor: WebGLUniformLocation
 
 export const loadMainShaderProgram = () => {
   debug_time(loadMainShaderProgram)
@@ -78,6 +57,9 @@ export const loadMainShaderProgram = () => {
 
   shaderProgram_iHeightmap = getUniformLocation('iHeightmap')
   shaderProgram_iNoise = getUniformLocation('iNoise')
+
+  shaderProgram_iGOKeyVisible = getUniformLocation('iGOKeyVisible')
+  shaderProgram_iAnimPrisonDoor = getUniformLocation('iAnimPrisonDoor')
 
   debug_timeEnd(loadMainShaderProgram)
 

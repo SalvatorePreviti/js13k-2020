@@ -8,6 +8,8 @@ export const KEY_STRAFE_RIGHT = 4
 
 export const KEY_RUN = 5
 
+export const KEY_ACTION = 6
+
 export const KEY_FLY_UP = 10
 
 export const KEY_FLY_DOWN = 11
@@ -35,6 +37,10 @@ const _keyMap: Record<string, number> = {
   ArrowRight: KEY_STRAFE_RIGHT,
 
   Shift: KEY_RUN,
+
+  e: KEY_ACTION,
+  E: KEY_ACTION,
+  ' ': KEY_ACTION,
 
   f: KEY_FLY_UP,
   F: KEY_FLY_UP,

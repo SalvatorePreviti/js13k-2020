@@ -13,7 +13,9 @@ import {
   loadMainShaderProgram,
   shaderProgram,
   shaderProgram_iHeightmap,
-  shaderProgram_iNoise
+  shaderProgram_iNoise,
+  shaderProgram_iGOKeyVisible,
+  shaderProgram_iAnimPrisonDoor
 } from './shader-program'
 import { cameraPos, updateCamera, cameraDir, cameraEuler, cameraMat3 } from './camera'
 
@@ -28,6 +30,8 @@ import {
   gl_uniformMatrix3fv,
   gl_useProgram
 } from './gl_context'
+import { updateAnimations, ANIMATIONS } from './animations'
+import { GAME_OBJECTS, updateGameObjects } from './objects'
 
 let frameIndex: number = 1
 let prevTime = 0
@@ -45,6 +49,8 @@ const animationFrame = debug_trycatch_wrap(
     requestAnimationFrame(animationFrame)
 
     updateCamera(timeDelta)
+    updateAnimations(timeDelta)
+    updateGameObjects()
 
     gl_viewport(0, 0, canvasSize.x, canvasSize.y)
 
@@ -71,6 +77,12 @@ const animationFrame = debug_trycatch_wrap(
 
     gl_uniform1i(shaderProgram_iHeightmap, 0)
     gl_uniform1i(shaderProgram_iNoise, 1)
+
+    //Key visibility
+    gl_uniform1i(shaderProgram_iGOKeyVisible, GAME_OBJECTS.key.visible ? 1 : 0)
+
+    //prison door, open-closed
+    gl_uniform1f(shaderProgram_iAnimPrisonDoor, ANIMATIONS.prisonDoor.value)
 
     glDrawFullScreenTriangle()
 
