@@ -399,7 +399,8 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat) {
                   mix(vec3(.69 + texture(iNoise, hit.xz * 0.0001).x, .67, .65), vec3(.38, .52, .23),
                       dot(normal, vec3(0, 1, 0))),
                   clamp(hit.y * .5 - 1., 0., 1.)) +
-          texture(iNoise, hit.xz * 0.05).x * 0.1;
+          texture(iNoise, hit.xz * 0.05).x * 0.1 + 
+          texture(iNoise, hit.xz * 0.005).x * 0.1;;
       break;
   }
   return color * lightIntensity;
