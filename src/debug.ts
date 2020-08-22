@@ -9,6 +9,9 @@ export interface DebugReportInfo {
   title?: string
 }
 
+/** True if in debug mode */
+export const debug_mode: boolean = false
+
 /** Oh well, console.log, only for development mode */
 export const debug_log = (..._args: any): void => undefined
 

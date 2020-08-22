@@ -16,6 +16,8 @@ export {
   debug_checkShaderProgramLinkStatus
 } from './_debug-report'
 
+export const debug_mode: boolean = true
+
 /** Prints debug information. Call to debug_log will disappear in release mode. */
 export const debug_log = console.log.bind(console)
 

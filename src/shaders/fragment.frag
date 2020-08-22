@@ -29,9 +29,6 @@ uniform vec2 iResolution;
 // Time in seconds
 uniform float iTime;
 
-// Frame index, should not be used but useful for debugging
-uniform int iFrame;
-
 // Camera position
 uniform vec3 iCameraPos;
 
@@ -50,12 +47,12 @@ uniform sampler2D iHeightmap;
 // Noise texture
 uniform sampler2D iNoise;
 
-//Game object uniforms
-//Key
+// Game object uniforms
+// Key
 uniform bool iGOKeyVisible;
 
-//Animation uniforms
-//Prison Door 0 - closed, 1 - open
+// Animation uniforms
+// Prison Door 0 - closed, 1 - open
 uniform float iAnimPrisonDoor;
 
 // Output color
@@ -142,11 +139,12 @@ mat2 rot(float a) {
 
 // s is number of segments (*2 + 1, so 5 = 11 segments)
 float bridge(vec3 p, float s) {
-  float bounds = length(p)-s;
-  if (bounds > 1.) return bounds;
+  float bounds = length(p) - s;
+  if (bounds > 1.)
+    return bounds;
   p.y += cos(p.z * 2. / s);
   p.x = abs(p.x);
-  float ropes = cylinder(p - vec3(.5, 1., 0), .01, s*.55);
+  float ropes = cylinder(p - vec3(.5, 1., 0), .01, s * .55);
   pModInterval(p.z, .55, -s, s);
   ropes = min(ropes, cylinder(p.xzy - vec3(.5, 0, .5), .01, .5));
   float boards = cuboid(p, vec3(.5, .05, .2));
@@ -156,8 +154,9 @@ float bridge(vec3 p, float s) {
 // rotation.x controls elevation/altitude, rotation.y controls azimuth
 float antenna(vec3 p, vec2 rotation) {
   float size = 30.;
-  float bounds = length(p)-size*2.;
-  if (bounds > 1.) return bounds;
+  float bounds = length(p) - size * 2.;
+  if (bounds > 1.)
+    return bounds;
   p.y -= size;
   vec3 q = p;
   q.xz *= rot(rotation.y);
@@ -176,55 +175,58 @@ float antenna(vec3 p, vec2 rotation) {
 }
 
 float ruinedBuildings(vec3 p) {
-  float bounds = length(p)-100.;
-  if (bounds > 1.) return bounds;
-  p.y += p.x * p.x * 0.001; //slight bend
-  p.xy *= rot(PI/3.);
-  float r = cuboid(p-vec3(16,0,0), vec3(15, 74, 15));
-  float r2 = cuboid(p-vec3(-16,20,0), vec3(15, 74, 15));
+  float bounds = length(p) - 100.;
+  if (bounds > 1.)
+    return bounds;
+  p.y += p.x * p.x * 0.001;  // slight bend
+  p.xy *= rot(PI / 3.);
+  float r = cuboid(p - vec3(16, 0, 0), vec3(15, 74, 15));
+  float r2 = cuboid(p - vec3(-16, 20, 0), vec3(15, 74, 15));
   vec3 q = mod(p + 2., 4.) - 2.;
-  return max(min(r,r2), -cuboid(q, vec3(1.5)));
+  return max(min(r, r2), -cuboid(q, vec3(1.5)));
 }
 
 float monument(vec3 p) {
-  float bounds = length(p)-12.;
-  if (bounds > 1.) return bounds;
+  float bounds = length(p) - 12.;
+  if (bounds > 1.)
+    return bounds;
   pModPolar(p.xz, 8.);
   p.x -= 10.;
   return cuboid(p, vec3(.5, 5, 1));
 }
 
 float prison(vec3 p) {
-  float bounds = length(p)-10.;
-  if (bounds > 1.) return bounds;
+  float bounds = length(p) - 10.;
+  if (bounds > 1.)
+    return bounds;
   p.y -= 2.;
   float r = max(opOnion(cuboid(p, vec3(5, 2, 3)), 0.23),
       -min(cylinder(p, 1., 100.), cuboid(p - vec3(5, -.77, 1.5), vec3(2, 1, .53))));
-  vec3 q = p-vec3(5,-.77,1);
-  q.xz *= rot(-iAnimPrisonDoor * PI/2.);
-  float door = cuboid(q-vec3(0,0,.52), vec3(.05, .99, .52));
+  vec3 q = p - vec3(5, -.77, 1);
+  q.xz *= rot(-iAnimPrisonDoor * PI / 2.);
+  float door = cuboid(q - vec3(0, 0, .52), vec3(.05, .99, .52));
   pModInterval(p.x, .3, -10., 10.);
   p.z = abs(p.z);
   r = min(r, cylinder(p.xzy - vec3(0, 3, 0), .01, 1.));
-  return min(r,door);
+  return min(r, door);
 }
 
-
 float gameObjectKey(vec3 p) {
-  if (!iGOKeyVisible) return MAX_DIST;
-  float bounds = length(p)-.3;
-  if (bounds > .3) return bounds;
-  float r = cylinder(p, .01, .06); //shaft
-  r = min(r, cylinder(p.yzx + vec3(0,.1,0), .04, .005)); //handle
-  r = min(r, cuboid(p-vec3(0,-.01,.04), vec3(.002,.02,.02)));
+  if (!iGOKeyVisible)
+    return MAX_DIST;
+  float bounds = length(p) - .3;
+  if (bounds > .3)
+    return bounds;
+  float r = cylinder(p, .01, .06);  // shaft
+  r = min(r, cylinder(p.yzx + vec3(0, .1, 0), .04, .005));  // handle
+  r = min(r, cuboid(p - vec3(0, -.01, .04), vec3(.002, .02, .02)));
 
   return r;
 }
 
 float gameObjects(vec3 p) {
-  return gameObjectKey(p-vec3(0,1,0));
+  return gameObjectKey(p - vec3(0, 1, 0));
 }
-
 
 float iterations = 0.;
 
@@ -237,10 +239,10 @@ float terrain(vec3 p) {
 float nonTerrain(vec3 p) {
   float b = bridge(p - vec3(60, 20.5, 25), 10.);
   float a = antenna(p - vec3(380, 35, 80), vec2(0.5, iTime));
-  float m = monument(p-vec3(20));
+  float m = monument(p - vec3(20));
   float pr = prison(p);
-  float r = ruinedBuildings(p-vec3(100,10,300));
-  return min(gameObjects(p), min(min(b,r), min(a, min(m,pr))));
+  float r = ruinedBuildings(p - vec3(100, 10, 300));
+  return min(gameObjects(p), min(min(b, r), min(a, min(m, pr))));
 }
 
 int material = MATERIAL_SKY;
@@ -399,8 +401,8 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat) {
                   mix(vec3(.69 + texture(iNoise, hit.xz * 0.0001).x, .67, .65), vec3(.38, .52, .23),
                       dot(normal, vec3(0, 1, 0))),
                   clamp(hit.y * .5 - 1., 0., 1.)) +
-          texture(iNoise, hit.xz * 0.05).x * 0.1 + 
-          texture(iNoise, hit.xz * 0.005).x * 0.1;;
+          texture(iNoise, hit.xz * 0.05).x * 0.1 + texture(iNoise, hit.xz * 0.005).x * 0.1;
+      ;
       break;
   }
   return color * lightIntensity;

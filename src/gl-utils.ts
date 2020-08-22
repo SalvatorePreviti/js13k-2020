@@ -22,8 +22,11 @@ import {
   gl_useProgram,
   gl_deleteShader,
   gl_texParameteri,
-  gl_context
+  gl_context,
+  gl_getUniformLocation
 } from './gl_context'
+
+import { newProxyGetter } from './core/objects'
 
 export const glDrawFullScreenTriangle = () => {
   gl_drawArrays(GL_TRIANGLES, 0, 3)
@@ -84,6 +87,58 @@ export const glSetTextureLinearSampling = (target = GL_TEXTURE_2D) => {
   gl_texParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
   gl_texParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 }
+
+export const glNewUniformLocationGetter = (program: WebGLProgram) =>
+  newProxyGetter((name) => gl_getUniformLocation(program, name))
+
+/*export const glUniformWriter = <F extends GLUniformFunction>(
+  program: WebGLProgram,
+  name: string,
+  type: F
+): OmitFirstArg<F> => {
+  const loation = gl_getUniformLocation(program, name)
+  return ()
+}*/
+
+//
+
+//export const glUniformWriter_1f = (shader: )
+
+/*
+uniform1f(location: WebGLUniformLocation | null, x: GLfloat): void;
+uniform1i(location: WebGLUniformLocation | null, x: GLint): void;
+uniform2f(location: WebGLUniformLocation | null, x: GLfloat, y: GLfloat): void;
+uniform2i(location: WebGLUniformLocation | null, x: GLint, y: GLint): void;
+uniform3f(location: WebGLUniformLocation | null, x: GLfloat, y: GLfloat, z: GLfloat): void;
+uniform3i(location: WebGLUniformLocation | null, x: GLint, y: GLint, z: GLint): void;
+uniform4f(location: WebGLUniformLocation | null, x: GLfloat, y: GLfloat, z: GLfloat, w: GLfloat): void;
+uniform4i(location: WebGLUniformLocation | null, x: GLint, y: GLint, z: GLint, w: GLint): void;
+uniform1fv(location: WebGLUniformLocation | null, data: Float32List, srcOffset?: GLuint, srcLength?: GLuint): void;
+uniform1iv(location: WebGLUniformLocation | null, data: Int32List, srcOffset?: GLuint, srcLength?: GLuint): void;
+uniform2fv(location: WebGLUniformLocation | null, data: Float32List, srcOffset?: GLuint, srcLength?: GLuint): void;
+uniform2iv(location: WebGLUniformLocation | null, data: Int32List, srcOffset?: GLuint, srcLength?: GLuint): void;
+uniform3fv(location: WebGLUniformLocation | null, data: Float32List, srcOffset?: GLuint, srcLength?: GLuint): void;
+uniform3iv(location: WebGLUniformLocation | null, data: Int32List, srcOffset?: GLuint, srcLength?: GLuint): void;
+uniform4fv(location: WebGLUniformLocation | null, data: Float32List, srcOffset?: GLuint, srcLength?: GLuint): void;
+uniform4iv(location: WebGLUniformLocation | null, data: Int32List, srcOffset?: GLuint, srcLength?: GLuint): void;
+uniformMatrix2fv(location: WebGLUniformLocation | null, transpose: GLboolean, data: Float32List, srcOffset?: GLuint, srcLength?: GLuint): void;
+uniformMatrix3fv(location: WebGLUniformLocation | null, transpose: GLboolean, data: Float32List, srcOffset?: GLuint, srcLength?: GLuint): void;
+uniformMatrix4fv(location: WebGLUniformLocation | null, transpose: GLboolean, data: Float32List, srcOffset?: GLuint, srcLength?: GLuint): void;
+uniform1ui(location: WebGLUniformLocation | null, v0: GLuint): void;
+uniform1uiv(location: WebGLUniformLocation | null, data: Uint32List, srcOffset?: GLuint, srcLength?: GLuint): void;
+uniform2ui(location: WebGLUniformLocation | null, v0: GLuint, v1: GLuint): void;
+uniform2uiv(location: WebGLUniformLocation | null, data: Uint32List, srcOffset?: GLuint, srcLength?: GLuint): void;
+uniform3ui(location: WebGLUniformLocation | null, v0: GLuint, v1: GLuint, v2: GLuint): void;
+uniform3uiv(location: WebGLUniformLocation | null, data: Uint32List, srcOffset?: GLuint, srcLength?: GLuint): void;
+uniform4ui(location: WebGLUniformLocation | null, v0: GLuint, v1: GLuint, v2: GLuint, v3: GLuint): void;
+uniform4uiv(location: WebGLUniformLocation | null, data: Uint32List, srcOffset?: GLuint, srcLength?: GLuint): void;
+uniformBlockBinding(program: WebGLProgram, uniformBlockIndex: GLuint, uniformBlockBinding: GLuint): void;
+uniformMatrix2x3fv(location: WebGLUniformLocation | null, transpose: GLboolean, data: Float32List, srcOffset?: GLuint, srcLength?: GLuint): void;
+uniformMatrix2x4fv(location: WebGLUniformLocation | null, transpose: GLboolean, data: Float32List, srcOffset?: GLuint, srcLength?: GLuint): void;
+uniformMatrix3x2fv(location: WebGLUniformLocation | null, transpose: GLboolean, data: Float32List, srcOffset?: GLuint, srcLength?: GLuint): void;
+uniformMatrix3x4fv(location: WebGLUniformLocation | null, transpose: GLboolean, data: Float32List, srcOffset?: GLuint, srcLength?: GLuint): void;
+uniformMatrix4x2fv(location: WebGLUniformLocation | null, transpose: GLboolean, data: Float32List, srcOffset?: GLuint, srcLength?: GLuint): void;
+uniformMatrix4x3fv(location: WebGLUniformLocation | null, transpose: GLboolean, data: Float32List, srcOffset?: GLuint, srcLength?: GLuint): void;*/
 
 /*
 
