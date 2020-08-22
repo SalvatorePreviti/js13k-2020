@@ -1,4 +1,3 @@
-import { canvasElement } from './canvas'
 import { debug_checkShaderProgramLinkStatus, debug_reportClear, debug_checkShaderCompileStatus } from './debug'
 import {
   GL_TRIANGLES,
@@ -12,49 +11,43 @@ import {
   GL_TEXTURE_WRAP_T,
   GL_TEXTURE_WRAP_S
 } from './core/gl-constants'
-
-export const gl = canvasElement.getContext('webgl2', {
-  /** Boolean that indicates if the canvas contains an alpha buffer. */
-  alpha: false,
-  /** Boolean that hints the user agent to reduce the latency by desynchronizing the canvas paint cycle from the event loop */
-  desynchronized: true,
-  /** Boolean that indicates whether or not to perform anti-aliasing. */
-  antialias: false,
-  /** Boolean that indicates that the drawing buffer has a depth buffer of at least 16 bits. */
-  depth: false,
-  /** Boolean that indicates if a context will be created if the system performance is low or if no hardware GPU is available. */
-  failIfMajorPerformanceCaveat: false,
-  /** A hint to the user agent indicating what configuration of GPU is suitable for the WebGL context. */
-  powerPreference: 'high-performance',
-  /** If the value is true the buffers will not be cleared and will preserve their values until cleared or overwritten. */
-  preserveDrawingBuffer: false,
-  /** Boolean that indicates that the drawing buffer has a stencil buffer of at least 8 bits. */
-  stencil: false
-})
+import {
+  gl_drawArrays,
+  gl_createShader,
+  gl_shaderSource,
+  gl_compileShader,
+  gl_attachShader,
+  gl_createProgram,
+  gl_linkProgram,
+  gl_useProgram,
+  gl_deleteShader,
+  gl_texParameteri,
+  gl_context
+} from './gl_context'
 
 export const glDrawFullScreenTriangle = () => {
-  gl.drawArrays(GL_TRIANGLES, 0, 3)
+  gl_drawArrays(GL_TRIANGLES, 0, 3)
 }
 
 export const loadShaderCode = (program: WebGLProgram, type: number, sourceCode: string, name: string) => {
-  const shader = gl.createShader(type)
-  gl.shaderSource(shader, sourceCode)
-  gl.compileShader(shader)
+  const shader = gl_createShader(type)
+  gl_shaderSource(shader, sourceCode)
+  gl_compileShader(shader)
 
-  debug_checkShaderCompileStatus(gl, shader, {
+  debug_checkShaderCompileStatus(gl_context, shader, {
     title: type === GL_VERTEX_SHADER ? 'vertex shader' : 'fragment shader',
     context: `compile-shader-${name}`,
     file: import.meta.url
   })
 
-  gl.attachShader(program, shader)
+  gl_attachShader(program, shader)
   return shader
 }
 
 export const loadShaderProgram = (vertexSourceCode: string, fragmentSourceCode: string, name: string): WebGLProgram => {
   // A new program
 
-  const result = gl.createProgram()
+  const result = gl_createProgram()
 
   debug_reportClear(`compile-shader-${name}`, import.meta.url)
 
@@ -65,9 +58,9 @@ export const loadShaderProgram = (vertexSourceCode: string, fragmentSourceCode: 
 
   // Link them together
 
-  gl.linkProgram(result)
+  gl_linkProgram(result)
 
-  debug_checkShaderProgramLinkStatus(gl, result, {
+  debug_checkShaderProgramLinkStatus(gl_context, result, {
     title: 'shader program',
     context: `compile-shader-${name}`,
     file: import.meta.url
@@ -75,21 +68,21 @@ export const loadShaderProgram = (vertexSourceCode: string, fragmentSourceCode: 
 
   // Activate the program
 
-  gl.useProgram(result)
+  gl_useProgram(result)
 
   // We don't need the shaders anymore, let's free some memory
 
-  gl.deleteShader(vertexShader)
-  gl.deleteShader(fragmentShader)
+  gl_deleteShader(vertexShader)
+  gl_deleteShader(fragmentShader)
 
   return result
 }
 
 export const glSetTextureLinearSampling = (target = GL_TEXTURE_2D) => {
-  gl.texParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-  gl.texParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-  gl.texParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-  gl.texParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+  gl_texParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+  gl_texParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+  gl_texParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+  gl_texParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 }
 
 /*

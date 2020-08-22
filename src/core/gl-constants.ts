@@ -2,7 +2,7 @@
 // WebGL constants
 ////////////////////////////////////////////////////////////////////////////////////////
 // extracted from https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Constants
-// It gets minified better to use the raw constants values instad of using gl.CONSTANT
+// It gets minified better to use the raw constants values instad of using webglContext.CONSTANT
 // Those values are standard in all browsers.
 ////////////////////////////////////////////////////////////////////////////////////////
 
@@ -123,7 +123,7 @@ export const GL_ELEMENT_ARRAY_BUFFER_BINDING = 0x8895
 /** Getting GL parameter information: Passed to getParameter to get the current lineWidth (set by the lineWidth method). */
 export const GL_LINE_WIDTH = 0x0b21
 
-/** Getting GL parameter information: Passed to getParameter to get the current size of a point drawn with gl.POINTS */
+/** Getting GL parameter information: Passed to getParameter to get the current size of a point drawn with GL_POINTS */
 export const GL_ALIASED_POINT_SIZE_RANGE = 0x846d
 
 /** Getting GL parameter information: Passed to getParameter to get the range of available widths for a line. Returns a length-2 array with the lo value at 0, and hight at 1. */

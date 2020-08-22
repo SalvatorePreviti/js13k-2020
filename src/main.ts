@@ -1,5 +1,5 @@
 import './css/styles.less'
-import { gl, glDrawFullScreenTriangle } from './gl'
+import { glDrawFullScreenTriangle } from './gl-utils'
 import { canvasSize } from './canvas'
 import { debug_beginTime, debug_endTime, debug_trycatch_wrap, debug_log } from './debug'
 import {
@@ -19,6 +19,15 @@ import { cameraPos, updateCamera, cameraDir, cameraEuler, cameraMat3 } from './c
 
 import { buildHeightmapTexture } from './texture-heightmap'
 import { buildNoiseTexture } from './texture-noise'
+import {
+  gl_uniform2f,
+  gl_viewport,
+  gl_uniform1f,
+  gl_uniform1i,
+  gl_uniform3f,
+  gl_uniformMatrix3fv,
+  gl_useProgram
+} from './gl_context'
 
 let frameIndex: number = 1
 let prevTime = 0
@@ -37,31 +46,31 @@ const animationFrame = debug_trycatch_wrap(
 
     updateCamera(timeDelta)
 
-    gl.viewport(0, 0, canvasSize.x, canvasSize.y)
+    gl_viewport(0, 0, canvasSize.x, canvasSize.y)
 
     // Canvas resolution in pixels
-    gl.uniform2f(shaderProgram_iResolution, canvasSize.x, canvasSize.y)
+    gl_uniform2f(shaderProgram_iResolution, canvasSize.x, canvasSize.y)
 
     // Time in seconds
-    gl.uniform1f(shaderProgram_iTime, time)
+    gl_uniform1f(shaderProgram_iTime, time)
 
     // Frame counter
-    gl.uniform1i(shaderProgram_iFrame, frameIndex)
+    gl_uniform1i(shaderProgram_iFrame, frameIndex)
 
     // Camera position
-    gl.uniform3f(shaderProgram_iCameraPos, cameraPos.x, cameraPos.y, cameraPos.z)
+    gl_uniform3f(shaderProgram_iCameraPos, cameraPos.x, cameraPos.y, cameraPos.z)
 
     // Camera direction
-    gl.uniform3f(shaderProgram_iCameraDir, cameraDir.x, cameraDir.y, cameraDir.z)
+    gl_uniform3f(shaderProgram_iCameraDir, cameraDir.x, cameraDir.y, cameraDir.z)
 
     // Camera rotation, x is yaw and y is pitch
-    gl.uniform2f(shaderProgram_iCameraEuler, cameraEuler.x, cameraEuler.y)
+    gl_uniform2f(shaderProgram_iCameraEuler, cameraEuler.x, cameraEuler.y)
 
     // Camera rotation matrix
-    gl.uniformMatrix3fv(shaderProgram_iCameraMat3, false, cameraMat3)
+    gl_uniformMatrix3fv(shaderProgram_iCameraMat3, false, cameraMat3)
 
-    gl.uniform1i(shaderProgram_iHeightmap, 0)
-    gl.uniform1i(shaderProgram_iNoise, 1)
+    gl_uniform1i(shaderProgram_iHeightmap, 0)
+    gl_uniform1i(shaderProgram_iNoise, 1)
 
     glDrawFullScreenTriangle()
 
@@ -84,7 +93,7 @@ if (import.meta.hot) {
   const reloadHeightmap = () => {
     debug_log('reloading heightmap')
     buildHeightmapTexture(prevTime)
-    gl.useProgram(shaderProgram) // Switch back to the main program
+    gl_useProgram(shaderProgram) // Switch back to the main program
   }
 
   //setInterval(reloadHeightmap, 300)

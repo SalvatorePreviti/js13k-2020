@@ -1,4 +1,4 @@
-export const functionBind = <F extends Function>(self: any, f: F): F => f.bind(self)
+export const functionBind = /*@__PURE__*/ <F extends Function>(self: any, f: F): F => /*@__PURE__*/ f.bind(self)
 
 export const {
   assign: objectAssign,

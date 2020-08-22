@@ -1,8 +1,9 @@
-import { gl, loadShaderProgram } from './gl'
+import { loadShaderProgram } from './gl-utils'
 
 import { code as vertexShaderCode } from './shaders/vertex.vert'
 import { code as fragmentShaderCode } from './shaders/fragment.frag'
 import { debug_exec, debug_time, debug_timeEnd } from './debug'
+import { gl_deleteProgram, gl_getUniformLocation } from './gl_context'
 
 export let shaderProgram: WebGLProgram
 
@@ -57,7 +58,7 @@ export const loadMainShaderProgram = () => {
 
   debug_exec(() => {
     if (shaderProgram) {
-      gl.deleteProgram(shaderProgram)
+      gl_deleteProgram(shaderProgram)
     }
   })
 
@@ -65,7 +66,7 @@ export const loadMainShaderProgram = () => {
 
   // Loads uniforms
 
-  const getUniformLocation = (name: string) => gl.getUniformLocation(shaderProgram, name)
+  const getUniformLocation = (name: string) => gl_getUniformLocation(shaderProgram, name)
 
   shaderProgram_iResolution = getUniformLocation('iResolution')
   shaderProgram_iTime = getUniformLocation('iTime')
