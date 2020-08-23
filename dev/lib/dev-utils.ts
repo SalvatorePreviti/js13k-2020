@@ -7,57 +7,94 @@ export function prettyFileSize(sizeInBytes: number): string {
   return sz.endsWith('Bytes') ? sz : `${sz}, ${sizeInBytes} Bytes`
 }
 
-const _operationsStack: { name: string; hrTime: [number, number]; hasChildren: boolean; blockBeginInfo?: string }[] = []
+interface _DevOperation {
+  name: string
+  hrTime: [number, number]
+  hasChildren: boolean
+  blockBeginInfo?: string
+  level: number
+}
+
+const _operationsStack: _DevOperation[] = []
+let _nonstackedOperationsStack: _DevOperation[] = []
 
 export function devGetCurrentOperation(): string | undefined {
+  const nonstackLast = _nonstackedOperationsStack[_nonstackedOperationsStack.length - 1]
+  if (nonstackLast && nonstackLast.name) {
+    return nonstackLast.name
+  }
   const last = _operationsStack[_operationsStack.length - 1]
   return (last && last.name) || undefined
 }
 
-export function devBeginOperation(name: string, blockBeginInfo?: string): void {
+export function devBeginOperation(
+  name: string,
+  blockBeginInfo?: string,
+  dontStack: boolean = false
+): (info?: string) => void {
   name = name || '...'
 
   const prev = _operationsStack[_operationsStack.length - 1]
+
+  const level = prev ? prev.level + 1 : 0
+
   if (prev && !prev.hasChildren) {
     prev.hasChildren = true
-    let s =
-      chalk.rgb(80, 130, 180)(`${'▬'.repeat(_operationsStack.length - 1)}▶`) +
-      chalk.rgb(120, 230, 255).italic(prev.name)
+    let s = chalk.rgb(80, 130, 180)(`${'▬'.repeat(prev.level)}▶`) + chalk.rgb(120, 230, 255).italic(prev.name)
     if (prev.blockBeginInfo) {
       s += ` ${chalk.rgb(50, 160, 255)(prev.blockBeginInfo)}`
     }
     console.log(s)
   }
 
-  const operation = { name, hrTime: process.hrtime(), hasChildren: false, blockBeginInfo }
+  const operation = {
+    name,
+    hrTime: process.hrtime(),
+    hasChildren: false,
+    blockBeginInfo,
+    level
+  }
+  if (dontStack) {
+    _nonstackedOperationsStack.push(operation)
+    return (info?: string) => {
+      _nonstackedOperationsStack = _nonstackedOperationsStack.filter((x) => x !== operation)
+      _devEndOperation(operation, info)
+    }
+  }
+
   _operationsStack.push(operation)
+  return devEndOperation
+}
+
+function _devEndOperation(popped: _DevOperation, info?: string) {
+  const timeDiffiff = process.hrtime(popped.hrTime)
+  const timeDiffMs = (timeDiffiff[0] * 1e9 + timeDiffiff[1]) * 1e-6
+  let s: string
+  if (popped.hasChildren) {
+    s =
+      chalk.rgb(80, 130, 180)(`${'━'.repeat(popped.level)}╸`) +
+      chalk.rgb(120, 230, 255).italic(popped.name.padEnd(23 - popped.level), ' ') +
+      chalk.rgb(110, 170, 245)(`${timeDiffMs.toFixed(0).padStart(5, ' ')} ms`)
+    if (info) {
+      s += ` ${chalk.rgb(100, 240, 255)(info)}`
+    }
+  } else {
+    s =
+      chalk.rgb(90, 90, 190)(`${'╾'.repeat(popped.level)}╸`) +
+      chalk.rgb(120, 190, 255)(popped.name.padEnd(25 - popped.level, ' ')) +
+      chalk.blueBright(`${timeDiffMs.toFixed(0).padStart(5, ' ')} ms`)
+    if (info) {
+      s += ` ${chalk.rgb(100, 170, 245)(info)}`
+    }
+  }
+
+  console.log(s)
 }
 
 export function devEndOperation(info?: string) {
   const popped = _operationsStack.pop()
   if (popped) {
-    const timeDiffiff = process.hrtime(popped.hrTime)
-    const timeDiffMs = (timeDiffiff[0] * 1e9 + timeDiffiff[1]) * 1e-6
-    let s: string
-    if (popped.hasChildren) {
-      s =
-        chalk.rgb(80, 130, 180)(`${'━'.repeat(_operationsStack.length)}╸`) +
-        chalk.rgb(120, 230, 255).italic(popped.name.padEnd(23 - _operationsStack.length), ' ') +
-        chalk.rgb(110, 170, 245)(`${timeDiffMs.toFixed(0).padStart(5, ' ')} ms`)
-      if (info) {
-        s += ` ${chalk.rgb(100, 240, 255)(info)}`
-      }
-    } else {
-      s =
-        chalk.rgb(90, 90, 190)(`${'╾'.repeat(_operationsStack.length)}╸`) +
-        chalk.rgb(120, 190, 255)(popped.name.padEnd(25 - _operationsStack.length, ' ')) +
-        chalk.blueBright(`${timeDiffMs.toFixed(0).padStart(5, ' ')} ms`)
-      if (info) {
-        s += ` ${chalk.rgb(100, 170, 245)(info)}`
-      }
-    }
-
-    console.log(s)
+    _devEndOperation(popped, info)
   }
 }
 

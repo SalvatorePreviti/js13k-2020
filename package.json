@@ -84,6 +84,7 @@
     "prettysize": "^2.0.0",
     "slash": "^3.0.0",
     "source-map-support": "^0.5.19",
+    "spglsl": "0.0.1-alpha1",
     "terser": "^5.2.1",
     "typescript": "^4.0.2",
     "v8-compile-cache": "^2.1.1",
