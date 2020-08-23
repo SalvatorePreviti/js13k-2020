@@ -1,5 +1,9 @@
 import { Plugin } from 'rollup'
 import { resolveAssetText } from './builder-utils'
+import path from 'path'
+
+import { spglslAngleCompile } from 'spglsl'
+import { devBeginOperation, devEndOperation } from '../lib/dev-utils'
 
 export const createRollupPluginImportShader = (extensions: string[]): Plugin => {
   return {
@@ -8,7 +12,7 @@ export const createRollupPluginImportShader = (extensions: string[]): Plugin => 
       for (const ext of extensions) {
         if (id.endsWith(ext)) {
           const text = await resolveAssetText(id, 0)
-          return `export const code = ${JSON.stringify(compressShader(text))};\n`
+          return `export const code = ${JSON.stringify(await compressShader(text, id))};\n`
         }
       }
       return undefined
@@ -16,27 +20,24 @@ export const createRollupPluginImportShader = (extensions: string[]): Plugin => 
   }
 }
 
-function compressShader(source: string): string {
-  // from https://github.com/vwochnik/rollup-plugin-glsl/blob/master/index.js
-  let needNewline = false
-  return source
-    .replace(/\\(?:\r\n|\n\r|\n|\r)|\/\*.*?\*\/|\/\/(?:\\(?:\r\n|\n\r|\n|\r)|[^\n\r])*/g, '')
-    .split(/\n+/)
-    .reduce((result, line) => {
-      line = line.trim().replace(/\s{2,}|\t/, ' ')
-      if (line[0] === '#') {
-        if (needNewline) {
-          result.push('\n')
-        }
+async function compressShader(source: string, filePath: string): Promise<string> {
+  const endOp = devBeginOperation(`spglsl ${path.basename(filePath)}`, undefined, true)
 
-        result.push(line, '\n')
-        needNewline = false
-      } else {
-        result.push(line.replace(/\s*({|}|=|\*|,|\+|\/|>|<|&|\||\[|\]|\(|\)|-|!|;)\s*/g, '$1'))
-        needNewline = true
-      }
-      return result
-    }, [])
-    .join('')
-    .replace(/\n+/g, '\n')
+  const spglslResult = await spglslAngleCompile({
+    compileMode: 'Optimize',
+    mainFilePath: filePath,
+    mainSourceCode: source,
+    minify: true
+  })
+
+  if (!spglslResult.valid) {
+    const error = new Error('glsl compilation failed') as any
+    error.infoLog = spglslResult.infoLog
+    error.filePath = filePath
+    throw error
+  }
+
+  endOp(spglslResult.infoLog.inspect())
+
+  return spglslResult.output
 }
