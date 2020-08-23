@@ -3,7 +3,10 @@ import { song } from './soundbox/song'
 
 const player = new CPlayer()
 player.init(song)
-player.generate()
+let done
+while (!done) {
+  done = player.generate() >= 1
+}
 const musicWave = player.createWave()
 
 const mAudio = new Audio()

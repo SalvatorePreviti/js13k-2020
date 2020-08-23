@@ -2,6 +2,13 @@
 // STOLEN from https://sb.bitsnbites.eu/ (It's the Space Dist demo by m @ Bits'n'Bites)
 
 // Song data
+// This music has been exported by SoundBox. You can use it with
+// http://sb.bitsnbites.eu/player-small.js in your own product.
+
+// See http://sb.bitsnbites.eu/demo.html for an example of how to
+// use it in a demo.
+
+// Song data
 const song = {
   songData: [
     {
