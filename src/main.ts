@@ -33,6 +33,7 @@ import {
 import { updateAnimations, ANIMATIONS } from './animations'
 import { GAME_OBJECTS, updateGameObjects } from './objects'
 import { updateText } from './text'
+import { play } from './music'
 
 let frameIndex: number = 1
 let prevTime = 0
@@ -97,6 +98,9 @@ const animationFrame = debug_trycatch_wrap(
 )
 
 requestAnimationFrame(animationFrame)
+
+//Music wont play until the user has interacted with document:
+document.onclick = () => play()
 
 if (import.meta.hot) {
   const reloadMainShader = () => {
