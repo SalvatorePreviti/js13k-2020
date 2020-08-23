@@ -35,7 +35,16 @@ export function babelMinify(code: string) {
       sourceType: 'script'
     },
     plugins: [
-      babelPluginMinifyDeadCodeElimination,
+      [
+        babelPluginMinifyDeadCodeElimination,
+        {
+          optimizeRawSize: true,
+          keepFnName: true,
+          keepClassName: true,
+          keepFnArgs: true,
+          tdz: true
+        }
+      ],
       babelPluginTransformInlineConsecutiveAdds,
       babelPluginMinifyEmptyFunction,
       babelPluginMinifySimplify,

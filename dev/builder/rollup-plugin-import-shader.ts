@@ -21,10 +21,12 @@ function compressShader(source: string): string {
   let needNewline = false
   return source
     .replace(/\\(?:\r\n|\n\r|\n|\r)|\/\*.*?\*\/|\/\/(?:\\(?:\r\n|\n\r|\n|\r)|[^\n\r])*/g, '')
+    .replace(/\t/g, ' ')
     .split(/\n+/)
     .reduce((result, line) => {
       line = line.trim().replace(/\s{2,}|\t/, ' ')
       if (line[0] === '#') {
+        line = `#${line.slice(1).trim()}`
         if (needNewline) {
           result.push('\n')
         }

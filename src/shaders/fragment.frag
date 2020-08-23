@@ -440,6 +440,8 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   return applyFog(colWithTransparency, min(wdist, dist));
 }
 
+void main_coll();
+
 void main_() {
   vec2 screen = fragCoord / (iResolution * 0.5) - 1.;
 
@@ -450,10 +452,24 @@ void main_() {
 
   oColor = vec4(pixelColour * 0.5, 1.0);
 
+  if (screen.y < 0.) {
+    main_coll();
+  }
+
   // oColor.x = iterationsR;
   // oColor.y = iterationsR;
   // oColor.z = iterationsR;
 }
 
 void main_coll() {
+  vec2 screen = fragCoord / (iResolution * 0.5) - 1.;
+  vec2 pos = fragCoord / iResolution;
+
+  vec3 ray = normalize(vec3(0., screen.y, 1.));
+
+  ray.xz = ray.xz * rot(screen.x * PI);
+
+  float dist = rayMarch(iCameraPos, ray);
+
+  oColor = vec4(dist < .5 ? 1. : 0., dist / MAX_DIST, dist / MAX_DIST, 1.0);
 }

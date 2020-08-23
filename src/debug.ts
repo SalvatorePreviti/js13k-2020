@@ -25,10 +25,10 @@ export const debug_timeEnd = (_label: string | Function): void => undefined
 export const debug_exec = <T>(_fn: () => T): void => undefined
 
 /** To be called on frame begin */
-export const debug_beginTime = (): void => undefined
+export const debug_beginFrame = (): void => undefined
 
 /** To be called on frame end */
-export const debug_endTime = (_timeInSeconds?: number): void => undefined
+export const debug_endFrame = (_timeInSeconds?: number): void => undefined
 
 /** Shows a message on screen */
 export const debug_report = (
@@ -63,3 +63,7 @@ export const debug_updateCameraPosition = (_position: Readonly<Vec3>) => {}
 export const debug_updateCameraDirection = (_direction: Readonly<Vec3>) => {}
 
 export const debug_updateCameraEulerAngles = (_eulerAngles: Readonly<Vec2>) => {}
+
+export const debug_collisionBufferCanvasPrepare = (_buffer: ArrayBuffer, _width: number, _height: number) => {}
+
+export const debug_collisionBufferCanvasDraw = () => {}
