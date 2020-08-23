@@ -442,6 +442,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
 
 void main_coll();
 
+// Main shader
 void main_() {
   vec2 screen = fragCoord / (iResolution * 0.5) - 1.;
 
@@ -452,15 +453,16 @@ void main_() {
 
   oColor = vec4(pixelColour * 0.5, 1.0);
 
-  if (screen.y < 0.) {
-    main_coll();
-  }
+  // if (screen.y < 0.) { // for debugging the collision shader
+  //  main_coll();
+  //}
 
   // oColor.x = iterationsR;
   // oColor.y = iterationsR;
   // oColor.z = iterationsR;
 }
 
+// Collision shader
 void main_coll() {
   vec2 screen = fragCoord / (iResolution * 0.5) - 1.;
   vec2 pos = fragCoord / iResolution;
