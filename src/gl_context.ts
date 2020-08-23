@@ -1,6 +1,6 @@
 import { canvasElement } from './canvas'
 
-import { functionBind } from './core/objects'
+import { functionBind, newProxyGetter } from './core/objects'
 
 export const gl_context = canvasElement.getContext('webgl2', {
   /** Boolean that indicates if the canvas contains an alpha buffer. */
@@ -21,9 +21,7 @@ export const gl_context = canvasElement.getContext('webgl2', {
   stencil: false
 })
 
-const _functions = new Proxy(gl_context, {
-  get: (_, name) => functionBind(gl_context, gl_context[name])
-})
+const _functions = newProxyGetter((name) => functionBind(gl_context, gl_context[name]), gl_context)
 
 /** Selects the active texture unit. */
 export const gl_activeTexture = _functions.activeTexture
@@ -694,3 +692,39 @@ export const gl_viewport = _functions.viewport
 
 /** Returns immediately, but waits on the GL server until the given WebGLSync object is signaled. */
 export const gl_waitSync = _functions.waitSync
+
+export type GLUniformFunction =
+  | typeof gl_uniform1f
+  | typeof gl_uniform1fv
+  | typeof gl_uniform1i
+  | typeof gl_uniform1iv
+  | typeof gl_uniform1ui
+  | typeof gl_uniform1uiv
+  | typeof gl_uniform2f
+  | typeof gl_uniform2fv
+  | typeof gl_uniform2i
+  | typeof gl_uniform2iv
+  | typeof gl_uniform2ui
+  | typeof gl_uniform2uiv
+  | typeof gl_uniform3f
+  | typeof gl_uniform3fv
+  | typeof gl_uniform3i
+  | typeof gl_uniform3iv
+  | typeof gl_uniform3ui
+  | typeof gl_uniform3uiv
+  | typeof gl_uniform4f
+  | typeof gl_uniform4fv
+  | typeof gl_uniform4i
+  | typeof gl_uniform4iv
+  | typeof gl_uniform4ui
+  | typeof gl_uniform4uiv
+  | typeof gl_uniformBlockBinding
+  | typeof gl_uniformMatrix2fv
+  | typeof gl_uniformMatrix2x3fv
+  | typeof gl_uniformMatrix2x4fv
+  | typeof gl_uniformMatrix3fv
+  | typeof gl_uniformMatrix3x2fv
+  | typeof gl_uniformMatrix3x4fv
+  | typeof gl_uniformMatrix4fv
+  | typeof gl_uniformMatrix4x2fv
+  | typeof gl_uniformMatrix4x3fv

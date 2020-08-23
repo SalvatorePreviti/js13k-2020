@@ -36,3 +36,5 @@ type Mat3Out = Float32Array
 type Mat4 = Float32Array
 type Mat4In = Float32Array
 type Mat4Out = Float32Array
+
+type OmitFirstArg<F> = F extends (x: any, ...args: infer P) => infer R ? (...args: P) => R : never

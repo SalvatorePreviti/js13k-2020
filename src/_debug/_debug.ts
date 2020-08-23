@@ -3,7 +3,9 @@ import {
   updateGraphInfo,
   updateCameraPosition,
   updateCameraDirection,
-  updateCameraEulerAngles
+  updateCameraEulerAngles,
+  debug_collisionBufferCanvasPrepare,
+  debug_collisionBufferCanvasDraw
 } from './_debug-info'
 import { max } from '../math/scalar'
 
@@ -15,6 +17,8 @@ export {
   debug_checkShaderCompileStatus,
   debug_checkShaderProgramLinkStatus
 } from './_debug-report'
+
+export const debug_mode: boolean = true
 
 /** Prints debug information. Call to debug_log will disappear in release mode. */
 export const debug_log = console.log.bind(console)
@@ -52,14 +56,14 @@ function debug_exec(fn: () => void | Promise<any>): void | Promise<void> {
 export { debug_exec }
 
 /** Update graphs and the debug info. Call to this function will disappear in release mode. */
-export function debug_beginTime() {
+export function debug_beginFrame() {
   const time = performance.now()
   _renderTimeStart = time
 
   ++_fpsFrames
 }
 
-export function debug_endTime(timeInSeconds?: number) {
+export function debug_endFrame(timeInSeconds?: number) {
   const time = performance.now()
   if (time >= _fpsTime + 1000) {
     const fps = (_fpsFrames * 1000) / (time - _fpsTime)
@@ -88,3 +92,5 @@ export const debug_updateCameraPosition = updateCameraPosition
 export const debug_updateCameraDirection = updateCameraDirection
 
 export const debug_updateCameraEulerAngles = updateCameraEulerAngles
+
+export { debug_collisionBufferCanvasPrepare, debug_collisionBufferCanvasDraw }

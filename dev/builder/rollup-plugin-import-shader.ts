@@ -3,7 +3,7 @@ import { resolveAssetText } from './builder-utils'
 import path from 'path'
 
 import { spglslAngleCompile } from 'spglsl'
-import { devBeginOperation, devEndOperation } from '../lib/dev-utils'
+import { devBeginOperation } from '../lib/dev-utils'
 
 export const createRollupPluginImportShader = (extensions: string[]): Plugin => {
   return {
@@ -21,7 +21,7 @@ export const createRollupPluginImportShader = (extensions: string[]): Plugin => 
 }
 
 async function compressShader(source: string, filePath: string): Promise<string> {
-  devBeginOperation(`compile shader ${path.basename(filePath)}`)
+  const endOp = devBeginOperation(`spglsl ${path.basename(filePath)}`, undefined, true)
 
   const spglslResult = await spglslAngleCompile({
     compileMode: 'Optimize',
@@ -37,7 +37,7 @@ async function compressShader(source: string, filePath: string): Promise<string>
     throw error
   }
 
-  devEndOperation(spglslResult.infoLog.inspect())
+  endOp(spglslResult.infoLog.inspect())
 
   return spglslResult.output
 }

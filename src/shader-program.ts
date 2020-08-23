@@ -1,67 +1,104 @@
-import { loadShaderProgram } from './gl-utils'
+import { loadShaderProgram, glNewUniformLocationGetter } from './gl-utils'
 
 import { code as vertexShaderCode } from './shaders/vertex.vert'
 import { code as fragmentShaderCode } from './shaders/fragment.frag'
-import { debug_exec, debug_time, debug_timeEnd } from './debug'
-import { gl_deleteProgram, gl_getUniformLocation } from './gl_context'
+import { debug_time, debug_timeEnd, debug_mode, debug_exec } from './debug'
+import {
+  gl_deleteProgram,
+  gl_uniform1i,
+  gl_useProgram,
+  gl_uniform1f,
+  gl_uniform3f,
+  gl_uniform2f,
+  gl_uniformMatrix3fv,
+  gl_viewport
+} from './gl_context'
+import { cameraPos, cameraDir, cameraEuler, cameraMat3 } from './camera'
+import { GAME_OBJECTS } from './objects'
+import { ANIMATIONS } from './animations'
 
-export let shaderProgram: WebGLProgram
+const _loadMainShaderProgram = (mainFunction: string) => {
+  debug_time(`${_loadMainShaderProgram.name} ${mainFunction}`)
 
-export let shaderProgram_iResolution: WebGLUniformLocation
+  const program = loadShaderProgram(
+    vertexShaderCode,
+    fragmentShaderCode.replace('\n', `\n#define ${mainFunction} main\n${debug_mode ? '#line 2 0\n' : ''}`),
+    mainFunction
+  )
 
-export let shaderProgram_iTime: WebGLUniformLocation
+  const {
+    iHeightmap,
+    iNoise,
+    iResolution,
+    iTime,
+    iCameraPos,
+    iCameraDir,
+    iCameraEuler,
+    iCameraMat3,
+    iGOKeyVisible,
+    iAnimPrisonDoor
+  } = glNewUniformLocationGetter(program)
 
-export let shaderProgram_iFrame: WebGLUniformLocation
+  // Texture 0
+  gl_uniform1i(iHeightmap, 0)
 
-export let shaderProgram_iMouse: WebGLUniformLocation
+  // Texture 1
+  gl_uniform1i(iNoise, 1)
 
-export let shaderProgram_iCameraPos: WebGLUniformLocation
+  const _use = (time: number, width: number, height: number) => {
+    gl_viewport(0, 0, width, height)
+    gl_useProgram(program)
 
-export let shaderProgram_iCameraDir: WebGLUniformLocation
+    // Render output resolution
+    gl_uniform2f(iResolution, width, height)
 
-export let shaderProgram_iCameraEuler: WebGLUniformLocation
+    // Time in seconds
+    gl_uniform1f(iTime, time)
 
-export let shaderProgram_iCameraMat3: WebGLUniformLocation
+    // Camera position
+    gl_uniform3f(iCameraPos, cameraPos.x, cameraPos.y, cameraPos.z)
 
-export let shaderProgram_iHeightmap: WebGLUniformLocation
+    // Camera direction
+    gl_uniform3f(iCameraDir, cameraDir.x, cameraDir.y, cameraDir.z)
 
-export let shaderProgram_iNoise: WebGLUniformLocation
+    // Camera rotation, x is yaw and y is pitch
+    gl_uniform2f(iCameraEuler, cameraEuler.x, cameraEuler.y)
 
-export let shaderProgram_iGOKeyVisible: WebGLUniformLocation
+    // Camera rotation matrix
+    gl_uniformMatrix3fv(iCameraMat3, false, cameraMat3)
 
-export let shaderProgram_iAnimPrisonDoor: WebGLUniformLocation
+    //Key visibility
+    gl_uniform1i(iGOKeyVisible, GAME_OBJECTS._key._visible ? 1 : 0)
 
-export const loadMainShaderProgram = () => {
-  debug_time(loadMainShaderProgram)
-  // A new program
+    //prison door, open-closed
+    gl_uniform1f(iAnimPrisonDoor, ANIMATIONS._prisonDoor._value)
+  }
 
+  const result = {
+    _program: program,
+    _use
+  }
+
+  debug_timeEnd(`${_loadMainShaderProgram.name} ${mainFunction}`)
+  return result
+}
+
+export type MainShaderProgram = ReturnType<typeof _loadMainShaderProgram>
+
+export let mainShader: MainShaderProgram
+
+export let collisionShader: MainShaderProgram
+
+export const loadMainShader = () => {
   debug_exec(() => {
-    if (shaderProgram) {
-      gl_deleteProgram(shaderProgram)
+    if (mainShader) {
+      gl_deleteProgram(mainShader._program)
+    }
+    if (collisionShader) {
+      gl_deleteProgram(collisionShader._program)
     }
   })
 
-  shaderProgram = loadShaderProgram(vertexShaderCode, fragmentShaderCode, 'main')
-
-  // Loads uniforms
-
-  const getUniformLocation = (name: string) => gl_getUniformLocation(shaderProgram, name)
-
-  shaderProgram_iResolution = getUniformLocation('iResolution')
-  shaderProgram_iTime = getUniformLocation('iTime')
-  shaderProgram_iFrame = getUniformLocation('iFrame')
-  shaderProgram_iCameraPos = getUniformLocation('iCameraPos')
-  shaderProgram_iCameraDir = getUniformLocation('iCameraDir')
-  shaderProgram_iCameraEuler = getUniformLocation('iCameraEuler')
-  shaderProgram_iCameraMat3 = getUniformLocation('iCameraMat3')
-
-  shaderProgram_iHeightmap = getUniformLocation('iHeightmap')
-  shaderProgram_iNoise = getUniformLocation('iNoise')
-
-  shaderProgram_iGOKeyVisible = getUniformLocation('iGOKeyVisible')
-  shaderProgram_iAnimPrisonDoor = getUniformLocation('iAnimPrisonDoor')
-
-  debug_timeEnd(loadMainShaderProgram)
-
-  return shaderProgram
+  mainShader = _loadMainShaderProgram('main_')
+  collisionShader = _loadMainShaderProgram('main_coll')
 }

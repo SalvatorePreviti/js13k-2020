@@ -13,6 +13,7 @@ function appendDebugInfoHtmlToBody() {
 appendDebugInfoHtmlToBody()
 
 const debugInfoCanvas = document.getElementById('debug-info-graph') as HTMLCanvasElement
+const debugCollisionBufferCanvas = document.getElementById('debug-collision-buffer') as HTMLCanvasElement
 
 const context = debugInfoCanvas.getContext('2d')
 
@@ -23,7 +24,7 @@ const GRAPH_PANELS_COUNT = 3
 const GRAPH_X = GRAPH_SPACING
 
 const GRAPH_Y = TEXT_HEIGHT + 1
-const GRAPH_WIDTH = 100
+const GRAPH_WIDTH = 120
 const GRAPH_HEIGHT = 45
 
 const GRAPHS_DRAW_BG_COLORS = ['#013', '#021', '#012']
@@ -47,6 +48,44 @@ debugInfoCanvas.width = DEBUG_INFO_CANVAS_WIDTH
 debugInfoCanvas.height = DEBUG_INFO_CANVAS_HEIGHT
 debugInfoCanvas.style.width = `${DEBUG_INFO_CANVAS_WIDTH}px`
 debugInfoCanvas.style.height = `${DEBUG_INFO_CANVAS_HEIGHT}px`
+
+const debugCollisionBufferCanvasContext = debugCollisionBufferCanvas.getContext('2d')
+let debugCollisionBufferCanvasImageData: ImageData | null = null
+let debugCollisionBufferCanvasImageBuf: Uint8ClampedArray
+
+export function debug_collisionBufferCanvasPrepare(buffer: Uint8Array, width: number, height: number) {
+  debugCollisionBufferCanvas.width = width
+  debugCollisionBufferCanvas.height = height
+  debugCollisionBufferCanvas.style.display = 'block'
+  debugCollisionBufferCanvas.style.width = `${width}px`
+  debugCollisionBufferCanvas.style.height = `${height}px`
+
+  debugCollisionBufferCanvasContext.fillStyle = 'rgba(0, 0, 0, 1)'
+  debugCollisionBufferCanvasContext.fillRect(0, 0, width, height)
+
+  debugCollisionBufferCanvasImageBuf = new Uint8ClampedArray(buffer.buffer)
+  debugCollisionBufferCanvasImageData = new ImageData(
+    debugCollisionBufferCanvasImageBuf,
+    debugCollisionBufferCanvas.width,
+    debugCollisionBufferCanvas.height
+  )
+}
+
+export function debug_collisionBufferCanvasDraw() {
+  if (debugCollisionBufferCanvasImageData) {
+    debugCollisionBufferCanvasContext.putImageData(
+      debugCollisionBufferCanvasImageData,
+      0,
+      0,
+      0,
+      0,
+      debugCollisionBufferCanvas.width,
+      debugCollisionBufferCanvas.height
+    )
+  }
+}
+
+setInterval(debug_collisionBufferCanvasDraw, 150)
 
 function getGraphTranslation(index: number) {
   return index * (GRAPH_Y + GRAPH_HEIGHT) + SCREEN_RESOLUTION_TEXT_Y + 5
