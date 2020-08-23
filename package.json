@@ -61,7 +61,6 @@
     "babel-plugin-minify-numeric-literals": "^0.4.3",
     "babel-plugin-minify-simplify": "^0.5.1",
     "babel-plugin-minify-type-constructors": "^0.4.3",
-    "babel-plugin-remove-unused-vars": "^2.2.0",
     "babel-plugin-transform-inline-consecutive-adds": "^0.4.3",
     "babel-plugin-transform-merge-sibling-variables": "^6.9.4",
     "babel-plugin-transform-simplify-comparison-operators": "^6.9.4",
