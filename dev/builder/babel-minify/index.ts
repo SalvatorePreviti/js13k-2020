@@ -3,7 +3,6 @@ import paths from '../../config/builder-paths'
 
 import babelPluginMinifyDeadCodeElimination from 'babel-plugin-minify-dead-code-elimination'
 import babelPluginMinifyEmptyFunction from 'babel-plugin-minify-empty-function'
-import babelPluginMinifyConstantFolding from 'babel-plugin-minify-constant-folding'
 import babelPluginMinifySimplify from 'babel-plugin-minify-simplify'
 import babelPluginMinifyTypeConstructors from 'babel-plugin-minify-type-constructors'
 import babelPluginMergeSiblingVariables from 'babel-plugin-transform-merge-sibling-variables'
@@ -36,10 +35,18 @@ export function babelMinify(code: string) {
       sourceType: 'script'
     },
     plugins: [
-      babelPluginMinifyDeadCodeElimination,
+      [
+        babelPluginMinifyDeadCodeElimination,
+        {
+          optimizeRawSize: true,
+          keepFnName: true,
+          keepClassName: true,
+          keepFnArgs: true,
+          tdz: true
+        }
+      ],
       babelPluginTransformInlineConsecutiveAdds,
       babelPluginMinifyEmptyFunction,
-      babelPluginMinifyConstantFolding,
       babelPluginMinifySimplify,
       babelPluginMinifyTypeConstructors,
       babelPluginMergeSiblingVariables,

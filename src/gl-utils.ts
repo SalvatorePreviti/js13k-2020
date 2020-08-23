@@ -22,8 +22,11 @@ import {
   gl_useProgram,
   gl_deleteShader,
   gl_texParameteri,
-  gl_context
+  gl_context,
+  gl_getUniformLocation
 } from './gl_context'
+
+import { newProxyGetter } from './core/objects'
 
 export const glDrawFullScreenTriangle = () => {
   gl_drawArrays(GL_TRIANGLES, 0, 3)
@@ -85,89 +88,5 @@ export const glSetTextureLinearSampling = (target = GL_TEXTURE_2D) => {
   gl_texParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 }
 
-/*
-
-for (const key of Object.getOwnPropertyNames(Object.getPrototypeOf(gl))) {
-  /*if (key.startsWith('uniform')) {
-    console.log(key)
-  }
-  let s = ''
-  if (typeof gl[key] === 'function') {
-    s += `export const gl_${key} = gl.${key}.bind(gl)\n`
-  }
-}
-
-const funcso = []
-for (const key of Object.getOwnPropertyNames(Object)) {
-  if (typeof Object[key] === 'function') {
-    funcso.push(`${key}: object${key.charAt(0).toUpperCase()}${key.slice(1)}`)
-  }
-}
-
-const funcsr = []
-for (const key of Object.getOwnPropertyNames(Array)) {
-  if (typeof Array[key] === 'function') {
-    funcsr.push(`${key}: reflect${key.charAt(0).toUpperCase()}${key.slice(1)}`)
-  }
-}
-
-console.log(JSON.stringify(funcso.join(',')))
-console.log(JSON.stringify(funcsr.join(',')))
-
-export const gl_uniform1ui,
-export const gl_uniform1uiv,
-export const gl_uniform2ui,
-export const gl_uniform2uiv,
-export const gl_uniform3ui,
-export const gl_uniform3uiv,
-export const gl_uniform4ui,
-export const gl_uniform4uiv,
-export const gl_uniformMatrix2x3fv,
-export const gl_uniformMatrix2x4fv,
-export const gl_uniformMatrix3x2fv,
-export const gl_uniformMatrix3x4fv,
-export const gl_uniformMatrix4x2fv,
-export const gl_uniformMatrix4x3fv,
-export const gl_uniform1fv,
-export const gl_uniform1iv,
-export const gl_uniform2fv,
-export const gl_uniform2iv,
-export const gl_uniform3fv,
-export const gl_uniform3iv,
-export const gl_uniform4fv,
-export const gl_uniform4iv,
-export const gl_uniformMatrix2fv,
-export const gl_uniformMatrix3fv,
-export const gl_uniformMatrix4fv,
-export const gl_uniform1f ,
-export const gl_uniform1i ,
-export const gl_uniform2f ,
-export const gl_uniform2i ,
-export const gl_uniform3f ,
-export const gl_uniform3i ,
-export const gl_uniform4f ,
-export const gl_uniform4i ,
-export const gl_uniform1fv ,
-gl_uniform1iv ,
-gl_uniform2fv,
-gl_uniform2iv,
-gl_uniform3fv,
-gl_uniform3iv,
-gl_uniform4fv,
-gl_uniform4iv,
-gl_uniformMatrix2fv,
-gl_uniformMatrix3fv,
-gl_uniformMatrix4fv,
-
-
-export type UniformWriterType = 
-uniform1f(x: GLfloat): void |
-uniform1i( x: GLint): void |
-uniform2f( x: GLfloat, y: GLfloat): void |
-uniform2i( x: GLint, y: GLint): void |
-uniform3f( x: GLfloat, y: GLfloat, z: GLfloat): void |
-uniform3i( x: GLint, y: GLint, z: GLint): void |
-uniform4f( x: GLfloat, y: GLfloat, z: GLfloat, w: GLfloat): void |
-uniform4i(x: GLint, y: GLint, z: GLint, w: GLint): void |
-
-export const glUniformWriter = (uniformName: string, uniformType: UniformWriterType): */
+export const glNewUniformLocationGetter = (program: WebGLProgram) =>
+  newProxyGetter((name) => gl_getUniformLocation(program, name))

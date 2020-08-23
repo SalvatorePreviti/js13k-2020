@@ -3,7 +3,7 @@ import { resolveAssetText } from './builder-utils'
 import path from 'path'
 
 import { spglslAngleCompile } from 'spglsl'
-import { devBeginOperation, devEndOperation } from '../lib/dev-utils'
+import { devBeginOperation } from '../lib/dev-utils'
 
 export const createRollupPluginImportShader = (extensions: string[]): Plugin => {
   return {

@@ -70,7 +70,7 @@ export async function builderJsOptimize(globalJs: string, modulesJs: string) {
   modulesJs = (
     await terserMinify(
       modulesJs,
-      getTerserMinifyOptions({ sourceType: 'module', mangle: false, preserve_annotations: true, passes: 3 })
+      getTerserMinifyOptions({ sourceType: 'module', mangle: false, preserve_annotations: true, passes: 4 })
     )
   ).code
 
@@ -95,7 +95,7 @@ export async function builderJsOptimize(globalJs: string, modulesJs: string) {
   allJs = (
     await terserMinify(
       allJs,
-      getTerserMinifyOptions({ sourceType: 'script', mangle: true, preserve_annotations: true, passes: 5 })
+      getTerserMinifyOptions({ sourceType: 'script', mangle: true, preserve_annotations: true, passes: 6 })
     )
   ).code
   devEndOperation()
@@ -109,7 +109,7 @@ export async function builderJsOptimize(globalJs: string, modulesJs: string) {
   // Runs eslint to do cleanup that may result in additional optimizations
 
   devBeginOperation('eslint minify')
-  allJs = await builderEslintMinify(allJs, getESLintMinifyOptions({ sourceType: 'script', maxPasses: 4 }))
+  allJs = await builderEslintMinify(allJs, getESLintMinifyOptions({ sourceType: 'script', maxPasses: 5 }))
   devEndOperation()
 
   // Final terser pass
@@ -118,7 +118,7 @@ export async function builderJsOptimize(globalJs: string, modulesJs: string) {
   allJs = (
     await terserMinify(
       allJs,
-      getTerserMinifyOptions({ sourceType: 'script', mangle: false, preserve_annotations: false, passes: 4 })
+      getTerserMinifyOptions({ sourceType: 'script', mangle: false, preserve_annotations: false, passes: 5 })
     )
   ).code
   devEndOperation()

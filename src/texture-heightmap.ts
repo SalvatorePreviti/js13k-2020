@@ -1,4 +1,9 @@
-import { loadShaderProgram, glDrawFullScreenTriangle, glSetTextureLinearSampling } from './gl-utils'
+import {
+  loadShaderProgram,
+  glDrawFullScreenTriangle,
+  glSetTextureLinearSampling,
+  glNewUniformLocationGetter
+} from './gl-utils'
 
 import { code as vertexShaderCode } from './shaders/vertex.vert'
 import { code as heightmapShaderCode } from './shaders/heightmap.frag'
@@ -15,7 +20,6 @@ import {
   gl_finish,
   gl_uniform1f,
   gl_uniform2f,
-  gl_getUniformLocation,
   gl_viewport,
   gl_createFramebuffer
 } from './gl_context'
@@ -53,9 +57,11 @@ export const buildHeightmapTexture = (seed: number = 0) => {
 
   // Load the shader
 
-  const shaderProgram = loadShaderProgram(vertexShaderCode, heightmapShaderCode, 'heightmap')
-  gl_uniform2f(gl_getUniformLocation(shaderProgram, 'iResolution'), HEIGHTMAP_TETURE_SIZE, HEIGHTMAP_TETURE_SIZE)
-  gl_uniform1f(gl_getUniformLocation(shaderProgram, 'iTime'), seed)
+  const program = loadShaderProgram(vertexShaderCode, heightmapShaderCode, 'heightmap')
+
+  const uniforms = glNewUniformLocationGetter(program)
+  gl_uniform2f(uniforms.iResolution, HEIGHTMAP_TETURE_SIZE, HEIGHTMAP_TETURE_SIZE)
+  gl_uniform1f(uniforms.iTime, seed)
 
   // Render
 
@@ -66,7 +72,7 @@ export const buildHeightmapTexture = (seed: number = 0) => {
   // Deallocate stuff
   gl_framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, null, 0)
   gl_bindFramebuffer(GL_FRAMEBUFFER, null)
-  gl_deleteProgram(shaderProgram)
+  gl_deleteProgram(program)
   gl_deleteFramebuffer(fb)
 
   gl_bindTexture(GL_TEXTURE_2D, heightmapTexture)
