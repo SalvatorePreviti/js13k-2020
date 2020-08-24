@@ -27,7 +27,10 @@ async function compressShader(source: string, filePath: string): Promise<string>
     compileMode: 'Optimize',
     mainFilePath: filePath,
     mainSourceCode: source,
-    minify: true
+    minify: true,
+
+    // sometime this to true gives better results after compression, sometime not.
+    mangleTwoPasses: false
   })
 
   if (!spglslResult.valid) {
