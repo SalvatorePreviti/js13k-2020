@@ -24,6 +24,7 @@ import {
   vec3Set
 } from './math/vec3'
 import { vec2New } from './math/vec2'
+import { typedArraySet } from './core/arrays'
 
 const CAMERA_SPEED_DEFAULT = 1.4
 
@@ -95,14 +96,18 @@ const updateCameraDirFromEulerAngles = () => {
 
   // Update rotation matrix
 
-  cameraMat3[0] = cosYaw
-  cameraMat3[2] = -sinYaw
-  cameraMat3[3] = sinYaw * sinPitch
-  cameraMat3[4] = cosPitch
-  cameraMat3[5] = cosYaw * sinPitch
-  cameraMat3[6] = sinYaw * cosPitch
-  cameraMat3[7] = -sinPitch
-  cameraMat3[8] = cosYaw * cosPitch
+  typedArraySet(
+    cameraMat3,
+    cosYaw,
+    0,
+    -sinYaw,
+    sinYaw * sinPitch,
+    cosPitch,
+    cosYaw * sinPitch,
+    sinYaw * cosPitch,
+    -sinPitch,
+    cosYaw * cosPitch
+  )
 
   debug_updateCameraEulerAngles(cameraEuler)
   debug_updateCameraDirection(cameraDir)
