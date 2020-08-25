@@ -61,6 +61,7 @@ out vec4 oColor;
 //=== COLORS ===
 
 const vec3 COLOR_SKY = vec3(.4, .8, 1);
+const vec3 COLOR_SUN = vec3(1);
 
 // epsilon-type values
 const float MIN_EPSILON = 0.001;
@@ -78,6 +79,8 @@ const vec3 TERRAIN_CENTER = TERRAIN_SIZE * .5;
 const int MAX_ITERATIONS = 100;
 const float MIN_DIST = 0.15;
 const float MAX_DIST = 500.;
+
+const vec3 SUNLIGHT_DIRECTION = normalize(vec3(1,1,-1));
 
 float unpackFloat(vec4 rgba) {
   return dot(rgba, vec4(1.0, 1. / 255., 1. / 65025., 1. / 160581375.));
@@ -276,8 +279,8 @@ vec3 computeTerrainNormal(vec3 p) {
   return normalize(vec3(a, b, c) - d);
 }
 
-float computeLambert(vec3 p, vec3 n, vec3 l) {
-  return dot(normalize(l - p), n);
+float computeLambert(vec3 n, vec3 ld) {
+  return dot(normalize(ld), n);
 }
 
 const float MAX_OMEGA = 1.2;
@@ -388,10 +391,18 @@ vec3 applyFog(vec3 rgb, float camDist) {
   return mix(rgb, COLOR_SKY, fogAmount);
 }
 
+vec3 applyFog( vec3  rgb, float distance, vec3 rayDir)
+{
+    float fogAmount = 1.0 - exp( -distance*0.005 );
+    float sunAmount = max( dot( rayDir, SUNLIGHT_DIRECTION ), 0.0 );
+    vec3  fogColor  = mix( vec3(COLOR_SKY), vec3(COLOR_SUN), pow(sunAmount,10.0));
+    return mix( rgb, fogColor, fogAmount );
+}
+
 vec3 getColorAt(vec3 hit, vec3 normal, int mat) {
   // calculate lighting:
-  vec3 lightPosition = vec3(0, 100, 0);
-  float lightIntensity = computeLambert(hit, normal, lightPosition);
+  //vec3 lightPosition = vec3(0, 100, 0);
+  float lightIntensity = computeLambert(normal, SUNLIGHT_DIRECTION);
 
   vec3 color = vec3(.8);
   switch (mat) {
@@ -424,20 +435,20 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
     waterTransparencyMix = clamp((dist - wdist) * .5, 0., 1.);
   }
 
+  vec3 color;
   if (min(dist, wdist) >= MAX_DIST - 1.) {
-    return COLOR_SKY;
+    color = COLOR_SKY; //mix(COLOR_SKY, COLOR_SUN, pow(clamp(dot(dir, SUNLIGHT_DIRECTION),0.,1.),10.));
+  } else {
+    vec3 hit = p + dir * dist;
+    vec3 normal;
+    switch (material) {
+      case MATERIAL_TERRAIN: normal = computeTerrainNormal(hit); break;
+      default: normal = computeNonTerrainNormal(hit); break;
+    }
+    color = mix(getColorAt(hit, normal, material), waterColor, waterTransparencyMix);
   }
-
-  vec3 hit = p + dir * dist;
-  vec3 normal;
-  switch (material) {
-    case MATERIAL_TERRAIN: normal = computeTerrainNormal(hit); break;
-    default: normal = computeNonTerrainNormal(hit); break;
-  }
-
-  vec3 colWithTransparency = mix(getColorAt(hit, normal, material), waterColor, waterTransparencyMix);
-
-  return applyFog(colWithTransparency, min(wdist, dist));
+  //return applyFog(colWithTransparency, min(wdist, dist));
+  return applyFog(color, min(wdist, dist), dir);
 }
 
 void main_coll();
@@ -465,7 +476,6 @@ void main_() {
 // Collision shader
 void main_coll() {
   vec2 screen = fragCoord / (iResolution * 0.5) - 1.;
-  vec2 pos = fragCoord / iResolution;
 
   vec3 ray = normalize(vec3(0., screen.y, 1.));
 
