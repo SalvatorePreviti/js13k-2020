@@ -512,7 +512,7 @@ float terrainHeight(vec2 pos) {
   // return smoothstep(flatty, rocky, selector);  // simplexFBM(pos, 2.);
   // return sin(simplexFBM(pos + iTime, 1.3) * 8.);
 
-  return simplexFBM(pos, abs(sin(iTime)) + 1.);
+  return simplexFBM(pos, 1.8) * .7;
 }
 
 float simplexFBMxxx(vec2 coord) {
@@ -559,7 +559,7 @@ void main_() {
 
   // float hh = unpackFloat(texture(iHeightmap, screen * .5 + .5));
 
-  oColor.xyz = vec3(terrainHeight(screen));
+  // oColor.xyz = vec3(terrainHeight(screen));
 
   // oColor.xyz = vec3(field(vec3(screen, sin(iTime))));
   // oColor.xyz = vec3(simplexFBM(screen));
