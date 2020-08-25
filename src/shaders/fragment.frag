@@ -341,6 +341,17 @@ float rayMarch(vec3 p, vec3 dir) {
   return MAX_DIST;
 }
 
+bool isInShadow(vec3 p, float camDistance, vec3 n) {
+  p = p + n*.01;
+  float dist= clamp(camDistance * 0.001, 1., 0.1);
+  for (int i = 0; i < MAX_ITERATIONS/2; i++) {
+    float nearest = nonTerrain(p+SUNLIGHT_DIRECTION*dist);
+    if (nearest < 0.01) return true;
+    dist += nearest;
+  }
+  return false;
+}
+
 float rayTraceWater(vec3 p, vec3 dir) {
   float t = (sin(iTime * 2. + 3.) * .1 - p.y) / dir.y;
   return t >= 0. ? t : MAX_DIST;
@@ -446,6 +457,9 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
       default: normal = computeNonTerrainNormal(hit); break;
     }
     color = mix(getColorAt(hit, normal, material), waterColor, waterTransparencyMix);
+    if (isInShadow(hit, min(dist, wdist), normal)) {
+      color = color * .1;
+    }
   }
   //return applyFog(colWithTransparency, min(wdist, dist));
   return applyFog(color, min(wdist, dist), dir);
