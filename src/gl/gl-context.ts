@@ -1,6 +1,6 @@
 import { canvasElement } from './canvas'
 
-import { functionBind, newProxyGetter } from './core/objects'
+import { functionBind, newProxyGetter } from '../core/objects'
 
 export const gl_context = canvasElement.getContext('webgl2', {
   /** Boolean that indicates if the canvas contains an alpha buffer. */

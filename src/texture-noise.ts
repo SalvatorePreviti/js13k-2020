@@ -14,7 +14,7 @@ import {
   GL_RGBA,
   GL_UNSIGNED_BYTE,
   GL_TEXTURE0
-} from './core/gl-constants'
+} from './gl/gl-constants'
 import {
   gl_activeTexture,
   gl_bindTexture,
@@ -22,7 +22,7 @@ import {
   gl_texImage2D,
   gl_pixelStorei,
   gl_createTexture
-} from './gl_context'
+} from './gl/gl-context'
 
 export const NOISE_TEXTURE_SIZE = 512
 

@@ -15,7 +15,7 @@ const float NOISE_TEXTURE_SIZE = 512.;
 const float SCREEN_ASPECT_RATIO = 1.5;
 
 // The field of view, in radians
-const float FIELD_OF_VIEW = radians(50.0);
+const float FIELD_OF_VIEW = radians(45.0);
 
 // Projection matrix
 const float PROJECTION_LEN = 1. / tan(.5 * FIELD_OF_VIEW);
@@ -64,12 +64,12 @@ const vec3 COLOR_SKY = vec3(.4, .8, 1);
 
 // epsilon-type values
 const float MIN_EPSILON = 0.001;
-const float MAX_EPSILON = 0.35;
+const float MAX_EPSILON = 0.9;
 
-const float MIN_TERRAIN_EPSILON = 0.08;
-const float MAX_TERRAIN_EPSILON = 0.8;
+const float MIN_TERRAIN_EPSILON = 0.009;
+const float MAX_TERRAIN_EPSILON = 0.5;
 
-const vec3 TERRAIN_SIZE = vec3(500., 50., 500.);
+const vec3 TERRAIN_SIZE = vec3(150., 20., 100.);
 const float TERRAIN_OFFSET = 3.;
 
 const vec3 TERRAIN_CENTER = TERRAIN_SIZE * .5;
@@ -77,7 +77,14 @@ const vec3 TERRAIN_CENTER = TERRAIN_SIZE * .5;
 // maximums
 const int MAX_ITERATIONS = 100;
 const float MIN_DIST = 0.15;
-const float MAX_DIST = 500.;
+const float MAX_DIST = 350.;
+
+vec4 packFloat(float v) {
+  vec4 enc = clamp(v, 0., 1.) * (vec4(1., 255., 65025., 160581375.) * .999998);
+  enc = fract(enc);
+  enc -= enc.yzww * vec4(1. / 255., 1. / 255., 1. / 255., 0.);
+  return enc;
+}
 
 float unpackFloat(vec4 rgba) {
   return dot(rgba, vec4(1.0, 1. / 255., 1. / 65025., 1. / 160581375.));
@@ -230,8 +237,10 @@ float gameObjects(vec3 p) {
 
 float iterations = 0.;
 
+vec3 waterNoise(vec2 o);
+
 float terrain(vec3 p) {
-  float height = unpackFloat(texture(iHeightmap, p.xz / TERRAIN_SIZE.xz + .5)) * TERRAIN_SIZE.y;
+  float height = unpackFloat(textureLod(iHeightmap, p.xz / TERRAIN_SIZE.xz + .5, 0.)) * TERRAIN_SIZE.y;
   vec2 d = abs(vec2(length(p.xz), p.y + 3. + TERRAIN_OFFSET)) - vec2(TERRAIN_SIZE.x * .5 * sqrt(2.), height + 3.);
   return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
 }
@@ -268,7 +277,7 @@ vec3 computeNonTerrainNormal(vec3 p) {
 }
 
 vec3 computeTerrainNormal(vec3 p) {
-  const vec2 S = vec2(0.45, 0);
+  const vec2 S = vec2(0.15, 0);
   float d = terrain(p);
   float a = terrain(p + S.xyy);
   float b = terrain(p + S.yxy);
@@ -339,13 +348,13 @@ float rayMarch(vec3 p, vec3 dir) {
 }
 
 float rayTraceWater(vec3 p, vec3 dir) {
-  float t = (sin(iTime * 2. + 3.) * .1 - p.y) / dir.y;
+  float t = (sin(iTime * 2. + 3.) * .2 - p.y) / dir.y;
   return t >= 0. ? t : MAX_DIST;
 }
 
 vec3 waterNoise(vec2 o) {
   vec2 f = fract(o);
-  vec4 T = texture(iNoise, (floor(o) + .45) / NOISE_TEXTURE_SIZE);
+  vec4 T = textureLod(iNoise, (floor(o) + .45) / NOISE_TEXTURE_SIZE, 0.);
   float a = T.x, b = T.y, c = T.z, d = T.w;
   vec2 f2 = f * f, f3 = f2 * f;
   vec2 t = 3. * f2 - 2. * f3, dt = 6. * (f - f2);
@@ -378,7 +387,7 @@ vec3 waterFBM(vec2 p) {
 }
 
 vec4 waterHeightAndNormal(vec2 p) {
-  vec3 dxy = waterFBM(p / 10.);
+  vec3 dxy = waterFBM(p * .7) * (1. - length(p) / (.9 * MAX_DIST));
   return vec4(normalize(vec3(dxy.x, dxy.y, 1.)), dxy.z);
 }
 
@@ -398,10 +407,10 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat) {
     case MATERIAL_WATER: color = vec3(.15, .52, .73); break;
     case MATERIAL_TERRAIN:
       color = mix(vec3(.93, .8, .64),
-                  mix(vec3(.69 + texture(iNoise, hit.xz * 0.0001).x, .67, .65), vec3(.38, .52, .23),
-                      dot(normal, vec3(0, 1, 0))),
-                  clamp(hit.y * .5 - 1., 0., 1.)) +
-          texture(iNoise, hit.xz * 0.05).x * 0.1 + texture(iNoise, hit.xz * 0.005).x * 0.1;
+          mix(vec3(.69 + textureLod(iNoise, hit.xz * 0.0001, 0.).x, .67, .65), vec3(.38, .52, .23),
+              dot(normal, vec3(0, 1, 0))),
+          clamp(hit.y * .5 - 1., 0., 1.))
+          /*+textureLod(iNoise, hit.xz * 0.15, 0.).x * 0.1 + textureLod(iNoise, hit.xz * 0.01, 0.).x * 0.1*/;
       ;
       break;
   }
@@ -440,30 +449,11 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   return applyFog(colWithTransparency, min(wdist, dist));
 }
 
-void main_coll();
+/**********************************************************************/
+/* collision shader
+/**********************************************************************/
 
-// Main shader
-void main_() {
-  vec2 screen = fragCoord / (iResolution * 0.5) - 1.;
-
-  vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
-  vec3 c = iCameraPos;
-  // c.y = unpackFloat(texture(iHeightmap, c.xz / TERRAIN_SIZE.xz)) * TERRAIN_SIZE.y - 1.;
-  vec3 pixelColour = intersectWithWorld(c, ray);
-
-  oColor = vec4(pixelColour * 0.5, 1.0);
-
-  // if (screen.y < 0.) { // for debugging the collision shader
-  //  main_coll();
-  //}
-
-  // oColor.x = iterationsR;
-  // oColor.y = iterationsR;
-  // oColor.z = iterationsR;
-}
-
-// Collision shader
-void main_coll() {
+void main_c() {
   vec2 screen = fragCoord / (iResolution * 0.5) - 1.;
   vec2 pos = fragCoord / iResolution;
 
@@ -474,4 +464,77 @@ void main_coll() {
   float dist = rayMarch(iCameraPos, ray);
 
   oColor = vec4(dist < .5 ? 1. : 0., dist / MAX_DIST, dist / MAX_DIST, 1.0);
+}
+
+/**********************************************************************/
+/* heightmap shader
+/**********************************************************************/
+
+float squareGradient(vec2 pos) {
+  vec2 distV = abs(pos * 2. - 1.);
+  float maxDist = max(distV.x, distV.y);
+  return 1. - mix(length(distV), maxDist, maxDist);
+}
+
+float terrainNoise(vec2 p) {
+  vec2 pfract = fract(p), pfloor = floor(p), lfactor = pfract * pfract * pfract * (pfract * (pfract * 6. - 15.) + 10.);
+  vec4 noise = textureLod(iNoise, (pfloor + vec2(0.5, 0.5)) / NOISE_TEXTURE_SIZE, 0.);
+  return noise.x + (noise.y - noise.x) * lfactor.x + (noise.z - noise.x) * lfactor.y +
+      (noise.x - noise.y - noise.z + noise.w) * lfactor.x * lfactor.y;
+}
+
+float simplexFBM(vec2 coord) {
+  float value = 1.;
+  float power = 1.0;
+  float normalization = 0.0;
+  float size = 1.5;
+  for (float i = 0.; i < 11.; i++) {
+    value += (1. - 2. * terrainNoise(coord * size * rot(i))) * power;
+    normalization += power;
+    size *= 1.8;
+    power *= .5;
+  }
+  value /= normalization;  // Normalize
+
+  return value;
+}
+
+void main_h() {
+  vec2 pos = fragCoord / (iResolution * 0.5) - 1.;
+
+  // float n = simplexFBM(pos);
+  float n = simplexFBM(pos);
+
+  // float h = n * squareGradient(fragCoord / iResolution);
+
+  oColor = packFloat(n);
+}
+
+/**********************************************************************/
+/* main shader
+/**********************************************************************/
+
+// Main shader
+void main_() {
+  vec2 screen = fragCoord / (iResolution * 0.5) - 1.;
+
+  vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
+  vec3 pixelColour = intersectWithWorld(iCameraPos, ray);
+
+  oColor = vec4(pixelColour, 1.0);
+
+  // float hh = unpackFloat(texture(iHeightmap, screen * .5 + .5));
+  // oColor.xyz = vec3(simplexFBM(screen));
+  // oColor.xyz = vec3(field(vec3(screen, sin(iTime))));
+  // oColor.xyz = vec3(simplexFBM(screen));
+
+  // main_h();
+
+  // if (screen.y < 0.) { // for debugging the collision shader
+  //  main_coll();
+  //}
+
+  oColor.x = iterationsR;
+  // oColor.y = iterationsR;
+  // oColor.z = iterationsR;
 }

@@ -1,4 +1,4 @@
-import { loadShaderProgram, glNewUniformLocationGetter } from './gl-utils'
+import { loadShaderProgram, glNewUniformLocationGetter } from './gl/gl-utils'
 
 import { code as vertexShaderCode } from './shaders/vertex.vert'
 import { code as fragmentShaderCode } from './shaders/fragment.frag'
@@ -12,17 +12,17 @@ import {
   gl_uniform2f,
   gl_uniformMatrix3fv,
   gl_viewport
-} from './gl_context'
+} from './gl/gl-context'
 import { cameraPos, cameraDir, cameraEuler, cameraMat3 } from './camera'
 import { GAME_OBJECTS } from './objects'
 import { ANIMATIONS } from './animations'
 
-const _loadMainShaderProgram = (mainFunction: string) => {
-  debug_time(`${_loadMainShaderProgram.name} ${mainFunction}`)
+export const loadMainShaderProgram = (mainFunction: string) => {
+  debug_time(`${loadMainShaderProgram.name} ${mainFunction}`)
 
   const program = loadShaderProgram(
     vertexShaderCode,
-    fragmentShaderCode.replace('\n', `\n#define ${mainFunction} main\n${debug_mode ? '#line 2 0\n' : ''}`),
+    fragmentShaderCode.replace('\n', `\n#define main_${mainFunction} main\n${debug_mode ? '#line 2 0\n' : ''}`),
     mainFunction
   )
 
@@ -79,11 +79,11 @@ const _loadMainShaderProgram = (mainFunction: string) => {
     _use
   }
 
-  debug_timeEnd(`${_loadMainShaderProgram.name} ${mainFunction}`)
+  debug_timeEnd(`${loadMainShaderProgram.name} ${mainFunction}`)
   return result
 }
 
-export type MainShaderProgram = ReturnType<typeof _loadMainShaderProgram>
+export type MainShaderProgram = ReturnType<typeof loadMainShaderProgram>
 
 export let mainShader: MainShaderProgram
 
@@ -98,7 +98,6 @@ export const loadMainShader = () => {
       gl_deleteProgram(collisionShader._program)
     }
   })
-
-  mainShader = _loadMainShaderProgram('main_')
-  collisionShader = _loadMainShaderProgram('main_coll')
+  mainShader = loadMainShaderProgram('')
+  collisionShader = loadMainShaderProgram('c')
 }
