@@ -61,13 +61,7 @@ out vec4 oColor;
 //=== COLORS ===
 
 const vec3 COLOR_SKY = vec3(.4, .8, 1);
-
-// epsilon-type values
-const float MIN_EPSILON = 0.001;
-const float MAX_EPSILON = 0.9;
-
-const float MIN_TERRAIN_EPSILON = 0.009;
-const float MAX_TERRAIN_EPSILON = 0.5;
+const vec3 COLOR_SUN = vec3(1);
 
 const vec3 TERRAIN_SIZE = vec3(150., 20., 100.);
 const float TERRAIN_OFFSET = 3.;
@@ -89,6 +83,8 @@ vec4 packFloat(float v) {
   enc -= enc.yzww * vec4(1. / 255., 1. / 255., 1. / 255., 0.);
   return enc;
 }
+
+const vec3 SUNLIGHT_DIRECTION = normalize(vec3(1, 1, -1));
 
 float unpackFloat(vec4 rgba) {
   return dot(rgba, vec4(1.0, 1. / 255., 1. / 65025., 1. / 160581375.));
@@ -297,8 +293,8 @@ vec3 computeTerrainNormal(vec3 p) {
   return normalize(vec3(a, b, c) - d);
 }
 
-float computeLambert(vec3 p, vec3 n, vec3 l) {
-  return dot(normalize(l - p), n);
+float computeLambert(vec3 n, vec3 ld) {
+  return dot(normalize(ld), n);
 }
 
 const float MAX_OMEGA = 1.2;
@@ -309,6 +305,12 @@ float rayMarch(vec3 p, vec3 dir) {
 
   float dist = MIN_DIST;
   float prevNear = MAX_DIST;
+
+  float MIN_EPSILON = 1. / iResolution.x;
+  float MAX_EPSILON = MIN_EPSILON * 8.;
+
+  float MIN_TERRAIN_EPSILON = MIN_EPSILON * 10.;
+  float MAX_TERRAIN_EPSILON = MIN_TERRAIN_EPSILON * 4.;
 
   float stepLen = MIN_EPSILON;
   float epsilon = MIN_EPSILON;
@@ -343,7 +345,7 @@ float rayMarch(vec3 p, vec3 dir) {
     dist += stepLen;
 
     float distR = dist / MAX_DIST;
-    float epsAdjust = distR * max(distR + iterationsR * 8., 1.);
+    float epsAdjust = distR * max(distR * distR + iterationsR * 8., 1.);
 
     epsilon = material == MATERIAL_TERRAIN ? mix(MIN_TERRAIN_EPSILON, MAX_TERRAIN_EPSILON, epsAdjust)
                                            : mix(MIN_EPSILON, MAX_EPSILON, epsAdjust);
@@ -409,10 +411,18 @@ vec3 applyFog(vec3 rgb, float camDist) {
   return mix(rgb, COLOR_SKY, fogAmount);
 }
 
+vec3 applyFog(vec3 rgb, float distance, vec3 rayDir) {
+  float dRatio = distance / MAX_DIST;
+  float fogAmount = clamp01(pow(dRatio, 3.5) + 1.0 - exp(-distance * 0.005));
+  float sunAmount = max(dot(rayDir, SUNLIGHT_DIRECTION), 0.0);
+  vec3 fogColor = mix(vec3(COLOR_SKY), vec3(COLOR_SUN), pow(sunAmount, 10.0));
+  return mix(rgb, fogColor, fogAmount);
+}
+
 vec3 getColorAt(vec3 hit, vec3 normal, int mat) {
   // calculate lighting:
-  vec3 lightPosition = vec3(0, 100, 0);
-  float lightIntensity = computeLambert(hit, normal, lightPosition);
+  // vec3 lightPosition = vec3(0, 100, 0);
+  float lightIntensity = computeLambert(normal, SUNLIGHT_DIRECTION);
 
   vec3 color = vec3(.8);
   switch (mat) {
@@ -445,20 +455,20 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
     waterTransparencyMix = clamp01((dist - wdist) * .5);
   }
 
+  vec3 color;
   if (min(dist, wdist) >= MAX_DIST - 1.) {
-    return COLOR_SKY;
+    color = COLOR_SKY;  // mix(COLOR_SKY, COLOR_SUN, pow(clamp(dot(dir, SUNLIGHT_DIRECTION),0.,1.),10.));
+  } else {
+    vec3 hit = p + dir * dist;
+    vec3 normal;
+    switch (material) {
+      case MATERIAL_TERRAIN: normal = computeTerrainNormal(hit); break;
+      default: normal = computeNonTerrainNormal(hit); break;
+    }
+    color = mix(getColorAt(hit, normal, material), waterColor, waterTransparencyMix);
   }
-
-  vec3 hit = p + dir * dist;
-  vec3 normal;
-  switch (material) {
-    case MATERIAL_TERRAIN: normal = computeTerrainNormal(hit); break;
-    default: normal = computeNonTerrainNormal(hit); break;
-  }
-
-  vec3 colWithTransparency = mix(getColorAt(hit, normal, material), waterColor, waterTransparencyMix);
-
-  return applyFog(colWithTransparency, min(wdist, dist));
+  // return applyFog(colWithTransparency, min(wdist, dist));
+  return applyFog(color, min(wdist, dist), dir);
 }
 
 /**********************************************************************/
@@ -559,12 +569,7 @@ void main_() {
 
   // float hh = unpackFloat(texture(iHeightmap, screen * .5 + .5));
 
-  // oColor.xyz = vec3(terrainHeight(screen));
-
-  // oColor.xyz = vec3(field(vec3(screen, sin(iTime))));
-  // oColor.xyz = vec3(simplexFBM(screen));
-
-  // main_h();
+  oColor = vec4(pixelColour, 1.0);
 
   // if (screen.y < 0.) { // for debugging the collision shader
   //  main_coll();
