@@ -79,8 +79,12 @@ const int MAX_ITERATIONS = 100;
 const float MIN_DIST = 0.15;
 const float MAX_DIST = 350.;
 
+float clamp01(float v) {
+  return clamp(v, 0., 1.);
+}
+
 vec4 packFloat(float v) {
-  vec4 enc = clamp(v, 0., 1.) * (vec4(1., 255., 65025., 160581375.) * .999998);
+  vec4 enc = clamp01(v) * (vec4(1., 255., 65025., 160581375.) * .999998);
   enc = fract(enc);
   enc -= enc.yzww * vec4(1. / 255., 1. / 255., 1. / 255., 0.);
   return enc;
@@ -88,6 +92,14 @@ vec4 packFloat(float v) {
 
 float unpackFloat(vec4 rgba) {
   return dot(rgba, vec4(1.0, 1. / 255., 1. / 65025., 1. / 160581375.));
+}
+
+float noise(vec2 pos) {
+  vec2 pfract = fract(pos), pfloor = floor(pos),
+       lfactor = pfract * pfract * pfract * (pfract * (pfract * 6. - 15.) + 10.);
+  vec4 noise = textureLod(iNoise, (pfloor + vec2(0.5, 0.5)) / NOISE_TEXTURE_SIZE, 0.);
+  return noise.x + (noise.y - noise.x) * lfactor.x + (noise.z - noise.x) * lfactor.y +
+      (noise.x - noise.y - noise.z + noise.w) * lfactor.x * lfactor.y;
 }
 
 //=== PRIMITIVES ===
@@ -393,7 +405,7 @@ vec4 waterHeightAndNormal(vec2 p) {
 
 vec3 applyFog(vec3 rgb, float camDist) {
   float dRatio = camDist / MAX_DIST;
-  float fogAmount = clamp(pow(dRatio, 3.5) + 1.0 - exp(-(dRatio * dRatio) * .3), 0., 1.);
+  float fogAmount = clamp01(pow(dRatio, 3.5) + 1.0 - exp(-(dRatio * dRatio) * .3));
   return mix(rgb, COLOR_SKY, fogAmount);
 }
 
@@ -409,7 +421,7 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat) {
       color = mix(vec3(.93, .8, .64),
           mix(vec3(.69 + textureLod(iNoise, hit.xz * 0.0001, 0.).x, .67, .65), vec3(.38, .52, .23),
               dot(normal, vec3(0, 1, 0))),
-          clamp(hit.y * .5 - 1., 0., 1.))
+          clamp01(hit.y * .5 - 1.))
           /*+textureLod(iNoise, hit.xz * 0.15, 0.).x * 0.1 + textureLod(iNoise, hit.xz * 0.01, 0.).x * 0.1*/;
       ;
       break;
@@ -430,7 +442,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
     vec3 waterNormal = whn.yzw;
 
     waterColor = getColorAt(waterhit, waterNormal, MATERIAL_WATER);
-    waterTransparencyMix = clamp((dist - wdist) * .5, 0., 1.);
+    waterTransparencyMix = clamp01((dist - wdist) * .5);
   }
 
   if (min(dist, wdist) >= MAX_DIST - 1.) {
@@ -476,20 +488,40 @@ float squareGradient(vec2 pos) {
   return 1. - mix(length(distV), maxDist, maxDist);
 }
 
-float terrainNoise(vec2 p) {
-  vec2 pfract = fract(p), pfloor = floor(p), lfactor = pfract * pfract * pfract * (pfract * (pfract * 6. - 15.) + 10.);
-  vec4 noise = textureLod(iNoise, (pfloor + vec2(0.5, 0.5)) / NOISE_TEXTURE_SIZE, 0.);
-  return noise.x + (noise.y - noise.x) * lfactor.x + (noise.z - noise.x) * lfactor.y +
-      (noise.x - noise.y - noise.z + noise.w) * lfactor.x * lfactor.y;
+float simplexFBM(vec2 pos, float size) {
+  float value = 1.;
+  float power = 1.0;
+  float posmul = 1.;
+  float normalization = 0.0;
+  for (float i = 0.; i < 8.; i++) {
+    float noiseVal = 1. - noise(pos * posmul * rot(i));
+    value += (noiseVal * 2. - 1.) * power;
+    normalization += power;
+    posmul *= size;
+    power *= .5;
+  }
+  value /= normalization;  // Normalize
+
+  return value;
 }
 
-float simplexFBM(vec2 coord) {
+float terrainHeight(vec2 pos) {
+  /*float selector = clamp(sin(simplexFBM(pos, 1.4) * 5.), 0., 1.);
+  float flatty = sin(simplexFBM(pos * 1.3 + iTime, 1.5) * 8.);
+  float rocky = simplexFBM(pos * 2. + .5, 1.7);*/
+  // return smoothstep(flatty, rocky, selector);  // simplexFBM(pos, 2.);
+  // return sin(simplexFBM(pos + iTime, 1.3) * 8.);
+
+  return simplexFBM(pos, abs(sin(iTime)) + 1.);
+}
+
+float simplexFBMxxx(vec2 coord) {
   float value = 1.;
   float power = 1.0;
   float normalization = 0.0;
   float size = 1.5;
-  for (float i = 0.; i < 11.; i++) {
-    value += (1. - 2. * terrainNoise(coord * size * rot(i))) * power;
+  for (float i = 0.; i < 8.; i++) {
+    value += (1. - 2. * noise(coord * size * rot(i))) * power;
     normalization += power;
     size *= 1.8;
     power *= .5;
@@ -503,9 +535,11 @@ void main_h() {
   vec2 pos = fragCoord / (iResolution * 0.5) - 1.;
 
   // float n = simplexFBM(pos);
-  float n = simplexFBM(pos);
+  // float n = simplexFBM(pos);
 
   // float h = n * squareGradient(fragCoord / iResolution);
+
+  float n = terrainHeight(pos);
 
   oColor = packFloat(n);
 }
@@ -516,7 +550,7 @@ void main_h() {
 
 // Main shader
 void main_() {
-  vec2 screen = fragCoord / (iResolution * 0.5) - 1.;
+  vec2 screen = fragCoord / (iResolution * .5) - 1.;
 
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
   vec3 pixelColour = intersectWithWorld(iCameraPos, ray);
@@ -524,7 +558,9 @@ void main_() {
   oColor = vec4(pixelColour, 1.0);
 
   // float hh = unpackFloat(texture(iHeightmap, screen * .5 + .5));
-  // oColor.xyz = vec3(simplexFBM(screen));
+
+  oColor.xyz = vec3(terrainHeight(screen));
+
   // oColor.xyz = vec3(field(vec3(screen, sin(iTime))));
   // oColor.xyz = vec3(simplexFBM(screen));
 
@@ -534,7 +570,7 @@ void main_() {
   //  main_coll();
   //}
 
-  oColor.x = iterationsR;
+  // oColor.x = iterationsR;
   // oColor.y = iterationsR;
   // oColor.z = iterationsR;
 }
