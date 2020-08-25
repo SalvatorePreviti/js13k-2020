@@ -344,9 +344,9 @@ float rayMarch(vec3 p, vec3 dir) {
 bool isInShadow(vec3 p, float camDistance, vec3 n) {
   float dist= clamp(camDistance * 0.005, 0.01, .1);
   p = p + n * dist;
-  for (int i = 0; i < MAX_ITERATIONS/2; i++) {
+  for (int i = 0; i < MAX_ITERATIONS/2 && dist < 100.; i++) {
     float nearest = nonTerrain(p+SUNLIGHT_DIRECTION*dist);
-    if (nearest < 0.01) return true;
+    if (nearest < clamp(float(i)/float(MAX_ITERATIONS*4), 0.01, 1.)) return true;
     dist += nearest;
   }
   return false;
