@@ -45,17 +45,7 @@ export const cameraDir: Vec3 = vec3NewValue()
 /** Camera rotation matrix */
 export const cameraMat3: Mat3 = new Float32Array(9)
 
-let meters = 0
-let totalMeters = 0
-
-setInterval(() => {
-  console.log(meters, totalMeters)
-  meters = 0
-}, 1000)
-
 export const cameraMoveForward = (amount: number) => {
-  meters += amount
-  totalMeters += amount
   cameraPos.x += amount * cameraDir.x
   cameraPos.z += amount * cameraDir.z
 }
