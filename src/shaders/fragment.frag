@@ -449,6 +449,10 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
     vec3 waterNormal = whn.yzw;
 
     waterColor = getColorAt(waterhit, waterNormal, MATERIAL_WATER);
+    float sp=dot(SUNLIGHT_DIRECTION,reflect(dir,waterNormal));
+    sp = pow(clamp(sp,0.0,1.0),50.);
+    waterColor = clamp(waterColor+sp,0.,1.);
+    clamp(waterColor,0.,1.);
     waterTransparencyMix = clamp((dist - wdist) * .5, 0., 1.);
   }
 
