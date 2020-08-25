@@ -451,7 +451,7 @@ void main_() {
   // c.y = unpackFloat(texture(iHeightmap, c.xz / TERRAIN_SIZE.xz)) * TERRAIN_SIZE.y - 1.;
   vec3 pixelColour = intersectWithWorld(c, ray);
 
-  oColor = vec4(pixelColour * 0.5, 1.0);
+  oColor = vec4(pixelColour, 1.0);
 
   // if (screen.y < 0.) { // for debugging the collision shader
   //  main_coll();
