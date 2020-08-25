@@ -341,6 +341,23 @@ float rayMarch(vec3 p, vec3 dir) {
   return MAX_DIST;
 }
 
+#define SHADOW_ITERATIONS 50
+bool isInShadow(vec3 p, float camDistance, vec3 n) {
+  float dist = clamp(camDistance * 0.005, 0.01, .1); //start further out from the surface if the camera is far away
+  p = p + n * dist; //Jump out of the surface by the normal * that dist
+  float closest = MAX_DIST; //keep a record of the closest
+  for (int i = 0; dist < 100.; i++) {
+    float nearest = nonTerrain(p+SUNLIGHT_DIRECTION*dist);
+    closest = min(closest, nearest);
+    if (
+      i > SHADOW_ITERATIONS || //if it takes a lot of iterations then we're close enough to some geometry
+      nearest < clamp(float(i)/float(SHADOW_ITERATIONS*8), 0.001, .1)
+    ) return true;
+    dist += nearest;
+  }
+  return false;
+}
+
 float rayTraceWater(vec3 p, vec3 dir) {
   float t = (sin(iTime * 2. + 3.) * .1 - p.y) / dir.y;
   return t >= 0. ? t : MAX_DIST;
@@ -436,7 +453,8 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   }
 
   vec3 color;
-  if (min(dist, wdist) >= MAX_DIST - 1.) {
+  float mdist = min(dist, wdist);
+  if (mdist >= MAX_DIST - 1.) {
     color = COLOR_SKY; //mix(COLOR_SKY, COLOR_SUN, pow(clamp(dot(dir, SUNLIGHT_DIRECTION),0.,1.),10.));
   } else {
     vec3 hit = p + dir * dist;
@@ -446,6 +464,9 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
       default: normal = computeNonTerrainNormal(hit); break;
     }
     color = mix(getColorAt(hit, normal, material), waterColor, waterTransparencyMix);
+    if (isInShadow(p+dir*mdist, mdist, normal)) {
+      color = color * .1;
+    }
   }
   //return applyFog(colWithTransparency, min(wdist, dist));
   return applyFog(color, min(wdist, dist), dir);
