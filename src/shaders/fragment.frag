@@ -405,12 +405,6 @@ vec4 waterHeightAndNormal(vec2 p) {
   return vec4(normalize(vec3(dxy.x, dxy.y, 1.)), dxy.z);
 }
 
-vec3 applyFog(vec3 rgb, float camDist) {
-  float dRatio = camDist / MAX_DIST;
-  float fogAmount = clamp01(pow(dRatio, 3.5) + 1.0 - exp(-(dRatio * dRatio) * .3));
-  return mix(rgb, COLOR_SKY, fogAmount);
-}
-
 vec3 applyFog(vec3 rgb, float distance, vec3 rayDir) {
   float dRatio = distance / MAX_DIST;
   float fogAmount = clamp01(pow(dRatio, 3.5) + 1.0 - exp(-distance * 0.005));
