@@ -61,7 +61,7 @@ out vec4 oColor;
 //=== COLORS ===
 
 const vec3 COLOR_SKY = vec3(.4, .8, 1);
-const vec3 COLOR_SUN = vec3(1);
+const vec3 COLOR_SUN = vec3(1.1, .9, .85);
 
 // epsilon-type values
 const float MIN_EPSILON = 0.001;
@@ -280,7 +280,7 @@ vec3 computeTerrainNormal(vec3 p) {
 }
 
 float computeLambert(vec3 n, vec3 ld) {
-  return dot(normalize(ld), n);
+  return clamp(dot(normalize(ld), n), 0., 1.);
 }
 
 const float MAX_OMEGA = 1.2;
@@ -342,20 +342,20 @@ float rayMarch(vec3 p, vec3 dir) {
 }
 
 #define SHADOW_ITERATIONS 50
-bool isInShadow(vec3 p, float camDistance, vec3 n) {
+float getShadow(vec3 p, float camDistance, vec3 n) {
+  float res = 1.;
   float dist = clamp(camDistance * 0.005, 0.01, .1); //start further out from the surface if the camera is far away
   p = p + n * dist; //Jump out of the surface by the normal * that dist
   float closest = MAX_DIST; //keep a record of the closest
-  for (int i = 0; dist < 100.; i++) {
+  for (int i = 0; dist < 100. && i < SHADOW_ITERATIONS; i++) {
     float nearest = nonTerrain(p+SUNLIGHT_DIRECTION*dist);
     closest = min(closest, nearest);
-    if (
-      i > SHADOW_ITERATIONS || //if it takes a lot of iterations then we're close enough to some geometry
-      nearest < clamp(float(i)/float(SHADOW_ITERATIONS*8), 0.001, .1)
-    ) return true;
+    if (nearest < clamp(float(i)/float(SHADOW_ITERATIONS*8), 0.001, .1))
+      return 0.;
+    res = min( res, 16.*nearest/dist ); //soft shadows
     dist += nearest;
   }
-  return false;
+  return res;
 }
 
 float rayTraceWater(vec3 p, vec3 dir) {
@@ -412,7 +412,7 @@ vec3 applyFog( vec3  rgb, float distance, vec3 rayDir)
 {
     float fogAmount = 1.0 - exp( -distance*0.005 );
     float sunAmount = max( dot( rayDir, SUNLIGHT_DIRECTION ), 0.0 );
-    vec3  fogColor  = mix( vec3(COLOR_SKY), vec3(COLOR_SUN), pow(sunAmount,10.0));
+    vec3  fogColor  = mix( COLOR_SKY, COLOR_SUN, pow(sunAmount,10.0));
     return mix( rgb, fogColor, fogAmount );
 }
 
@@ -433,7 +433,7 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat) {
       ;
       break;
   }
-  return color * lightIntensity;
+  return color * COLOR_SUN * lightIntensity;
 }
 
 vec3 intersectWithWorld(vec3 p, vec3 dir) {
@@ -468,9 +468,8 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
       default: normal = computeNonTerrainNormal(hit); break;
     }
     color = mix(getColorAt(hit, normal, material), waterColor, waterTransparencyMix);
-    if (isInShadow(p+dir*mdist, mdist, normal)) {
-      color = color * .1;
-    }
+    float shadow = getShadow(p+dir*mdist, mdist, normal) * 0.9 + 0.1;
+    color = color * shadow;
   }
   //return applyFog(colWithTransparency, min(wdist, dist));
   return applyFog(color, min(wdist, dist), dir);
@@ -485,8 +484,10 @@ void main_() {
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
   vec3 c = iCameraPos;
   // c.y = unpackFloat(texture(iHeightmap, c.xz / TERRAIN_SIZE.xz)) * TERRAIN_SIZE.y - 1.;
-  vec3 pixelColour = intersectWithWorld(c, ray);
+  vec3 pixelColour = clamp(intersectWithWorld(c, ray), 0., 1.);
 
+
+  //pixelColour = pow( pixelColour, vec3(1./2.2) );
   oColor = vec4(pixelColour, 1.0);
 
   // if (screen.y < 0.) { // for debugging the collision shader
