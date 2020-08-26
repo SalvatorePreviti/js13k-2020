@@ -1,5 +1,5 @@
 /** Seedable pseudorandom 32 bit unsigned integer random generator. */
-export const xoshiro128ss = (a: number, b: number, c: number = a * b, d: number = a - b) => {
+export const xoshiro128ss = (a: number, b: number, c: number = a + b, d: number = a * b) => {
   return () => {
     const t = b << 9
     let r = a * 5

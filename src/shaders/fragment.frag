@@ -65,7 +65,7 @@ out vec4 oColor;
 const vec3 COLOR_SKY = vec3(.4, .8, 1);
 const vec3 COLOR_SUN = vec3(1);
 
-const vec3 TERRAIN_SIZE = vec3(140., 20., 100.);
+const vec3 TERRAIN_SIZE = vec3(120., 20., 80.);
 const float TERRAIN_OFFSET = 3.;
 
 const vec3 TERRAIN_CENTER = TERRAIN_SIZE * .5;
@@ -77,6 +77,16 @@ const float MAX_DIST = 350.;
 
 float clamp01(float v) {
   return clamp(v, 0., 1.);
+}
+
+vec2 clamp01(vec2 v) {
+  return clamp(v, 0., 1.);
+}
+
+// polynomial smooth min (k = 0.1);
+float smin(float a, float b, float k) {
+  float h = max(k - abs(a - b), 0.) / k;
+  return min(a, b) - h * h * k / 4.;
 }
 
 vec4 packFloat(float v) {
@@ -479,120 +489,33 @@ void main_c() {
 /* heightmap shader
 /**********************************************************************/
 
-float squareGradient(vec2 pos) {
-  vec2 distV = abs(pos * 2. - 1.);
-  float maxDist = max(distV.x, distV.y);
-  return 1. - mix(length(distV), maxDist, maxDist);
+float heightmapCircle(vec2 coord, float centerX, float centerY, float radius, float smoothness) {
+  vec2 dist = coord - vec2(centerX, centerY);
+  return clamp01(1. - smoothstep(radius - (radius * smoothness), radius, dot(dist, dist) * 4.));
 }
 
-vec2 heightmapFBM(vec2 coord) {
-  vec2 size = vec2(1.4, 1.), result = vec2(0, 1), derivative = vec2(0.);
-  float persistence = 1., normalization = 0.;
-  for (float octave = .6; octave < 11.; octave++) {
-    vec3 noisedxy = noiseDxy(21. + (coord * size) * rot(octave));
+void main_h() {
+  vec2 coord = fragCoord / (iResolution * 0.5) - 1., size = vec2(1.3, 1.), derivative = vec2(0.);
+  float heightA = 0., heightB = 1., persistence = 1., normalization = 0., octave = 1.;
+  for (; octave < 11.;) {
+    vec3 noisedxy = noiseDxy(21.1 + (coord * size) * rot(octave++ * 2.4));
     derivative += noisedxy.yz;
-    result += persistence * vec2((1. - noisedxy.x) / (1. + dot(derivative, derivative)), .5 - noisedxy.x);
+    heightA += persistence * (1. - noisedxy.x) / (1. + dot(derivative, derivative));
+    heightB += persistence * (.5 - noisedxy.x);
     normalization += persistence;
     persistence *= 0.5;
     size *= 1.8;
   }
-  return result * 1.2 / vec2(normalization, 2.);
-  // scogliera
-  //  return min(c, abs(tradX));
-}
-
-float simpleFBM(vec2 xy) {
-  float w = .7;
-  float f = 0.0;
-  for (float i = 0.; i < 4.; i++) {
-    vec4 v = textureLod(iNoise, xy * .01, 0.);
-    f += (v.x - v.w * .09) * w;
-    w *= .5 - v.z * .1;
-    xy *= 2. * rot(i);
-  }
-  return f;
-}
-
-float heightmapCircle(vec2 fragPos, float centerX, float centerY, float radius, float smoothness) {
-  vec2 dist = fragPos - vec2(centerX, centerY);
-  return clamp01(1. - smoothstep(radius - (radius * smoothness), radius, dot(dist, dist) * 4.));
-}
-
-float terrainHeight(vec2 xy) {
-  // return heightmapCircle(xy, 0., 0., 2.1, 1.33);
-
-  vec2 hmap1 = heightmapFBM(xy);
-  vec2 hmap2 = heightmapFBM(xy + 18.);
-
-  return hmap1.x;
-
-  float circles = 1.;
-  for (float i = -1.5; i <= 2.5; i += .5) {
-    circles -= heightmapCircle(xy, 1. - i, 1., 2.1, 1.) * .5;
-  }
-
-  /*// 0: x position, 1: y position, 2: radius, 3: smoothness, 5: strength
-  const float xcircles[] = float[](1., 1., 2.1, 1.33, 1.);
-
-  int j = 0;
-  for (int i = 0; i < xcircles.length() / 4; ++i) {
-    vec2 dist = xy - vec2(xcircles[j++], xcircles[j++]);
-    float radius = xcircles[j++];
-    circles -= (1. - smoothstep(radius - (radius * xcircles[j++]), radius, dot(dist, dist) * 4.)) * xcircles[j++];
-  }*/
-  return clamp01(circles);
-
-  return hmap1.x * 1.2;
-
-  // float aa = simpleFBM(xy) / dot(xy, xy);
-
-  /*
-    vec2 distV = abs(xy);
-    float maxDist = max(distV.x, distV.y);
-    float sqg1 = clamp01(mix(length(distV), maxDist, maxDist) * 1.003);
-
-    float bb = simpleFBM(xy);
-    float sqg = sqg1;
-    sqg = pow(sqg, 3.);
-
-    // float sqg = 1. - squareGradient(xy * .5 + .5);
-    // sqg = pow(sqg, aa * 10.);
-    float ttt = (1. - mix(bb * sqg, 1., sqg * sqg));
-
-    return mix(0., simpleFBM(xy), ttt);
-
-    float ff = bb;
-    return ff >= 1. ? 1. : 0.;  // sqg >= .99 ? 1. : 0.;
-
-    /*
-    float w = .7;
-    float f = 0.0;
-
-    float sqg = squareGradient(pos * .5 + .5);
-
-    float kdist = dot(pos, pos);
-    vec2 xy = pos;
-    for (int i = 0; i < 6; i++) {
-      f += (textureLod(iNoise, xy * .01, 0.).x * 2. - 1.) * w;
-      w = w * .8;
-      xy = 1.8 * xy;
-    }
-    return f;  // >= 1. ? 1. : 0.;*/
-
-  //  return simplexFBM(pos);
-}
-
-void main_h() {
-  vec2 pos = fragCoord / (iResolution * 0.5) - 1.;
-
-  // float n = simplexFBM(pos);
-  // float n = simplexFBM(pos);
-
-  // float h = n * squareGradient(fragCoord / iResolution);
-
-  float n = terrainHeight(pos);
-
-  oColor = packFloat(n);
+  heightA /= normalization;
+  heightB *= .5;
+  float tmask = (length((coord * (1.2 - heightB + heightA))) *
+            clamp01(heightB + .55 - .5 * heightA * coord.x * (1. - coord.y * .5))),
+        circles = heightmapCircle(coord, -.45, -.52, 1., 2.3) + heightmapCircle(coord, -.6, -.1, 1., 3.3) +
+      heightmapCircle(coord, .6, -.7, 1., 5.) + heightmapCircle(coord, .84, .84, heightA, heightB * 5.);
+  tmask = clamp01(1. - smin(tmask, 1. - mix(0., heightA * 2., circles), .05 + heightB * .5));
+  vec2 distHV = 1. - abs(coord) + heightA * .04;
+  tmask = smin(tmask, smin(distHV.x, distHV.y, 0.3) * 2., .1);
+  oColor = packFloat(smin(heightA, tmask, 0.01) * 1.33 - .045);
 }
 
 /**********************************************************************/
@@ -603,14 +526,9 @@ void main_h() {
 void main_() {
   vec2 screen = fragCoord / (iResolution * .5) - 1.;
 
-  if (screen.y >= 0.) {
-    vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
-    vec3 pixelColour = intersectWithWorld(iCameraPos, ray);
-    oColor = vec4(pixelColour, 1.0);
-  } else {
-    float n = terrainHeight(screen * vec2(-1., 2.) + vec2(0.1, 1.));
-    oColor = vec4(vec3(n), 1.0);
-  }
+  vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
+  vec3 pixelColour = intersectWithWorld(iCameraPos, ray);
+  oColor = vec4(pixelColour, 1.0);
 
   // float hh = unpackFloat(texture(iHeightmap, screen * .5 + .5));
 
