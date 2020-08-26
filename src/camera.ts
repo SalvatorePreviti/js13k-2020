@@ -6,7 +6,8 @@ import {
   KEY_STRAFE_RIGHT,
   KEY_FLY_UP,
   KEY_FLY_DOWN,
-  KEY_RUN
+  KEY_RUN,
+  KEY_FLASHLIGHT_TOGGLE
 } from './keyboard'
 
 import { debug_updateCameraPosition, debug_updateCameraDirection, debug_updateCameraEulerAngles } from './debug'
@@ -45,6 +46,11 @@ export const cameraDir: Vec3 = vec3NewValue()
 /** Camera rotation matrix */
 export const cameraMat3: Mat3 = new Float32Array(9)
 
+//Is the flashlight on or off
+export let flashlightOn: boolean = false
+
+let flashLightKeyDown: boolean = false
+
 export const cameraMoveForward = (amount: number) => {
   cameraPos.x += amount * cameraDir.x
   cameraPos.z += amount * cameraDir.z
@@ -78,6 +84,14 @@ export const updateCamera = (timeDelta: number) => {
   }
   if (isKeyPressed(KEY_FLY_DOWN)) {
     cameraMoveDown(speed)
+  }
+  if (isKeyPressed(KEY_FLASHLIGHT_TOGGLE)) {
+    if (!flashLightKeyDown) {
+      flashlightOn = !flashlightOn
+    }
+    flashLightKeyDown = true
+  } else {
+    flashLightKeyDown = false
   }
 
   debug_updateCameraPosition(cameraPos)

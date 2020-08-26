@@ -55,6 +55,8 @@ uniform bool iGOKeyVisible;
 // Prison Door 0 - closed, 1 - open
 uniform float iAnimPrisonDoor;
 
+uniform bool iFlashlightOn;
+
 // Output color
 out vec4 oColor;
 
@@ -346,10 +348,8 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
   float res = 1.;
   float dist = clamp(camDistance * 0.005, 0.01, .1); //start further out from the surface if the camera is far away
   p = p + n * dist; //Jump out of the surface by the normal * that dist
-  float closest = MAX_DIST; //keep a record of the closest
   for (int i = 0; dist < 100. && i < SHADOW_ITERATIONS; i++) {
     float nearest = nonTerrain(p+SUNLIGHT_DIRECTION*dist);
-    closest = min(closest, nearest);
     if (nearest < clamp(float(i)/float(SHADOW_ITERATIONS*8), 0.001, .1))
       return 0.;
     res = min( res, 32.*nearest/dist ); //soft shadows
@@ -462,10 +462,8 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
     float shadow = getShadow(p+dir*mdist, mdist, normal);
     float lightIntensity = computeLambert(normal, SUNLIGHT_DIRECTION);
     
-    //Flashlight if the player is in shadow:
-    bool playerIsInShadow = getShadow(p,0.,vec3(0)) < .1;
-    if (playerIsInShadow && material != MATERIAL_TERRAIN && dist < 10.) {
-      lightIntensity = computeLambert(normal, -dir);
+    if (iFlashlightOn && material != MATERIAL_TERRAIN && dist < 20.) {
+      lightIntensity += computeLambert(normal, -dir) * (1.-lightIntensity);
       shadow += pow(clamp(dot(iCameraDir, dir), 0.,1.), 32.) * smoothstep(10., 0., dist) * (1.-shadow);
     }
 
@@ -504,7 +502,7 @@ void main_() {
 void main_coll() {
   vec2 screen = fragCoord / (iResolution * 0.5) - 1.;
 
-  vec3 ray = normalize(vec3(0., screen.y, 1.));
+  vec3 ray = normalize(vec3(0., screen.y, PI/2.));
 
   ray.xz = ray.xz * rot(screen.x * PI);
 

@@ -13,7 +13,7 @@ import {
   gl_uniformMatrix3fv,
   gl_viewport
 } from './gl_context'
-import { cameraPos, cameraDir, cameraEuler, cameraMat3 } from './camera'
+import { cameraPos, cameraDir, cameraEuler, cameraMat3, flashlightOn } from './camera'
 import { GAME_OBJECTS } from './objects'
 import { ANIMATIONS } from './animations'
 
@@ -36,7 +36,8 @@ const _loadMainShaderProgram = (mainFunction: string) => {
     iCameraEuler,
     iCameraMat3,
     iGOKeyVisible,
-    iAnimPrisonDoor
+    iAnimPrisonDoor,
+    iFlashlightOn
   } = glNewUniformLocationGetter(program)
 
   // Texture 0
@@ -72,6 +73,8 @@ const _loadMainShaderProgram = (mainFunction: string) => {
 
     //prison door, open-closed
     gl_uniform1f(iAnimPrisonDoor, ANIMATIONS._prisonDoor._value)
+
+    gl_uniform1i(iFlashlightOn, flashlightOn ? 1 : 0)
   }
 
   const result = {
