@@ -63,7 +63,7 @@ out vec4 oColor;
 //=== COLORS ===
 
 const vec3 COLOR_SKY = vec3(.4, .8, 1);
-const vec3 COLOR_SUN = vec3(1);
+const vec3 COLOR_SUN = vec3(1.1, .9, .85);
 
 const vec3 TERRAIN_SIZE = vec3(120., 20., 80.);
 const float TERRAIN_OFFSET = 3.;
@@ -310,7 +310,7 @@ vec3 computeTerrainNormal(vec3 p) {
 }
 
 float computeLambert(vec3 n, vec3 ld) {
-  return dot(normalize(ld), n);
+  return clamp(dot(normalize(ld), n), 0., 1.);
 }
 
 const float MAX_OMEGA = 1.2;
@@ -377,6 +377,23 @@ float rayMarch(vec3 p, vec3 dir) {
   return MAX_DIST;
 }
 
+#define SHADOW_ITERATIONS 50
+float getShadow(vec3 p, float camDistance, vec3 n) {
+  float res = 1.;
+  float dist = clamp(camDistance * 0.005, 0.01, .1);  // start further out from the surface if the camera is far away
+  p = p + n * dist;  // Jump out of the surface by the normal * that dist
+  float closest = MAX_DIST;  // keep a record of the closest
+  for (int i = 0; dist < 100. && i < SHADOW_ITERATIONS; i++) {
+    float nearest = nonTerrain(p + SUNLIGHT_DIRECTION * dist);
+    closest = min(closest, nearest);
+    if (nearest < clamp(float(i) / float(SHADOW_ITERATIONS * 8), 0.001, .1))
+      return 0.;
+    res = min(res, 32. * nearest / dist);  // soft shadows
+    dist += nearest;
+  }
+  return res;
+}
+
 float rayTraceWater(vec3 p, vec3 dir) {
   float t = (sin(iTime * 2. + 3.) * .2 - p.y) / dir.y;
   return t >= 0. ? t : MAX_DIST;
@@ -409,31 +426,26 @@ vec4 waterHeightAndNormal(vec2 p) {
 }
 
 vec3 applyFog(vec3 rgb, float distance, vec3 rayDir) {
-  float dRatio = distance / MAX_DIST;
-  float fogAmount = clamp01(pow(dRatio, 3.5) + 1.0 - exp(-distance * 0.005));
+  float fogAmount = 1.0 - exp(-distance * 0.005);
   float sunAmount = max(dot(rayDir, SUNLIGHT_DIRECTION), 0.0);
-  vec3 fogColor = mix(vec3(COLOR_SKY), vec3(COLOR_SUN), pow(sunAmount, 10.0));
+  vec3 fogColor = mix(COLOR_SKY, COLOR_SUN, pow(sunAmount, 10.0));
   return mix(rgb, fogColor, fogAmount);
 }
 
 vec3 getColorAt(vec3 hit, vec3 normal, int mat) {
-  // calculate lighting:
-  // vec3 lightPosition = vec3(0, 100, 0);
-  float lightIntensity = computeLambert(normal, SUNLIGHT_DIRECTION);
-
   vec3 color = vec3(.8);
   switch (mat) {
     case MATERIAL_WATER: color = vec3(.15, .52, .73); break;
     case MATERIAL_TERRAIN:
       color = mix(vec3(.93, .8, .64),
-          mix(vec3(.69 + textureLod(iNoise, hit.xz * 0.0001, 0.).x, .67, .65), vec3(.38, .52, .23),
-              dot(normal, vec3(0, 1, 0))),
-          clamp01(hit.y * .5 - 1.))
-          /*+textureLod(iNoise, hit.xz * 0.15, 0.).x * 0.1 + textureLod(iNoise, hit.xz * 0.01, 0.).x * 0.1*/;
+                  mix(vec3(.69 + textureLod(iNoise, hit.xz * 0.0001, 0.).x, .67, .65), vec3(.38, .52, .23),
+                      dot(normal, vec3(0, 1, 0))),
+                  clamp01(hit.y * .5 - 1.)) +
+          textureLod(iNoise, hit.xz * 0.15, 0.).x * 0.1 + textureLod(iNoise, hit.xz * 0.01, 0.).x * 0.1;
       ;
       break;
   }
-  return color * lightIntensity;
+  return color;
 }
 
 vec3 intersectWithWorld(vec3 p, vec3 dir) {
@@ -449,20 +461,38 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
     vec3 waterNormal = whn.yzw;
 
     waterColor = getColorAt(waterhit, waterNormal, MATERIAL_WATER);
-    waterTransparencyMix = clamp01((dist - wdist) * .5);
+    waterColor *= computeLambert(waterNormal, SUNLIGHT_DIRECTION);
+    float sp = dot(SUNLIGHT_DIRECTION, reflect(dir, waterNormal));
+    sp = pow(clamp(sp, 0.0, 1.0), 50.);
+    waterColor = clamp(waterColor + sp, 0., 1.);
+    waterTransparencyMix = clamp((dist - wdist) * .5, 0., 1.);
   }
 
   vec3 color;
-  if (min(dist, wdist) >= MAX_DIST - 1.) {
+  float mdist = min(dist, wdist);
+  if (mdist >= MAX_DIST - 1.) {
     color = COLOR_SKY;  // mix(COLOR_SKY, COLOR_SUN, pow(clamp(dot(dir, SUNLIGHT_DIRECTION),0.,1.),10.));
   } else {
     vec3 hit = p + dir * dist;
     vec3 normal;
-    switch (material) {
+    int mat = material;
+    switch (mat) {
       case MATERIAL_TERRAIN: normal = computeTerrainNormal(hit); break;
       default: normal = computeNonTerrainNormal(hit); break;
     }
-    color = mix(getColorAt(hit, normal, material), waterColor, waterTransparencyMix);
+    color = getColorAt(hit, normal, mat);
+    float shadow = getShadow(p + dir * mdist, mdist, normal);
+    float lightIntensity = computeLambert(normal, SUNLIGHT_DIRECTION);
+
+    // Flashlight if the player is in shadow:
+    // bool playerIsInShadow = getShadow(p, 0., vec3(0)) < .1;
+    // if (playerIsInShadow && material != MATERIAL_TERRAIN && dist < 10.) {
+    //  lightIntensity = computeLambert(normal, -dir);
+    //  shadow += pow(clamp(dot(iCameraDir, dir), 0., 1.), 32.) * smoothstep(10., 0., dist) * (1. - shadow);
+    //}
+
+    color = mix(color, waterColor, waterTransparencyMix) * (COLOR_SUN * lightIntensity);
+    color *= (shadow * 0.9 + 0.1);
   }
   // return applyFog(colWithTransparency, min(wdist, dist));
   return applyFog(color, min(wdist, dist), dir);
@@ -483,6 +513,34 @@ void main_c() {
   float dist = rayMarch(iCameraPos, ray);
 
   oColor = vec4(dist < .5 ? 1. : 0., dist / MAX_DIST, dist / MAX_DIST, 1.0);
+}
+
+/**********************************************************************/
+/* main shader
+/**********************************************************************/
+
+// Main shader
+void main_() {
+  vec2 screen = fragCoord / (iResolution * .5) - 1.;
+
+  vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
+  vec3 c = iCameraPos;
+  // c.y = unpackFloat(texture(iHeightmap, c.xz / TERRAIN_SIZE.xz)) * TERRAIN_SIZE.y - 1.;
+  vec3 pixelColour = clamp(intersectWithWorld(c, ray), 0., 1.);
+
+  // pixelColour = pow( pixelColour, vec3(1./2.2) );
+  oColor = vec4(pixelColour, 1.0);
+
+  // float hh = unpackFloat(texture(iHeightmap, screen * .5 + .5));
+
+  // oColor = vec4(vec3(n), 1.0);
+  // if (screen.y < 0.) { // for debugging the collision shader
+  //  main_coll();
+  //}
+
+  // oColor.x = iterationsR;
+  // oColor.y = iterationsR;
+  // oColor.z = iterationsR;
 }
 
 /**********************************************************************/
@@ -516,28 +574,4 @@ void main_h() {
   vec2 distHV = 1. - abs(coord) + heightA * .04;
   tmask = smin(tmask, smin(distHV.x, distHV.y, 0.3) * 2., .1);
   oColor = packFloat(smin(heightA, tmask, 0.01) * 1.33 - .045);
-}
-
-/**********************************************************************/
-/* main shader
-/**********************************************************************/
-
-// Main shader
-void main_() {
-  vec2 screen = fragCoord / (iResolution * .5) - 1.;
-
-  vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
-  vec3 pixelColour = intersectWithWorld(iCameraPos, ray);
-  oColor = vec4(pixelColour, 1.0);
-
-  // float hh = unpackFloat(texture(iHeightmap, screen * .5 + .5));
-
-  // oColor = vec4(vec3(n), 1.0);
-  // if (screen.y < 0.) { // for debugging the collision shader
-  //  main_coll();
-  //}
-
-  // oColor.x = iterationsR;
-  // oColor.y = iterationsR;
-  // oColor.z = iterationsR;
 }
