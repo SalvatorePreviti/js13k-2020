@@ -352,7 +352,7 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
     closest = min(closest, nearest);
     if (nearest < clamp(float(i)/float(SHADOW_ITERATIONS*8), 0.001, .1))
       return 0.;
-    res = min( res, 16.*nearest/dist ); //soft shadows
+    res = min( res, 32.*nearest/dist ); //soft shadows
     dist += nearest;
   }
   return res;
@@ -400,12 +400,6 @@ vec3 waterFBM(vec2 p) {
 vec4 waterHeightAndNormal(vec2 p) {
   vec3 dxy = waterFBM(p / 10.);
   return vec4(normalize(vec3(dxy.x, dxy.y, 1.)), dxy.z);
-}
-
-vec3 applyFog(vec3 rgb, float camDist) {
-  float dRatio = camDist / MAX_DIST;
-  float fogAmount = clamp(pow(dRatio, 3.5) + 1.0 - exp(-(dRatio * dRatio) * .3), 0., 1.);
-  return mix(rgb, COLOR_SKY, fogAmount);
 }
 
 vec3 applyFog( vec3  rgb, float distance, vec3 rayDir)
