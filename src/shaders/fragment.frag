@@ -11,6 +11,8 @@ const float PI = 3.14159265359;
 // Size in pixels of the noise texture
 const float NOISE_TEXTURE_SIZE = 512.;
 
+const int NOISE_TEXTURE_BITMASK = 0x1ff;
+
 // Aspect ratio is fixed to 1.5 by design
 const float SCREEN_ASPECT_RATIO = 1.5;
 
@@ -63,7 +65,7 @@ out vec4 oColor;
 const vec3 COLOR_SKY = vec3(.4, .8, 1);
 const vec3 COLOR_SUN = vec3(1);
 
-const vec3 TERRAIN_SIZE = vec3(150., 20., 100.);
+const vec3 TERRAIN_SIZE = vec3(140., 20., 100.);
 const float TERRAIN_OFFSET = 3.;
 
 const vec3 TERRAIN_CENTER = TERRAIN_SIZE * .5;
@@ -90,12 +92,18 @@ float unpackFloat(vec4 rgba) {
   return dot(rgba, vec4(1.0, 1. / 255., 1. / 65025., 1. / 160581375.));
 }
 
-float noise(vec2 pos) {
-  vec2 pfract = fract(pos), pfloor = floor(pos),
-       lfactor = pfract * pfract * pfract * (pfract * (pfract * 6. - 15.) + 10.);
-  vec4 noise = textureLod(iNoise, (pfloor + vec2(0.5, 0.5)) / NOISE_TEXTURE_SIZE, 0.);
-  return noise.x + (noise.y - noise.x) * lfactor.x + (noise.z - noise.x) * lfactor.y +
-      (noise.x - noise.y - noise.z + noise.w) * lfactor.x * lfactor.y;
+/**
+ Returns 3D value noise (in .x)  and its derivatives (in .yz).
+ Based on https://www.iquilezles.org/www/articles/gradientnoise/gradientnoise.htm by Iq
+*/
+vec3 noiseDxy(in vec2 x) {
+  vec4 T = texelFetch(iNoise, ivec2(floor(x)) & NOISE_TEXTURE_BITMASK, 0);
+  float xba = T.y - T.x, xca = T.z - T.x;
+  float abcd = T.w - xba - T.z;
+  vec2 ffract = fract(x), fsquared = ffract * ffract;
+  vec2 u = fsquared * (3. - 2. * ffract);
+  return vec3((T.x + xba * u.x + xca * u.y + abcd * u.x * u.y),
+      (30. * fsquared * (ffract * (ffract - 2.) + 1.)) * (vec2(xba, xca) + abcd * u.yx));
 }
 
 //=== PRIMITIVES ===
@@ -245,8 +253,6 @@ float gameObjects(vec3 p) {
 
 float iterations = 0.;
 
-vec3 waterNoise(vec2 o);
-
 float terrain(vec3 p) {
   float height = unpackFloat(textureLod(iHeightmap, p.xz / TERRAIN_SIZE.xz + .5, 0.)) * TERRAIN_SIZE.y;
   vec2 d = abs(vec2(length(p.xz), p.y + 3. + TERRAIN_OFFSET)) - vec2(TERRAIN_SIZE.x * .5 * sqrt(2.), height + 3.);
@@ -366,19 +372,6 @@ float rayTraceWater(vec3 p, vec3 dir) {
   return t >= 0. ? t : MAX_DIST;
 }
 
-vec3 waterNoise(vec2 o) {
-  vec2 f = fract(o);
-  vec4 T = textureLod(iNoise, (floor(o) + .45) / NOISE_TEXTURE_SIZE, 0.);
-  float a = T.x, b = T.y, c = T.z, d = T.w;
-  vec2 f2 = f * f, f3 = f2 * f;
-  vec2 t = 3. * f2 - 2. * f3, dt = 6. * (f - f2);
-  float ba = b - a;
-  float e = d - c - ba;
-  float w = c - a + e * t.x;
-  float dx = (ba + e * t.y) * dt.x;
-  return vec3((ba + e * t.y) * dt.x, w * dt.y, a + ba * t.x + w * t.y);
-}
-
 vec3 waterFBM(vec2 p) {
   float ps = 0.75;
   vec3 f = vec3(0.0);
@@ -390,9 +383,9 @@ vec3 waterFBM(vec2 p) {
   for (int i = 0; i < 4; i++) {
     p += iTime;
     flow *= -0.75;
-    vec3 v = waterNoise(p + sin(p.yx * .5 + iTime) * .5);
+    vec3 v = noiseDxy(p + sin(p.yx * .5 + iTime) * .5);
     f += v * a;
-    p += v.xy * 0.43;
+    p += v.yz * 0.43;
     p *= 2.0;
     tot += a;
     a *= ps;
@@ -492,47 +485,101 @@ float squareGradient(vec2 pos) {
   return 1. - mix(length(distV), maxDist, maxDist);
 }
 
-float simplexFBM(vec2 pos, float size) {
-  float value = 1.;
-  float power = 1.0;
-  float posmul = 1.;
-  float normalization = 0.0;
-  for (float i = 0.; i < 8.; i++) {
-    float noiseVal = 1. - noise(pos * posmul * rot(i));
-    value += (noiseVal * 2. - 1.) * power;
-    normalization += power;
-    posmul *= size;
-    power *= .5;
-  }
-  value /= normalization;  // Normalize
-
-  return value;
-}
-
-float terrainHeight(vec2 pos) {
-  /*float selector = clamp(sin(simplexFBM(pos, 1.4) * 5.), 0., 1.);
-  float flatty = sin(simplexFBM(pos * 1.3 + iTime, 1.5) * 8.);
-  float rocky = simplexFBM(pos * 2. + .5, 1.7);*/
-  // return smoothstep(flatty, rocky, selector);  // simplexFBM(pos, 2.);
-  // return sin(simplexFBM(pos + iTime, 1.3) * 8.);
-
-  return simplexFBM(pos, 1.8) * .7;
-}
-
-float simplexFBMxxx(vec2 coord) {
-  float value = 1.;
-  float power = 1.0;
-  float normalization = 0.0;
-  float size = 1.5;
-  for (float i = 0.; i < 8.; i++) {
-    value += (1. - 2. * noise(coord * size * rot(i))) * power;
-    normalization += power;
+vec2 heightmapFBM(vec2 coord) {
+  vec2 size = vec2(1.4, 1.), result = vec2(0, 1), derivative = vec2(0.);
+  float persistence = 1., normalization = 0.;
+  for (float octave = .6; octave < 11.; octave++) {
+    vec3 noisedxy = noiseDxy(21. + (coord * size) * rot(octave));
+    derivative += noisedxy.yz;
+    result += persistence * vec2((1. - noisedxy.x) / (1. + dot(derivative, derivative)), .5 - noisedxy.x);
+    normalization += persistence;
+    persistence *= 0.5;
     size *= 1.8;
-    power *= .5;
   }
-  value /= normalization;  // Normalize
+  return result * 1.2 / vec2(normalization, 2.);
+  // scogliera
+  //  return min(c, abs(tradX));
+}
 
-  return value;
+float simpleFBM(vec2 xy) {
+  float w = .7;
+  float f = 0.0;
+  for (float i = 0.; i < 4.; i++) {
+    vec4 v = textureLod(iNoise, xy * .01, 0.);
+    f += (v.x - v.w * .09) * w;
+    w *= .5 - v.z * .1;
+    xy *= 2. * rot(i);
+  }
+  return f;
+}
+
+float heightmapCircle(vec2 fragPos, float centerX, float centerY, float radius, float smoothness) {
+  vec2 dist = fragPos - vec2(centerX, centerY);
+  return clamp01(1. - smoothstep(radius - (radius * smoothness), radius, dot(dist, dist) * 4.));
+}
+
+float terrainHeight(vec2 xy) {
+  // return heightmapCircle(xy, 0., 0., 2.1, 1.33);
+
+  vec2 hmap1 = heightmapFBM(xy);
+  vec2 hmap2 = heightmapFBM(xy + 18.);
+
+  return hmap1.x;
+
+  float circles = 1.;
+  for (float i = -1.5; i <= 2.5; i += .5) {
+    circles -= heightmapCircle(xy, 1. - i, 1., 2.1, 1.) * .5;
+  }
+
+  /*// 0: x position, 1: y position, 2: radius, 3: smoothness, 5: strength
+  const float xcircles[] = float[](1., 1., 2.1, 1.33, 1.);
+
+  int j = 0;
+  for (int i = 0; i < xcircles.length() / 4; ++i) {
+    vec2 dist = xy - vec2(xcircles[j++], xcircles[j++]);
+    float radius = xcircles[j++];
+    circles -= (1. - smoothstep(radius - (radius * xcircles[j++]), radius, dot(dist, dist) * 4.)) * xcircles[j++];
+  }*/
+  return clamp01(circles);
+
+  return hmap1.x * 1.2;
+
+  // float aa = simpleFBM(xy) / dot(xy, xy);
+
+  /*
+    vec2 distV = abs(xy);
+    float maxDist = max(distV.x, distV.y);
+    float sqg1 = clamp01(mix(length(distV), maxDist, maxDist) * 1.003);
+
+    float bb = simpleFBM(xy);
+    float sqg = sqg1;
+    sqg = pow(sqg, 3.);
+
+    // float sqg = 1. - squareGradient(xy * .5 + .5);
+    // sqg = pow(sqg, aa * 10.);
+    float ttt = (1. - mix(bb * sqg, 1., sqg * sqg));
+
+    return mix(0., simpleFBM(xy), ttt);
+
+    float ff = bb;
+    return ff >= 1. ? 1. : 0.;  // sqg >= .99 ? 1. : 0.;
+
+    /*
+    float w = .7;
+    float f = 0.0;
+
+    float sqg = squareGradient(pos * .5 + .5);
+
+    float kdist = dot(pos, pos);
+    vec2 xy = pos;
+    for (int i = 0; i < 6; i++) {
+      f += (textureLod(iNoise, xy * .01, 0.).x * 2. - 1.) * w;
+      w = w * .8;
+      xy = 1.8 * xy;
+    }
+    return f;  // >= 1. ? 1. : 0.;*/
+
+  //  return simplexFBM(pos);
 }
 
 void main_h() {
@@ -556,15 +603,18 @@ void main_h() {
 void main_() {
   vec2 screen = fragCoord / (iResolution * .5) - 1.;
 
-  vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
-  vec3 pixelColour = intersectWithWorld(iCameraPos, ray);
-
-  oColor = vec4(pixelColour, 1.0);
+  if (screen.y >= 0.) {
+    vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
+    vec3 pixelColour = intersectWithWorld(iCameraPos, ray);
+    oColor = vec4(pixelColour, 1.0);
+  } else {
+    float n = terrainHeight(screen * vec2(-1., 2.) + vec2(0.1, 1.));
+    oColor = vec4(vec3(n), 1.0);
+  }
 
   // float hh = unpackFloat(texture(iHeightmap, screen * .5 + .5));
 
-  oColor = vec4(pixelColour, 1.0);
-
+  // oColor = vec4(vec3(n), 1.0);
   // if (screen.y < 0.) { // for debugging the collision shader
   //  main_coll();
   //}
