@@ -411,10 +411,6 @@ vec3 applyFog( vec3  rgb, float distance, vec3 rayDir)
 }
 
 vec3 getColorAt(vec3 hit, vec3 normal, int mat) {
-  // calculate lighting:
-  //vec3 lightPosition = vec3(0, 100, 0);
-  float lightIntensity = computeLambert(normal, SUNLIGHT_DIRECTION);
-
   vec3 color = vec3(.8);
   switch (mat) {
     case MATERIAL_WATER: color = vec3(.15, .52, .73); break;
@@ -427,7 +423,7 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat) {
       ;
       break;
   }
-  return color * COLOR_SUN * lightIntensity;
+  return color;
 }
 
 vec3 intersectWithWorld(vec3 p, vec3 dir) {
@@ -443,10 +439,10 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
     vec3 waterNormal = whn.yzw;
 
     waterColor = getColorAt(waterhit, waterNormal, MATERIAL_WATER);
+    waterColor *= computeLambert(waterNormal, SUNLIGHT_DIRECTION);
     float sp=dot(SUNLIGHT_DIRECTION,reflect(dir,waterNormal));
     sp = pow(clamp(sp,0.0,1.0),50.);
     waterColor = clamp(waterColor+sp,0.,1.);
-    clamp(waterColor,0.,1.);
     waterTransparencyMix = clamp((dist - wdist) * .5, 0., 1.);
   }
 
@@ -457,13 +453,24 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   } else {
     vec3 hit = p + dir * dist;
     vec3 normal;
-    switch (material) {
+    int mat = material;
+    switch (mat) {
       case MATERIAL_TERRAIN: normal = computeTerrainNormal(hit); break;
       default: normal = computeNonTerrainNormal(hit); break;
     }
-    color = mix(getColorAt(hit, normal, material), waterColor, waterTransparencyMix);
-    float shadow = getShadow(p+dir*mdist, mdist, normal) * 0.9 + 0.1;
-    color = color * shadow;
+    color = getColorAt(hit, normal, mat);
+    float shadow = getShadow(p+dir*mdist, mdist, normal);
+    float lightIntensity = computeLambert(normal, SUNLIGHT_DIRECTION);
+    
+    //Flashlight if the player is in shadow:
+    bool playerIsInShadow = getShadow(p,0.,vec3(0)) < .1;
+    if (playerIsInShadow && material != MATERIAL_TERRAIN && dist < 10.) {
+      lightIntensity = computeLambert(normal, -dir);
+      shadow += pow(clamp(dot(iCameraDir, dir), 0.,1.), 32.) * smoothstep(10., 0., dist) * (1.-shadow);
+    }
+
+    color = mix(color, waterColor, waterTransparencyMix) * (COLOR_SUN * lightIntensity);
+    color *= (shadow * 0.9 + 0.1);
   }
   //return applyFog(colWithTransparency, min(wdist, dist));
   return applyFog(color, min(wdist, dist), dir);
