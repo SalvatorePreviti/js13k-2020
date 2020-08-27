@@ -65,7 +65,7 @@ out vec4 oColor;
 const vec3 COLOR_SKY = vec3(.4, .8, 1);
 const vec3 COLOR_SUN = vec3(1.1, .9, .85);
 
-const vec3 TERRAIN_SIZE = vec3(120., 20., 80.);
+const vec3 TERRAIN_SIZE = vec3(120., 19., 80.);
 const float TERRAIN_OFFSET = 3.;
 
 const vec3 TERRAIN_CENTER = TERRAIN_SIZE * .5;
@@ -73,7 +73,7 @@ const vec3 TERRAIN_CENTER = TERRAIN_SIZE * .5;
 // maximums
 const int MAX_ITERATIONS = 100;
 const float MIN_DIST = 0.15;
-const float MAX_DIST = 350.;
+const float MAX_DIST = 500.;
 
 float clamp01(float v) {
   return clamp(v, 0., 1.);
@@ -310,7 +310,7 @@ vec3 computeTerrainNormal(vec3 p) {
 }
 
 float computeLambert(vec3 n, vec3 ld) {
-  return clamp(dot(normalize(ld), n), 0., 1.);
+  return clamp01(dot(normalize(ld), n));
 }
 
 const float MAX_OMEGA = 1.2;
@@ -401,15 +401,14 @@ float rayTraceWater(vec3 p, vec3 dir) {
 
 vec3 waterFBM(vec2 p) {
   float ps = 0.75;
-  vec3 f = vec3(0.0);
-  float tot = 0.0;
-  float a = 1.0;
+  vec3 f = vec3(0);
+  float tot = 0.;
+  float a = 1.;
 
   float flow = 0.;
-
   for (int i = 0; i < 4; i++) {
     p += iTime;
-    flow *= -0.75;
+    flow *= -.75;
     vec3 v = noiseDxy(p + sin(p.yx * .5 + iTime) * .5);
     f += v * a;
     p += v.yz * 0.43;
@@ -425,8 +424,10 @@ vec4 waterHeightAndNormal(vec2 p) {
   return vec4(normalize(vec3(dxy.x, dxy.y, 1.)), dxy.z);
 }
 
-vec3 applyFog(vec3 rgb, float distance, vec3 rayDir) {
-  float fogAmount = 1.0 - exp(-distance * 0.005);
+vec3 applyFog(vec3 rgb, float dist, vec3 rayDir) {
+  float dRatio = dist / MAX_DIST;
+
+  float fogAmount = clamp01(pow(dRatio, 3.5) + 1.0 - exp(-dist * 0.005));
   float sunAmount = max(dot(rayDir, SUNLIGHT_DIRECTION), 0.0);
   vec3 fogColor = mix(COLOR_SKY, COLOR_SUN, pow(sunAmount, 10.0));
   return mix(rgb, fogColor, fogAmount);
@@ -435,7 +436,6 @@ vec3 applyFog(vec3 rgb, float distance, vec3 rayDir) {
 vec3 getColorAt(vec3 hit, vec3 normal, int mat) {
   vec3 color = vec3(.8);
   switch (mat) {
-    case MATERIAL_WATER: color = vec3(.15, .52, .73); break;
     case MATERIAL_TERRAIN:
       color = mix(vec3(.93, .8, .64),
                   mix(vec3(.69 + textureLod(iNoise, hit.xz * 0.0001, 0.).x, .67, .65), vec3(.38, .52, .23),
@@ -451,38 +451,25 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat) {
 vec3 intersectWithWorld(vec3 p, vec3 dir) {
   float dist = rayMarch(p, dir);
   float wdist = rayTraceWater(p, dir);
-
-  vec3 waterColor;
-  float waterTransparencyMix = 0.;
-  if (wdist < dist) {
-    // get the water color
-    vec3 waterhit = p + dir * wdist;
-    vec4 whn = waterHeightAndNormal(waterhit.xz);
-    vec3 waterNormal = whn.yzw;
-
-    waterColor = getColorAt(waterhit, waterNormal, MATERIAL_WATER);
-    waterColor *= computeLambert(waterNormal, SUNLIGHT_DIRECTION);
-    float sp = dot(SUNLIGHT_DIRECTION, reflect(dir, waterNormal));
-    sp = pow(clamp(sp, 0.0, 1.0), 50.);
-    waterColor = clamp(waterColor + sp, 0., 1.);
-    waterTransparencyMix = clamp((dist - wdist) * .5, 0., 1.);
-  }
+  float lightIntensity;
 
   vec3 color;
+  vec3 normal = vec3(0, 1, 0);
   float mdist = min(dist, wdist);
+  float shadow = 1.;
+
+  float specular = 0.;
+
   if (mdist >= MAX_DIST - 1.) {
     color = COLOR_SKY;  // mix(COLOR_SKY, COLOR_SUN, pow(clamp(dot(dir, SUNLIGHT_DIRECTION),0.,1.),10.));
   } else {
     vec3 hit = p + dir * dist;
-    vec3 normal;
     int mat = material;
     switch (mat) {
       case MATERIAL_TERRAIN: normal = computeTerrainNormal(hit); break;
       default: normal = computeNonTerrainNormal(hit); break;
     }
     color = getColorAt(hit, normal, mat);
-    float shadow = getShadow(p + dir * mdist, mdist, normal);
-    float lightIntensity = computeLambert(normal, SUNLIGHT_DIRECTION);
 
     // Flashlight if the player is in shadow:
     // bool playerIsInShadow = getShadow(p, 0., vec3(0)) < .1;
@@ -491,11 +478,27 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
     //  shadow += pow(clamp(dot(iCameraDir, dir), 0., 1.), 32.) * smoothstep(10., 0., dist) * (1. - shadow);
     //}
 
-    color = mix(color, waterColor, waterTransparencyMix) * (COLOR_SUN * lightIntensity);
-    color *= (shadow * 0.9 + 0.1);
+    shadow = getShadow(p + dir * mdist, mdist, normal);
   }
-  // return applyFog(colWithTransparency, min(wdist, dist));
-  return applyFog(color, min(wdist, dist), dir);
+
+  vec3 waterColor;
+  float waterTransparencyMix = 0.;
+  if (wdist < MAX_DIST && wdist < dist) {  // water!
+    vec3 waterhit = p + dir * wdist;
+    vec4 whn = waterHeightAndNormal(waterhit.xz);
+    waterTransparencyMix = clamp01((dist - wdist + whn.x) * .2);
+    normal = normalize(mix(normal, whn.yzw, clamp01(waterTransparencyMix + whn.x * .5)));
+    waterColor = mix(vec3(.15, .62, .83), vec3(.15, .42, .63), whn.x);
+    specular = dot(SUNLIGHT_DIRECTION, reflect(dir, normal));
+    specular = pow(clamp01(specular), 50.);
+  }
+
+  lightIntensity = computeLambert(normal, SUNLIGHT_DIRECTION);
+
+  color = mix(color, waterColor, waterTransparencyMix) * (COLOR_SUN * lightIntensity) + specular;
+  color *= (shadow * 0.9 + 0.1);
+
+  return applyFog(color, mdist, dir);
 }
 
 /**********************************************************************/
