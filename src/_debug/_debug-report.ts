@@ -1,12 +1,12 @@
 import { DebugReportInfo } from '../debug'
-import { GL_COMPILE_STATUS, GL_LINK_STATUS, GL_VALIDATE_STATUS } from '../core/gl-constants'
+import { GL_COMPILE_STATUS, GL_LINK_STATUS, GL_VALIDATE_STATUS } from '../gl/gl-constants'
 import {
   gl_validateProgram,
   gl_getProgramParameter,
   gl_getProgramInfoLog,
   gl_getShaderParameter,
   gl_getShaderInfoLog
-} from '../gl_context'
+} from '../gl/gl-context'
 
 const MAX_ITEMS_HARD_LIMIT = 200
 const MAX_ITEMS_SOFT_LIMIT = 150

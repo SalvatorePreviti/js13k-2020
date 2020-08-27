@@ -14,7 +14,7 @@ import {
   GL_RGBA,
   GL_UNSIGNED_BYTE,
   GL_TEXTURE0
-} from './core/gl-constants'
+} from './gl/gl-constants'
 import {
   gl_activeTexture,
   gl_bindTexture,
@@ -22,7 +22,7 @@ import {
   gl_texImage2D,
   gl_pixelStorei,
   gl_createTexture
-} from './gl_context'
+} from './gl/gl-context'
 
 export const NOISE_TEXTURE_SIZE = 512
 
@@ -34,7 +34,7 @@ export const buildNoiseTexture = () => {
   gl_activeTexture(GL_TEXTURE1)
   gl_bindTexture(GL_TEXTURE_2D, noiseTexture)
 
-  const nextRandom = xoshiro128ss(0x486666, 0xbadbeef, 0xc0ffee, 0xc05fefe)
+  const nextRandom = xoshiro128ss(345, 737)
 
   const len = NOISE_TEXTURE_SIZE * NOISE_TEXTURE_SIZE * 4
   const data = new Uint8Array(len)

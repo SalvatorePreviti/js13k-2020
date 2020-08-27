@@ -11,7 +11,7 @@ import {
 } from './keyboard'
 
 import { debug_updateCameraPosition, debug_updateCameraDirection, debug_updateCameraEulerAngles } from './debug'
-import { canvasElement } from './canvas'
+import { canvasElement } from './gl/canvas'
 import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD } from './math/scalar'
 import {
   vec3Temp0,
@@ -27,7 +27,7 @@ import {
 import { vec2New } from './math/vec2'
 import { typedArraySet } from './core/arrays'
 
-const CAMERA_SPEED_DEFAULT = 1.4
+const CAMERA_SPEED_DEFAULT = 1.5
 
 const CAMERA_SPEED_RUN = 40
 
@@ -35,7 +35,7 @@ const MOUSE_ROTATION_SENSITIVITY_X = 0.001
 const MOUSE_ROTATION_SENSITIVITY_Y = MOUSE_ROTATION_SENSITIVITY_X
 
 /** Camera position */
-export const cameraPos: Vec3 = vec3New(-2, 2, 0)
+export const cameraPos: Vec3 = vec3New(-62, 2, 0)
 
 /** Camera Yaw (x) and Pitch (y) angles, in radians. */
 export const cameraEuler: Vec2 = vec2New(70 * DEG_TO_RAD, 0 * DEG_TO_RAD)

@@ -1,4 +1,4 @@
-import { debug_checkShaderProgramLinkStatus, debug_reportClear, debug_checkShaderCompileStatus } from './debug'
+import { debug_checkShaderProgramLinkStatus, debug_reportClear, debug_checkShaderCompileStatus } from '../debug'
 import {
   GL_TRIANGLES,
   GL_VERTEX_SHADER,
@@ -10,7 +10,7 @@ import {
   GL_TEXTURE_MIN_FILTER,
   GL_TEXTURE_WRAP_T,
   GL_TEXTURE_WRAP_S
-} from './core/gl-constants'
+} from './gl-constants'
 import {
   gl_drawArrays,
   gl_createShader,
@@ -24,9 +24,9 @@ import {
   gl_texParameteri,
   gl_context,
   gl_getUniformLocation
-} from './gl_context'
+} from './gl-context'
 
-import { newProxyGetter } from './core/objects'
+import { newProxyGetter } from '../core/objects'
 
 export const glDrawFullScreenTriangle = () => {
   gl_drawArrays(GL_TRIANGLES, 0, 3)
