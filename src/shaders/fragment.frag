@@ -522,7 +522,7 @@ void main_c() {
 
   vec3 ray = normalize(vec3(0., 0., 1.));
 
-  ray.xz = ray.xz * rot(pos.x * 2. * PI + iCameraEuler.x + PI);
+  ray.xz = ray.xz * rot(pos.x * 2. * PI + PI);
 
   vec3 cylinderPos = vec3(iCameraPos.x, iCameraPos.y + screen.y - .8, iCameraPos.z);
 

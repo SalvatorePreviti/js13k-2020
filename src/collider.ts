@@ -58,24 +58,26 @@ export const updateCollider = (time: number) => {
 
   const y = 64
   let startCollision = null
-  COLLISIONS.length = 0
+  const runs = []
   for (let x = 0; x < 128; x++) {
     if (colliderBuffer[y * 128 * 4 + x * 4 + 0] > 127) {
       if (startCollision === null) {
         startCollision = x
       }
-    } else if (startCollision) {
-      COLLISIONS.push({
-        size: x - startCollision,
-        angle: (PI * ((x + startCollision) / 2 - 64)) / 64
-      })
+    } else if (startCollision !== null) {
+      runs.push([startCollision, x])
       startCollision = null
     }
   }
-  if (startCollision === 0) {
+  if (startCollision !== null) {
+    runs.push([startCollision, 127])
+  }
+
+  COLLISIONS.length = 0
+  for (const r of runs) {
     COLLISIONS.push({
-      size: 128,
-      angle: 0
+      size: r[1] - r[0],
+      angle: (PI * ((r[0] + r[1]) / 2 - 64)) / 64
     })
   }
 

@@ -82,16 +82,12 @@ export const updateCamera = (timeDelta: number) => {
   }
   //dodgy collision resolution
   for (const c of COLLISIONS) {
-    const resolutionDirection = vec3New(
-      cos(-c.angle - cameraEuler.x - PI / 2),
-      0,
-      sin(-c.angle - cameraEuler.x - PI / 2)
-    )
+    const resolutionDirection = vec3New(cos(-c.angle - PI / 2), 0, sin(-c.angle - PI / 2))
     const resolutionPower = c.size / 1000
     console.log(
-      `Collision: ${((cameraEuler.x + c.angle) * 57.2958).toPrecision(
+      `Collision: ${(c.angle * 57.2958).toPrecision(2)} Resolution: ${resolutionDirection.x.toPrecision(
         2
-      )} Resolution: ${resolutionDirection.x.toPrecision(2)} ${resolutionDirection.z.toPrecision(2)}`
+      )} ${resolutionDirection.z.toPrecision(2)}`
     )
     vec3Add(cameraPos, vec3ScalarMultiply(resolutionDirection, resolutionPower))
   }
