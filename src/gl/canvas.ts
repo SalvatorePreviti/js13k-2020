@@ -1,5 +1,5 @@
-import { min, round } from './math/scalar'
-import { vec2NewValue } from './math/vec2'
+import { min, round } from '../math/scalar'
+import { vec2NewValue } from '../math/vec2'
 
 export const canvasElement = document.getElementById('C') as HTMLCanvasElement
 

@@ -1,4 +1,4 @@
-import { glDrawFullScreenTriangle } from './gl-utils'
+import { glDrawFullScreenTriangle } from './gl/gl-utils'
 import {
   GL_UNSIGNED_BYTE,
   GL_RGBA,
@@ -6,7 +6,7 @@ import {
   GL_FRAMEBUFFER,
   GL_COLOR_ATTACHMENT0,
   GL_TEXTURE2
-} from './core/gl-constants'
+} from './gl/gl-constants'
 import {
   gl_createTexture,
   gl_bindTexture,
@@ -16,7 +16,7 @@ import {
   gl_createFramebuffer,
   gl_readPixels,
   gl_activeTexture
-} from './gl_context'
+} from './gl/gl-context'
 import { collisionShader } from './shader-program'
 import { debug_collisionBufferCanvasPrepare } from './debug'
 

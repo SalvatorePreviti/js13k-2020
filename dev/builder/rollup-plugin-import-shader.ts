@@ -35,8 +35,21 @@ async function compressShader(source: string, filePath: string): Promise<string>
 
   if (!spglslResult.valid) {
     const error = new Error('glsl compilation failed') as any
-    error.infoLog = spglslResult.infoLog
+    Object.defineProperty(error, 'infoLog', {
+      value: spglslResult.infoLog,
+      configurable: true,
+      enumerable: false,
+      writable: true
+    })
     error.filePath = filePath
+    if (spglslResult.infoLog.hasErrors()) {
+      Object.defineProperty(error, 'stack', {
+        value: spglslResult.infoLog.inspect(),
+        configurable: true,
+        enumerable: true,
+        writable: true
+      })
+    }
     throw error
   }
 

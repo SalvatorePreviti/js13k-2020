@@ -1,6 +1,6 @@
 import './css/styles.less'
-import { glDrawFullScreenTriangle } from './gl-utils'
-import { canvasSize } from './canvas'
+import { glDrawFullScreenTriangle } from './gl/gl-utils'
+import { canvasSize } from './gl/canvas'
 import { debug_beginFrame, debug_endFrame, debug_trycatch_wrap, debug_log } from './debug'
 
 import { updateCamera } from './camera'
@@ -55,20 +55,11 @@ if (import.meta.hot) {
   const reloadMainShader = () => {
     debug_log('reloading main shader')
     loadMainShader()
-  }
-
-  const reloadHeightmap = () => {
-    debug_log('reloading heightmap')
-    buildHeightmapTexture(prevTime)
+    buildHeightmapTexture()
   }
 
   //setInterval(reloadHeightmap, 300)
 
-  import.meta.hot.on('/src/shaders/vertex.vert', () => {
-    reloadHeightmap()
-    reloadMainShader()
-  })
-
+  import.meta.hot.on('/src/shaders/vertex.vert', reloadMainShader)
   import.meta.hot.on('/src/shaders/fragment.frag', reloadMainShader)
-  import.meta.hot.on('/src/shaders/heightmap.frag', reloadHeightmap)
 }

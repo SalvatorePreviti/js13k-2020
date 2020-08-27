@@ -10,7 +10,7 @@ import {
 } from './keyboard'
 
 import { debug_updateCameraPosition, debug_updateCameraDirection, debug_updateCameraEulerAngles } from './debug'
-import { canvasElement } from './canvas'
+import { canvasElement } from './gl/canvas'
 import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD } from './math/scalar'
 import {
   vec3Temp0,
@@ -26,7 +26,7 @@ import {
 import { vec2New } from './math/vec2'
 import { typedArraySet } from './core/arrays'
 
-const CAMERA_SPEED_DEFAULT = 1.4
+const CAMERA_SPEED_DEFAULT = 1.5
 
 const CAMERA_SPEED_RUN = 40
 
