@@ -274,8 +274,8 @@ float terrain(vec3 p) {
 float nonTerrain(vec3 p) {
   float b = bridge(p - vec3(45, 1.7, 22.4), 10.);
   float a = antenna(p - vec3(2, 10, 2), vec2(0.5, iTime));
-  float m = monument(p - vec3(47.5,3.5,30.5));
-  float pr = prison(p.zyx - vec3(11,1.2,-44));
+  float m = monument(p - vec3(47.5, 3.5, 30.5));
+  float pr = prison(p.zyx - vec3(11, 1.2, -44));
   float r = ruinedBuildings(p - vec3(100, 10, 300));
   return min(gameObjects(p), min(min(b, r), min(a, min(m, pr))));
 }
@@ -498,7 +498,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   }
 
   lightIntensity = computeLambert(normal, SUNLIGHT_DIRECTION);
-  
+
   // Flashlight if the player is in shadow:
   /*bool playerIsInShadow = getShadow(p, 0., vec3(0)) < .1;
   if (playerIsInShadow && material != MATERIAL_TERRAIN && dist < 10.) {
@@ -516,17 +516,24 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
 /* collision shader
 /**********************************************************************/
 
-void main_c() {
+void main_() {
   vec2 screen = fragCoord / (iResolution * 0.5) - 1.;
   vec2 pos = fragCoord / iResolution;
 
-  vec3 ray = normalize(vec3(0., screen.y, 1.));
+  vec3 ray = normalize(vec3(0., 0., 1.));
 
-  ray.xz = ray.xz * rot(screen.x * PI);
+  ray.xz = ray.xz * rot(pos.x * 2. * PI + iCameraEuler.x + PI);
 
-  float dist = rayMarch(iCameraPos, ray);
+  vec3 cylinderPos = vec3(iCameraPos.x, iCameraPos.y + screen.y - .8, iCameraPos.z);
 
-  oColor = vec4(dist < .5 ? 1. : 0., dist / MAX_DIST, dist / MAX_DIST, 1.0);
+  // cylinderPos.xz *= rot(pos.x * 2. * PI + iCameraEuler.x + PI);
+
+  vec3 hit = cylinderPos + ray * MIN_DIST;
+
+  float dist = distanceToNearestSurface(hit);
+  // float dist = rayMarch(cylinderPos, ray);
+
+  oColor = vec4(dist < .2 ? 1. : 0., dist / MAX_DIST, dist / MAX_DIST, 1.0);
 }
 
 /**********************************************************************/
@@ -534,7 +541,7 @@ void main_c() {
 /**********************************************************************/
 
 // Main shader
-void main_() {
+void main_c() {
   WaterLevel = sin(iTime * 2. + 3.) * .2;
 
   vec2 screen = fragCoord / (iResolution * .5) - 1.;
@@ -554,7 +561,7 @@ void main_() {
   //  main_coll();
   //}
 
-  oColor.x = iterationsR;
+  // oColor.x = iterationsR;
   // oColor.y = iterationsR;
   // oColor.z = iterationsR;
 }
