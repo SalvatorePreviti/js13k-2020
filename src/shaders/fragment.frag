@@ -235,14 +235,14 @@ float prison(vec3 p) {
   if (bounds > 5.)
     return bounds;
   p.y -= 2.;
-  float r = max(opOnion(cuboid(p, vec3(5, 2, 3)), 0.23),
-      -min(cylinder(p, 1., 100.), cuboid(p - vec3(5, -.77, 1.5), vec3(2, 1, .53))));
-  vec3 q = p - vec3(5, -.77, 1);
+  float r = max(opOnion(cuboid(p, vec3(4, 1.5, 2)), 0.23),
+      -min(cylinder(p, 1., 100.), cuboid(p - vec3(4, -.27, 1), vec3(2, 1, .53))));
+  vec3 q = p - vec3(4, -.77, .5);
   q.xz *= rot(-iAnimPrisonDoor * PI / 2.);
-  float door = cuboid(q - vec3(0, 0, .52), vec3(.05, .99, .52));
+  float door = cuboid(q - vec3(0, .5, .5), vec3(.05, .99, .52));
   pModInterval(p.x, .3, -10., 10.);
   p.z = abs(p.z);
-  r = min(r, cylinder(p.xzy - vec3(0, 3, 0), .01, 1.));
+  r = min(r, cylinder(p.xzy - vec3(0, 2, 0), .01, 1.));
   return min(r, door);
 }
 
@@ -260,7 +260,7 @@ float gameObjectKey(vec3 p) {
 }
 
 float gameObjects(vec3 p) {
-  return gameObjectKey(p - vec3(0, 1, 0));
+  return gameObjectKey(p - vec3(-45.5, 2., 7.4));
 }
 
 float iterations = 0.;
@@ -275,7 +275,7 @@ float nonTerrain(vec3 p) {
   float b = bridge(p - vec3(60, 20.5, 25), 10.);
   float a = antenna(p - vec3(380, 35, 80), vec2(0.5, iTime));
   float m = monument(p - vec3(20));
-  float pr = prison(p);
+  float pr = prison(p.zyx - vec3(11,1.2,-44));
   float r = ruinedBuildings(p - vec3(100, 10, 300));
   return min(gameObjects(p), min(min(b, r), min(a, min(m, pr))));
 }
@@ -472,14 +472,6 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
       default: normal = computeNonTerrainNormal(hit); break;
     }
     color = getColorAt(hit, normal, mat);
-
-    // Flashlight if the player is in shadow:
-    // bool playerIsInShadow = getShadow(p, 0., vec3(0)) < .1;
-    // if (playerIsInShadow && material != MATERIAL_TERRAIN && dist < 10.) {
-    //  lightIntensity = computeLambert(normal, -dir);
-    //  shadow += pow(clamp(dot(iCameraDir, dir), 0., 1.), 32.) * smoothstep(10., 0., dist) * (1. - shadow);
-    //}
-
     shadow = getShadow(p + dir * mdist, mdist, normal);
   }
 
@@ -501,6 +493,13 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   }
 
   lightIntensity = computeLambert(normal, SUNLIGHT_DIRECTION);
+  
+  // Flashlight if the player is in shadow:
+  /*bool playerIsInShadow = getShadow(p, 0., vec3(0)) < .1;
+  if (playerIsInShadow && material != MATERIAL_TERRAIN && dist < 10.) {
+    lightIntensity = computeLambert(normal, -dir);
+    shadow += pow(clamp(dot(iCameraDir, dir), 0., 1.), 32.) * smoothstep(10., 0., dist) * (1. - shadow);
+  }*/
 
   color = mix(color, waterColor, waterTransparencyMix) * (COLOR_SUN * lightIntensity) + specular;
   color *= (shadow * 0.9 + 0.1);

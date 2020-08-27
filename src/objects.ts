@@ -19,7 +19,7 @@ const INVENTORY = {
 
 const GAME_OBJECTS = {
   _key: {
-    _location: vec3New(0, 1, 0),
+    _location: vec3New(-45.5, 2, 7.4),
     _visible: true,
     _lookAtDistance: 2,
     _onInteract() {
@@ -30,7 +30,7 @@ const GAME_OBJECTS = {
     _onLookAt: () => 'A key, how convenient!'
   },
   _door: {
-    _location: vec3New(5, 1.5, 1.5),
+    _location: vec3New(-43, 3, 14),
     _lookAtDistance: 2,
     _visible: true,
     _checked: false,
