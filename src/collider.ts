@@ -25,6 +25,8 @@ export const COLLIDER_SIZE = 128
 
 export const COLLISIONS = []
 
+export let GROUND_COLLISION = 0
+
 const _colliderTexture: WebGLTexture = gl_createTexture()
 const _colliderFrameBuffer = gl_createFramebuffer()
 
@@ -55,6 +57,20 @@ export const updateCollider = (time: number) => {
   // Get the rendered data
 
   gl_readPixels(0, 0, COLLIDER_SIZE, COLLIDER_SIZE, GL_RGBA, GL_UNSIGNED_BYTE, colliderBuffer)
+
+  const rows = [0, 0]
+  for (let rowY = 0; rowY < 2; rowY++) {
+    for (let x = 0; x < 128; x++) {
+      rows[rowY] += colliderBuffer[rowY * 128 * 4 + x * 4 + 0] > 127 ? 1 : 0
+    }
+  }
+  if (rows[0] < 128) {
+    GROUND_COLLISION = -1 //falling
+  } else if (rows[1] < 128) {
+    GROUND_COLLISION = 0 //perfect
+  } else {
+    GROUND_COLLISION = 1 //push player upwards
+  }
 
   let y = null
   //find the y with the most collision points

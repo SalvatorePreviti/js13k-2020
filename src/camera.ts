@@ -25,7 +25,7 @@ import {
 } from './math/vec3'
 import { vec2New } from './math/vec2'
 import { typedArraySet } from './core/arrays'
-import { COLLISIONS } from './collider'
+import { COLLISIONS, GROUND_COLLISION } from './collider'
 
 const CAMERA_SPEED_DEFAULT = 1.5
 
@@ -91,6 +91,7 @@ export const updateCamera = (timeDelta: number) => {
     )
     vec3Add(cameraPos, vec3ScalarMultiply(resolutionDirection, resolutionPower))
   }
+  cameraMoveDown(speed * GROUND_COLLISION)
   debug_updateCameraPosition(cameraPos)
 }
 
