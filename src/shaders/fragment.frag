@@ -396,7 +396,7 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
 
 float rayTraceWater(vec3 p, vec3 dir) {
   float t = (sin(iTime * 2. + 3.) * .2 - p.y) / dir.y;
-  return t >= 0. ? t : MAX_DIST;
+  return t >= 0. ? min(t, MAX_DIST) : MAX_DIST;
 }
 
 vec3 waterFBM(vec2 p) {
