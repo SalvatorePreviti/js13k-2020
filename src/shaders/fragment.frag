@@ -2,9 +2,8 @@
 precision highp float;
 
 #define MATERIAL_SKY 0
-#define MATERIAL_WATER 1
-#define MATERIAL_TERRAIN 2
-#define MATERIAL_BUILDINGS 3
+#define MATERIAL_TERRAIN 1
+#define MATERIAL_BUILDINGS 2
 
 const float PI = 3.14159265359;
 
@@ -59,6 +58,11 @@ uniform float iAnimPrisonDoor;
 
 // Output color
 out vec4 oColor;
+
+//=== STATE ===
+
+// Current level of water
+float WaterLevel;
 
 //=== COLORS ===
 
@@ -325,48 +329,47 @@ float rayMarch(vec3 p, vec3 dir) {
   float MIN_EPSILON = 1. / iResolution.x;
   float MAX_EPSILON = MIN_EPSILON * 8.;
 
-  float MIN_TERRAIN_EPSILON = MIN_EPSILON * 10.;
-  float MAX_TERRAIN_EPSILON = MIN_TERRAIN_EPSILON * 4.;
-
   float stepLen = MIN_EPSILON;
   float epsilon = MIN_EPSILON;
 
   float funcSign = 1.;
-  iterationsR = 0.;
 
   float result = MAX_DIST;
 
-  for (int i = 0; i < MAX_ITERATIONS; i++) {
+  iterationsR = 0.;
+
+  for (int i = 0;; i++) {
     vec3 hit = p + dir * dist;
 
     float nearest = funcSign * distanceToNearestSurface(hit);
 
     if (nearest < 0.) {
-      if (iterationsR == 0.) {
+      if (i == 0) {
         funcSign = -1.;
         nearest = -nearest;
       } else {
         dist -= prevNear;
-        nearest = prevNear / 2.;
+        nearest = prevNear / 1.5;
       }
     }
 
-    float radius = abs(nearest);
-
-    // Inspired by https://erleuchtet.org/~cupe/permanent/enhanced_sphere_tracing.pdf
-    bool sorFail = omega > 1. && radius + prevNear + epsilon < stepLen;
-    stepLen = sorFail ? (1. - omega) * stepLen : omega * nearest;
-    omega = clamp(sorFail ? omega - max(radius, epsilon) : omega + max(radius, epsilon), 1., MAX_OMEGA);
-
-    dist += stepLen;
+    dist += nearest;
 
     float distR = dist / MAX_DIST;
     float epsAdjust = distR * max(distR * distR + iterationsR * 8., 1.);
 
-    epsilon = material == MATERIAL_TERRAIN ? mix(MIN_TERRAIN_EPSILON, MAX_TERRAIN_EPSILON, epsAdjust)
-                                           : mix(MIN_EPSILON, MAX_EPSILON, epsAdjust);
+    if (dist >= MAX_DIST) {
+      break;
+    }
 
-    if ((!sorFail && radius < epsilon) || dist > MAX_DIST) {
+    epsilon = mix(MIN_EPSILON, MAX_EPSILON, epsAdjust);
+
+    float hitUnderwater = hit.y + TERRAIN_OFFSET * .5;
+    if (hitUnderwater <= 0.) {  // Decrease resolution under water
+      epsilon = hitUnderwater * hitUnderwater * .25;
+    }
+
+    if (nearest < epsilon || i >= MAX_ITERATIONS) {
       return dist;
     }
 
@@ -374,6 +377,7 @@ float rayMarch(vec3 p, vec3 dir) {
     iterationsR += 1. / float(MAX_ITERATIONS);
   }
 
+  material = MATERIAL_SKY;
   return MAX_DIST;
 }
 
@@ -395,7 +399,7 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
 }
 
 float rayTraceWater(vec3 p, vec3 dir) {
-  float t = (sin(iTime * 2. + 3.) * .2 - p.y) / dir.y;
+  float t = (WaterLevel - p.y) / dir.y;
   return t >= 0. ? min(t, MAX_DIST) : MAX_DIST;
 }
 
@@ -460,7 +464,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
 
   float specular = 0.;
 
-  if (mdist >= MAX_DIST - 1.) {
+  if (material == MATERIAL_SKY) {
     color = COLOR_SKY;  // mix(COLOR_SKY, COLOR_SUN, pow(clamp(dot(dir, SUNLIGHT_DIRECTION),0.,1.),10.));
   } else {
     vec3 hit = p + dir * dist;
@@ -486,7 +490,12 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   if (wdist < MAX_DIST && wdist < dist) {  // water!
     vec3 waterhit = p + dir * wdist;
     vec4 whn = waterHeightAndNormal(waterhit.xz);
-    waterTransparencyMix = clamp01((dist - wdist + whn.x) * .2);
+
+    float waterHeight = dist - wdist;
+
+    waterTransparencyMix =
+        clamp01(mix(1., (waterHeight + whn.x) * .2, clamp01((TERRAIN_OFFSET + WaterLevel) - waterHeight)));
+
     normal = normalize(mix(normal, whn.yzw, clamp01(waterTransparencyMix + whn.x * .5)));
     waterColor = mix(vec3(.15, .62, .83), vec3(.15, .42, .63), whn.x);
     specular = dot(SUNLIGHT_DIRECTION, reflect(dir, normal));
@@ -524,6 +533,8 @@ void main_c() {
 
 // Main shader
 void main_() {
+  WaterLevel = sin(iTime * 2. + 3.) * .2;
+
   vec2 screen = fragCoord / (iResolution * .5) - 1.;
 
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
