@@ -11,7 +11,7 @@ import {
 
 import { debug_updateCameraPosition, debug_updateCameraDirection, debug_updateCameraEulerAngles } from './debug'
 import { canvasElement } from './gl/canvas'
-import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD, PI } from './math/scalar'
+import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD, PI, pow } from './math/scalar'
 import {
   vec3Temp0,
   vec3Add,
@@ -82,7 +82,18 @@ export const updateCamera = (timeDelta: number) => {
   }
   //dodgy collision resolution
   for (const c of COLLISIONS) {
-    vec3Add(cameraPos, vec3ScalarMultiply(vec3New(sin(c.angle), 0, cos(c.angle)), -c.size / 1000))
+    const resolutionDirection = vec3New(
+      cos(-c.angle - cameraEuler.x - PI / 2),
+      0,
+      sin(-c.angle - cameraEuler.x - PI / 2)
+    )
+    const resolutionPower = c.size / 1000
+    console.log(
+      `Collision: ${((cameraEuler.x + c.angle) * 57.2958).toPrecision(
+        2
+      )} Resolution: ${resolutionDirection.x.toPrecision(2)} ${resolutionDirection.z.toPrecision(2)}`
+    )
+    vec3Add(cameraPos, vec3ScalarMultiply(resolutionDirection, resolutionPower))
   }
   debug_updateCameraPosition(cameraPos)
 }

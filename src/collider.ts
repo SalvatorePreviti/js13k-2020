@@ -72,7 +72,12 @@ export const updateCollider = (time: number) => {
       startCollision = null
     }
   }
-  console.log(COLLISIONS)
+  if (startCollision === 0) {
+    COLLISIONS.push({
+      size: 128,
+      angle: 0
+    })
+  }
 
   // TODO: read colliderBuffer byte array somehow to do collision detection.
   // colliderBuffer is an RGBA byte buffer, RGBARGBARGBARGBA ...
