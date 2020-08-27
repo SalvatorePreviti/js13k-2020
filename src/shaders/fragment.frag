@@ -188,7 +188,7 @@ float bridge(vec3 p, float s) {
 
 // rotation.x controls elevation/altitude, rotation.y controls azimuth
 float antenna(vec3 p, vec2 rotation) {
-  float size = 30.;
+  float size = 9.;
   float bounds = length(p) - size * 2.;
   if (bounds > 15.)
     return bounds;
@@ -226,8 +226,8 @@ float monument(vec3 p) {
   if (bounds > 3.)
     return bounds;
   pModPolar(p.xz, 8.);
-  p.x -= 10.;
-  return cuboid(p, vec3(.5, 5, 1));
+  p.x -= 1.5;
+  return cuboid(p, vec3(.1, 1, .2));
 }
 
 float prison(vec3 p) {
@@ -272,9 +272,9 @@ float terrain(vec3 p) {
 }
 
 float nonTerrain(vec3 p) {
-  float b = bridge(p - vec3(60, 20.5, 25), 10.);
-  float a = antenna(p - vec3(380, 35, 80), vec2(0.5, iTime));
-  float m = monument(p - vec3(20));
+  float b = bridge(p - vec3(45, 1.7, 22.4), 10.);
+  float a = antenna(p - vec3(2, 10, 2), vec2(0.5, iTime));
+  float m = monument(p - vec3(47.5,3.5,30.5));
   float pr = prison(p.zyx - vec3(11,1.2,-44));
   float r = ruinedBuildings(p - vec3(100, 10, 300));
   return min(gameObjects(p), min(min(b, r), min(a, min(m, pr))));
