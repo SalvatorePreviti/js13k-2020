@@ -56,29 +56,45 @@ export const updateCollider = (time: number) => {
 
   gl_readPixels(0, 0, COLLIDER_SIZE, COLLIDER_SIZE, GL_RGBA, GL_UNSIGNED_BYTE, colliderBuffer)
 
-  const y = 64
-  let startCollision = null
-  const runs = []
-  for (let x = 0; x < 128; x++) {
-    if (colliderBuffer[y * 128 * 4 + x * 4 + 0] > 127) {
-      if (startCollision === null) {
-        startCollision = x
-      }
-    } else if (startCollision !== null) {
-      runs.push([startCollision, x])
-      startCollision = null
+  let y = null
+  //find the y with the most collision points
+  //checks between rows 32 and 96, 8 rows at a time
+  //that is: 50cm from ground - 150cm from ground, skipping 12.5cm at a time
+  for (let yy = 32; yy < 96; yy += 8) {
+    let maxSum = 0
+    let sum = 0
+    for (let x = 0; x < 128; x++) {
+      sum += colliderBuffer[yy * 128 * 4 + x * 4 + 0] > 127 ? 1 : 0
     }
-  }
-  if (startCollision !== null) {
-    runs.push([startCollision, 127])
+    //ignore lines that are fully red
+    if (sum < 128 && sum > maxSum) {
+      maxSum = sum
+      y = yy
+    }
   }
 
   COLLISIONS.length = 0
-  for (const r of runs) {
-    COLLISIONS.push({
-      size: r[1] - r[0],
-      angle: (PI * ((r[0] + r[1]) / 2 - 64)) / 64
-    })
+  if (y !== null) {
+    let startCollision = null
+    for (let x = 0; x < 128; x++) {
+      if (colliderBuffer[y * 128 * 4 + x * 4 + 0] !== 0) {
+        if (startCollision === null) {
+          startCollision = x
+        }
+      } else if (startCollision !== null) {
+        COLLISIONS.push({
+          size: x - startCollision,
+          angle: (PI * ((x + startCollision) / 2 - 64)) / 64
+        })
+        startCollision = null
+      }
+    }
+    if (startCollision !== null) {
+      COLLISIONS.push({
+        size: 127 - startCollision,
+        angle: (PI * ((127 + startCollision) / 2 - 64)) / 64
+      })
+    }
   }
 
   // TODO: read colliderBuffer byte array somehow to do collision detection.
