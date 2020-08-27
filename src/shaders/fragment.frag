@@ -236,7 +236,7 @@ float prison(vec3 p) {
     return bounds;
   p.y -= 2.;
   float r = max(opOnion(cuboid(p, vec3(4, 1.5, 2)), 0.23),
-      -min(cylinder(p-vec3(0,.5,0), 1., 100.), cuboid(p - vec3(4, -.27, 1), vec3(2, 1, .53))));
+      -min(cylinder(p-vec3(0,.5,0), .8, 100.), cuboid(p - vec3(4, -.27, 1), vec3(2, 1, .53))));
   vec3 q = p - vec3(4, -.77, .5);
   q.xz *= rot(-iAnimPrisonDoor * PI / 2.);
   float door = cuboid(q - vec3(0, .5, .5), vec3(.05, .99, .52));
