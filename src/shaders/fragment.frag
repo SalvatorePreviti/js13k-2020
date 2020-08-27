@@ -516,7 +516,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
 /* collision shader
 /**********************************************************************/
 
-void main_() {
+void main_c() {
   vec2 screen = fragCoord / (iResolution * 0.5) - 1.;
   vec2 pos = fragCoord / iResolution;
 
@@ -533,7 +533,7 @@ void main_() {
   float dist = distanceToNearestSurface(hit);
   // float dist = rayMarch(cylinderPos, ray);
 
-  oColor = vec4(dist < .2 ? 1. : 0., dist / MAX_DIST, dist / MAX_DIST, 1.0);
+  oColor = vec4(dist < .2 ? 1. : 0., clamp(dist,0.,1.), clamp(dist,0.,1.), 1.0);
 }
 
 /**********************************************************************/
@@ -541,7 +541,7 @@ void main_() {
 /**********************************************************************/
 
 // Main shader
-void main_c() {
+void main_() {
   WaterLevel = sin(iTime * 2. + 3.) * .2;
 
   vec2 screen = fragCoord / (iResolution * .5) - 1.;

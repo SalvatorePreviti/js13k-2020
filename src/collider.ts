@@ -19,8 +19,11 @@ import {
 } from './gl/gl-context'
 import { collisionShader } from './shader-program'
 import { debug_collisionBufferCanvasPrepare } from './debug'
+import { PI } from './math/scalar'
 
 export const COLLIDER_SIZE = 128
+
+export const COLLISIONS = []
 
 const _colliderTexture: WebGLTexture = gl_createTexture()
 const _colliderFrameBuffer = gl_createFramebuffer()
@@ -52,6 +55,24 @@ export const updateCollider = (time: number) => {
   // Get the rendered data
 
   gl_readPixels(0, 0, COLLIDER_SIZE, COLLIDER_SIZE, GL_RGBA, GL_UNSIGNED_BYTE, colliderBuffer)
+
+  const y = 64
+  let startCollision = null
+  COLLISIONS.length = 0
+  for (let x = 0; x < 128; x++) {
+    if (colliderBuffer[y * 128 * 4 + x * 4 + 0] > 127) {
+      if (startCollision === null) {
+        startCollision = x
+      }
+    } else if (startCollision) {
+      COLLISIONS.push({
+        size: x - startCollision,
+        angle: (PI * ((x + startCollision) / 2 - 64)) / 64
+      })
+      startCollision = null
+    }
+  }
+  console.log(COLLISIONS)
 
   // TODO: read colliderBuffer byte array somehow to do collision detection.
   // colliderBuffer is an RGBA byte buffer, RGBARGBARGBARGBA ...

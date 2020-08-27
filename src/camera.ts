@@ -11,7 +11,7 @@ import {
 
 import { debug_updateCameraPosition, debug_updateCameraDirection, debug_updateCameraEulerAngles } from './debug'
 import { canvasElement } from './gl/canvas'
-import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD } from './math/scalar'
+import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD, PI } from './math/scalar'
 import {
   vec3Temp0,
   vec3Add,
@@ -25,6 +25,7 @@ import {
 } from './math/vec3'
 import { vec2New } from './math/vec2'
 import { typedArraySet } from './core/arrays'
+import { COLLISIONS } from './collider'
 
 const CAMERA_SPEED_DEFAULT = 1.5
 
@@ -79,7 +80,10 @@ export const updateCamera = (timeDelta: number) => {
   if (isKeyPressed(KEY_FLY_DOWN)) {
     cameraMoveDown(speed)
   }
-
+  //dodgy collision resolution
+  for (const c of COLLISIONS) {
+    vec3Add(cameraPos, vec3ScalarMultiply(vec3New(sin(c.angle), 0, cos(c.angle)), -c.size / 1000))
+  }
   debug_updateCameraPosition(cameraPos)
 }
 
