@@ -363,12 +363,15 @@ float rayMarch(vec3 p, vec3 dir) {
     epsilon = mix(MIN_EPSILON, MAX_EPSILON, epsAdjust);
 
     float hitUnderwater = hit.y + TERRAIN_OFFSET * .5;
-    if (hitUnderwater <= 0.) {  // Decrease resolution under water
-      epsilon = hitUnderwater * hitUnderwater * .25;
+    if (hitUnderwater < -0.01) {
+      if (hitUnderwater < -TERRAIN_OFFSET) {
+        break;  // Nothing to render underwater
+      }
+      epsilon -= hitUnderwater;  // Decrease resolution under water
     }
 
     if (nearest < epsilon || i >= MAX_ITERATIONS) {
-      return dist;
+      return dist;  // Step too small, bail out with the current result.
     }
 
     prevNear = nearest;
@@ -408,7 +411,9 @@ vec3 waterFBM(vec2 p) {
   float a = 1.;
 
   float flow = 0.;
-  for (int i = 0; i < 4; i++) {
+  float distToCameraRatio = (1. - length(iCameraPos.xz - p) / MAX_DIST);
+  float octaves = 5. * distToCameraRatio * distToCameraRatio;
+  for (float i = 0.; i < octaves; ++i) {
     p += iTime;
     flow *= -.75;
     vec3 v = noiseDxy(p + sin(p.yx * .5 + iTime) * .5);
@@ -550,7 +555,7 @@ void main_() {
   //  main_coll();
   //}
 
-  // oColor.x = iterationsR;
+  oColor.x = iterationsR;
   // oColor.y = iterationsR;
   // oColor.z = iterationsR;
 }
