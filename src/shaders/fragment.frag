@@ -72,8 +72,6 @@ const vec3 COLOR_SUN = vec3(1.1, .9, .85);
 const vec3 TERRAIN_SIZE = vec3(120., 19., 80.);
 const float TERRAIN_OFFSET = 3.;
 
-const vec3 TERRAIN_CENTER = TERRAIN_SIZE * .5;
-
 // maximums
 const int MAX_ITERATIONS = 100;
 const float MIN_DIST = 0.15;
@@ -305,7 +303,7 @@ vec3 computeNonTerrainNormal(vec3 p) {
 }
 
 vec3 computeTerrainNormal(vec3 p) {
-  const vec2 S = vec2(0.15, 0);
+  const vec2 S = vec2(0.08, 0);
   float d = terrain(p);
   float a = terrain(p + S.xyy);
   float b = terrain(p + S.yxy);
@@ -327,7 +325,7 @@ float rayMarch(vec3 p, vec3 dir) {
   float prevNear = MAX_DIST;
 
   float MIN_EPSILON = 1. / iResolution.x;
-  float MAX_EPSILON = MIN_EPSILON * 8.;
+  float MAX_EPSILON = MIN_EPSILON * 3.;
 
   float stepLen = MIN_EPSILON;
   float epsilon = MIN_EPSILON;
