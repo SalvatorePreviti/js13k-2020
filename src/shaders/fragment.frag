@@ -262,7 +262,7 @@ float gameObjectKey(vec3 p) {
 }
 
 float gameObjects(vec3 p) {
-  return gameObjectKey(p - vec3(-45.5, 2., 7.4));
+  return gameObjectKey(p.yzx - vec3(2., 7.4, -45.5));
 }
 
 float iterations = 0.;
