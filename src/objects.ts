@@ -30,7 +30,7 @@ const GAME_OBJECTS = {
     _onLookAt: () => 'A key, how convenient!'
   },
   _door: {
-    _location: vec3New(-43, 3, 14),
+    _location: vec3New(-43, 3.6, 14.8),
     _lookAtDistance: 2,
     _visible: true,
     _checked: false,
