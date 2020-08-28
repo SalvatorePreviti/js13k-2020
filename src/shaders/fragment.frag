@@ -237,11 +237,11 @@ float prison(vec3 p) {
   if (bounds > 5.)
     return bounds;
   p.y -= 2.;
-  float r = max(opOnion(cuboid(p, vec3(4, 1.5, 2)), 0.23),
-      -min(cylinder(p-vec3(0,.5,0), .8, 100.), cuboid(p - vec3(4, -.27, 1), vec3(2, 1, .53))));
+  float r = max(opOnion(cuboid(p, vec3(4, 1.6, 2)), 0.23),
+      -min(cylinder(p-vec3(0,.5,0), .8, 100.), cuboid(p - vec3(4, -.37, 1), vec3(2, 1, .53))));
   vec3 q = p - vec3(4, -.77, .5);
   q.xz *= rot(-iAnimPrisonDoor * PI / 2.);
-  float door = cuboid(q - vec3(0, .5, .5), vec3(.05, .99, .52));
+  float door = cuboid(q - vec3(0, .4, .5), vec3(.05, .99, .52));
   pModInterval(p.x, .3, -10., 10.);
   p.z = abs(p.z);
   r = min(r, cylinder(p.xzy - vec3(0, 2, .5), .01, 1.));
@@ -277,7 +277,7 @@ float nonTerrain(vec3 p) {
   float b = bridge(p - vec3(45, 1.7, 22.4), 10.);
   float a = antenna(p - vec3(2, 10, 2), vec2(0.5, iTime));
   float m = monument(p - vec3(47.5, 3.5, 30.5));
-  float pr = prison(p.zyx - vec3(11, 1.2, -44));
+  float pr = prison(p.zyx - vec3(11, 1.25, -44));
   float r = ruinedBuildings(p - vec3(100, 10, 300));
   return min(gameObjects(p), min(min(b, r), min(a, min(m, pr))));
 }
@@ -500,9 +500,10 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   lightIntensity = computeLambert(normal, SUNLIGHT_DIRECTION);
   
   // Flashlight
-  if (iFlashlightOn && material != MATERIAL_TERRAIN && dist < 20.) {
-    lightIntensity += computeLambert(normal, -dir) * (1.-lightIntensity);
-    shadow += pow(clamp(dot(iCameraDir, dir), 0.,1.), 32.) * smoothstep(10., 0., dist) * (1.-shadow);
+  if (iFlashlightOn && dist < 20.) {
+    float flashLightShadow = pow(clamp(dot(iCameraDir, dir), 0.,1.), 32.) * smoothstep(10., 0., dist);
+    lightIntensity += flashLightShadow* computeLambert(normal, -dir) * (1.-lightIntensity);
+    shadow +=  flashLightShadow * (1.-shadow);
   }
 
   color = mix(color, waterColor, waterTransparencyMix) * (COLOR_SUN * lightIntensity) + specular;
