@@ -1,9 +1,9 @@
 import './css/styles.less'
 import { glDrawFullScreenTriangle } from './gl/gl-utils'
 import { canvasSize } from './gl/canvas'
-import { debug_beginFrame, debug_endFrame, debug_trycatch_wrap, debug_log } from './debug'
+import { debug_beginFrame, debug_endFrame, debug_trycatch_wrap, debug_log, debug_updateCameraPosition } from './debug'
 
-import { updateCamera } from './camera'
+import { updateCamera, cameraPos } from './camera'
 import { buildHeightmapTexture } from './texture-heightmap'
 import { buildNoiseTexture } from './texture-noise'
 import { updateAnimations } from './animations'
@@ -28,13 +28,12 @@ const animationFrame = debug_trycatch_wrap(
     requestAnimationFrame(animationFrame)
 
     updateCamera(timeDelta)
+    updateCollider(time, timeDelta)
+    debug_updateCameraPosition(cameraPos)
+
     updateAnimations(timeDelta)
     updateGameObjects()
     updateText(timeDelta)
-
-    // Collider
-
-    updateCollider(time)
 
     // Render main scene
 
