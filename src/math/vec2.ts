@@ -53,8 +53,6 @@ export const vec2Copy = (out: Vec2Out, a: Vec2In) => vec2Set(out, a.x, a.y)
 
 export const vec2Fill = (out: Vec2Out, value: number = 0) => vec2Set(out, value, value)
 
-export const vec2SetZero: (out: Vec2Out) => void = vec2Fill
-
 export const vec2SetUnitX = (out: Vec2) => vec2Set(out, 1, 0)
 
 export const vec2SetUnitY = (out: Vec2) => vec2Set(out, 0, 1)
@@ -101,7 +99,7 @@ export const vec2Sum = (a: Vec2In): number => a.x + a.y
 
 export const vec2Product = (a: Vec2In): number => a.x * a.y
 
-export const vec2LengthSquared = (a: Vec2In): number => a.x * a.x + a.y * a.y
+export const vec2LengthSquared = ({ x, y }: Vec2In): number => x * x + y * y
 
 export const vec2Length = (a: Vec2In): number => sqrt(vec2LengthSquared(a))
 

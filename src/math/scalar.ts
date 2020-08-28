@@ -157,6 +157,8 @@ export const angleLerp = (from: number, to: number, t: number): number => {
 
 export const clamp = (value: number, minimum: number, maximum: number): number => min(max(value, minimum), maximum)
 
+export const clamp01 = (value: number) => clamp(value, 0, 1)
+
 export const wrapNatural = (value: number, limit: number): number => ((value % limit) + limit) % limit
 
 export const wrapAngleInRadians = (angle: number): number => angle - TWO_PI * floor((angle + PI) / TWO_PI)
@@ -212,4 +214,26 @@ export const scalarLength3 = (a: number, b: number, c: number): number => sqrt(s
 export const scalarLength4 = (a: number, b: number, c: number, d: number): number =>
   sqrt(scalarLengthSquared4(a, b, c, d))
 
-export const normalizedFloatToInt16 = (value: number): number => clamp((value * 32767) | 0, -32767, 32767)
+export const unpackFloat4 = (r: number, g: number, b: number, a: number): number => {
+  return r + g / 255 + b / 65025 + a / 160581375
+}
+
+export const unpackFloat3 = (r: number, g: number, b: number): number => {
+  return r + g / 255 + b / 65025
+}
+
+export const unpackFloat2 = (r: number, g: number): number => {
+  return r + g / 255
+}
+
+export const unpackFloatBytes4 = (r: number, g: number, b: number, a: number): number => {
+  return r / 255 + g / 65025 + b / 16581375 + a / 40948250625
+}
+
+export const unpackFloatBytes3 = (r: number, g: number, b: number): number => {
+  return r / 255 + g / 65025 + b / 16581375
+}
+
+export const unpackFloatBytes2 = (r: number, g: number): number => {
+  return r / 255 + g / 65025
+}

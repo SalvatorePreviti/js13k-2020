@@ -19,13 +19,12 @@ import {
 } from './gl/gl-context'
 import { collisionShader } from './shader-program'
 import { debug_collisionBufferCanvasPrepare } from './debug'
-import { PI } from './math/scalar'
+import { PI, cos, sin, unpackFloatBytes3, abs } from './math/scalar'
+import { cameraMoveDown, cameraPos } from './camera'
 
-export const COLLIDER_SIZE = 128
+const COLLIDER_SIZE = 128
 
-export const COLLISIONS = []
-
-export let GROUND_COLLISION = 0
+let GROUND_COLLISION = 0
 
 const _colliderTexture: WebGLTexture = gl_createTexture()
 const _colliderFrameBuffer = gl_createFramebuffer()
@@ -34,7 +33,14 @@ const colliderBuffer = new Uint8Array(COLLIDER_SIZE * COLLIDER_SIZE * 4)
 
 debug_collisionBufferCanvasPrepare(colliderBuffer, COLLIDER_SIZE, COLLIDER_SIZE)
 
-export const updateCollider = (time: number) => {
+const readDist = (x: number, y: number): number => {
+  const bufIdx = y * COLLIDER_SIZE * 4 + x * 4
+  return unpackFloatBytes3(colliderBuffer[bufIdx + 1], colliderBuffer[bufIdx + 2], colliderBuffer[bufIdx + 3])
+}
+
+const getAngleFromIdx = (x: number): number => -((PI * (x - 64)) / 64) - PI / 2
+
+export const updateCollider = (time: number, timeDelta: number) => {
   // Create and bind the framebuffer
 
   gl_bindFramebuffer(GL_FRAMEBUFFER, _colliderFrameBuffer)
@@ -58,6 +64,8 @@ export const updateCollider = (time: number) => {
 
   gl_readPixels(0, 0, COLLIDER_SIZE, COLLIDER_SIZE, GL_RGBA, GL_UNSIGNED_BYTE, colliderBuffer)
 
+  // Process data
+
   const rows = [0, 0]
   for (let rowY = 0; rowY < 2; rowY++) {
     for (let x = 0; x < 128; x++) {
@@ -72,49 +80,34 @@ export const updateCollider = (time: number) => {
     GROUND_COLLISION = 1 //push player upwards
   }
 
-  let y = null
-  //find the y with the most collision points
-  //checks between rows 32 and 96, 8 rows at a time
-  //that is: 50cm from ground - 150cm from ground, skipping 12.5cm at a time
-  for (let yy = 32; yy < 96; yy += 8) {
-    let maxSum = 0
-    let sum = 0
-    for (let x = 0; x < 128; x++) {
-      sum += colliderBuffer[yy * 128 * 4 + x * 4 + 0] > 127 ? 1 : 0
-    }
-    //ignore lines that are fully red
-    if (sum < 128 && sum > maxSum) {
-      maxSum = sum
-      y = yy
-    }
-  }
+  let ddx = 0
+  let ddz = 0
+  for (let y = 32; y < 96; ++y) {
+    for (let x1 = 0; x1 < 64; ++x1) {
+      const x2 = x1 + 64
 
-  COLLISIONS.length = 0
-  if (y !== null) {
-    let startCollision = null
-    for (let x = 0; x < 128; x++) {
-      if (colliderBuffer[y * 128 * 4 + x * 4 + 0] !== 0) {
-        if (startCollision === null) {
-          startCollision = x
-        }
-      } else if (startCollision !== null) {
-        COLLISIONS.push({
-          size: x - startCollision,
-          angle: (PI * ((x + startCollision) / 2 - 64)) / 64
-        })
-        startCollision = null
+      const dist1 = readDist(x1, y)
+      const dist2 = readDist(x2, y)
+
+      const angle1 = getAngleFromIdx(x1)
+      const angle2 = getAngleFromIdx(x2)
+
+      const dx = cos(angle1) * dist1 + cos(angle2) * dist2
+      const dz = sin(angle1) * dist1 + sin(angle2) * dist2
+
+      if (abs(dx) > abs(ddx)) {
+        ddx = dx
+      }
+      if (abs(dz) > abs(ddz)) {
+        ddz = dz
       }
     }
-    if (startCollision !== null) {
-      COLLISIONS.push({
-        size: 127 - startCollision,
-        angle: (PI * ((127 + startCollision) / 2 - 64)) / 64
-      })
-    }
   }
 
-  // TODO: read colliderBuffer byte array somehow to do collision detection.
-  // colliderBuffer is an RGBA byte buffer, RGBARGBARGBARGBA ...
+  cameraPos.x += ddx
+  cameraPos.z += ddz
+
+  cameraPos.y += 1.5 * timeDelta * GROUND_COLLISION
 
   // Unbind the frame buffer
 

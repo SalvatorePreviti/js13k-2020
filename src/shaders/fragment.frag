@@ -66,6 +66,8 @@ float WaterLevel;
 
 //=== COLORS ===
 
+const vec3 SUNLIGHT_DIRECTION = normalize(vec3(1, 1, -1));
+
 const vec3 COLOR_SKY = vec3(.4, .8, 1);
 const vec3 COLOR_SUN = vec3(1.1, .9, .85);
 
@@ -97,8 +99,6 @@ vec4 packFloat(float v) {
   enc -= enc.yzww * vec4(1. / 255., 1. / 255., 1. / 255., 0.);
   return enc;
 }
-
-const vec3 SUNLIGHT_DIRECTION = normalize(vec3(1, 1, -1));
 
 float unpackFloat(vec4 rgba) {
   return dot(rgba, vec4(1.0, 1. / 255., 1. / 65025., 1. / 160581375.));
@@ -531,9 +531,12 @@ void main_c() {
   vec3 hit = cylinderPos + ray * MIN_DIST;
 
   float dist = distanceToNearestSurface(hit);
-  // float dist = rayMarch(cylinderPos, ray);
 
-  oColor = vec4(dist < .2 ? 1. : 0., clamp(dist,0.,1.), clamp(dist,0.,1.), 1.0);
+  oColor.x = dist < .2 ? 1. : 0.;
+  oColor.y = abs(dist);
+
+  oColor.x = dist < .2 ? 1. : 0.;
+  oColor.yzw = packFloat(.2 - dist).xyz;
 }
 
 /**********************************************************************/
