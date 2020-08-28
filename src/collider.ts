@@ -24,7 +24,7 @@ import { cameraMoveDown, cameraPos } from './camera'
 
 const COLLIDER_SIZE = 128
 
-let GROUND_COLLISION = 0
+const GROUND_COLLISION = 0
 
 const _colliderTexture: WebGLTexture = gl_createTexture()
 const _colliderFrameBuffer = gl_createFramebuffer()
@@ -66,19 +66,12 @@ export const updateCollider = (time: number, timeDelta: number) => {
 
   // Process data
 
-  const rows = [0, 0]
-  for (let rowY = 0; rowY < 2; rowY++) {
-    for (let x = 0; x < 128; x++) {
-      rows[rowY] += colliderBuffer[rowY * 128 * 4 + x * 4 + 0] > 127 ? 1 : 0
-    }
+  //Ground Collision:
+  let totalY = 0
+  for (let x = 0; x < 128; x++) {
+    totalY += readDist(x, 0)
   }
-  if (rows[0] < 128) {
-    GROUND_COLLISION = -1 //falling
-  } else if (rows[1] < 128) {
-    GROUND_COLLISION = 0 //perfect
-  } else {
-    GROUND_COLLISION = 1 //push player upwards
-  }
+  const ddy = totalY / 128 - 0.2 //Take the average distance from the ground and subtract the value used in the shader
 
   let ddx = 0
   let ddz = 0
@@ -107,7 +100,7 @@ export const updateCollider = (time: number, timeDelta: number) => {
   cameraPos.x += ddx
   cameraPos.z += ddz
 
-  cameraPos.y += 1.5 * timeDelta * GROUND_COLLISION
+  cameraPos.y += ddy
 
   // Unbind the frame buffer
 
