@@ -1,6 +1,6 @@
 import './_debug.less'
 import debugInfoHtmlString from './_debug.html'
-import { max, RAD_TO_DEG } from '../math/scalar'
+import { max, RAD_TO_DEG, unpackFloatBytes3 } from '../math/scalar'
 
 function appendDebugInfoHtmlToBody() {
   const tempDiv = document.createElement('div')
@@ -51,7 +51,8 @@ debugInfoCanvas.style.height = `${DEBUG_INFO_CANVAS_HEIGHT}px`
 
 const debugCollisionBufferCanvasContext = debugCollisionBufferCanvas.getContext('2d')
 let debugCollisionBufferCanvasImageData: ImageData | null = null
-let debugCollisionBufferCanvasImageBuf: Uint8ClampedArray
+let debugCollisionBufferCanvasImageBuf: Uint8ClampedArray | null = null
+let debugCollisionSourceBuffer: Uint8Array | null = null
 
 export function debug_collisionBufferCanvasPrepare(buffer: Uint8Array, width: number, height: number) {
   debugCollisionBufferCanvas.width = width
@@ -63,7 +64,12 @@ export function debug_collisionBufferCanvasPrepare(buffer: Uint8Array, width: nu
   debugCollisionBufferCanvasContext.fillStyle = 'rgba(0, 0, 0, 1)'
   debugCollisionBufferCanvasContext.fillRect(0, 0, width, height)
 
-  debugCollisionBufferCanvasImageBuf = new Uint8ClampedArray(buffer.buffer)
+  debugCollisionSourceBuffer = buffer
+
+  debugCollisionBufferCanvasImageBuf = new Uint8ClampedArray(debugCollisionSourceBuffer)
+  for (let i = 0, len = debugCollisionSourceBuffer.length; i < len; i += 4) {
+    debugCollisionBufferCanvasImageBuf[i + 3] = 255
+  }
   debugCollisionBufferCanvasImageData = new ImageData(
     debugCollisionBufferCanvasImageBuf,
     debugCollisionBufferCanvas.width,
@@ -73,6 +79,19 @@ export function debug_collisionBufferCanvasPrepare(buffer: Uint8Array, width: nu
 
 export function debug_collisionBufferCanvasDraw() {
   if (debugCollisionBufferCanvasImageData) {
+    for (let i = 0, len = debugCollisionSourceBuffer.length; i < len; i += 4) {
+      debugCollisionBufferCanvasImageBuf[i] = debugCollisionSourceBuffer[i]
+
+      const dist =
+        unpackFloatBytes3(
+          debugCollisionSourceBuffer[i + 1],
+          debugCollisionSourceBuffer[i + 2],
+          debugCollisionSourceBuffer[i + 3]
+        ) * 10
+
+      debugCollisionBufferCanvasImageBuf[i + 1] = dist * 255
+    }
+
     debugCollisionBufferCanvasContext.putImageData(
       debugCollisionBufferCanvasImageData,
       0,

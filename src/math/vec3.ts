@@ -100,8 +100,6 @@ export const vec3Copy = (out: Vec3Out, { x, y, z }: Vec3In) => vec3Set(out, x, y
 
 export const vec3Fill = (out: Vec3Out, value: number = 0) => vec3Set(out, value, value, value)
 
-export const vec3SetZero: (out: Vec3Out) => void = vec3Fill
-
 export const vec3SetUnitX = (out: Vec3) => vec3Set(out, 1, 0, 0)
 
 export const vec3SetUnitY = (out: Vec3) => vec3Set(out, 0, 1, 0)

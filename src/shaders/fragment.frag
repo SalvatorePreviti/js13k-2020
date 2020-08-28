@@ -68,6 +68,8 @@ float WaterLevel;
 
 //=== COLORS ===
 
+const vec3 SUNLIGHT_DIRECTION = normalize(vec3(1, 1, -1));
+
 const vec3 COLOR_SKY = vec3(.4, .8, 1);
 const vec3 COLOR_SUN = vec3(1.1, .9, .85);
 
@@ -99,8 +101,6 @@ vec4 packFloat(float v) {
   enc -= enc.yzww * vec4(1. / 255., 1. / 255., 1. / 255., 0.);
   return enc;
 }
-
-const vec3 SUNLIGHT_DIRECTION = normalize(vec3(1, 1, -1));
 
 float unpackFloat(vec4 rgba) {
   return dot(rgba, vec4(1.0, 1. / 255., 1. / 65025., 1. / 160581375.));
@@ -276,8 +276,8 @@ float terrain(vec3 p) {
 float nonTerrain(vec3 p) {
   float b = bridge(p - vec3(45, 1.7, 22.4), 10.);
   float a = antenna(p - vec3(2, 10, 2), vec2(0.5, iTime));
-  float m = monument(p - vec3(47.5,3.5,30.5));
-  float pr = prison(p.zyx - vec3(11,1.2,-44));
+  float m = monument(p - vec3(47.5, 3.5, 30.5));
+  float pr = prison(p.zyx - vec3(11, 1.2, -44));
   float r = ruinedBuildings(p - vec3(100, 10, 300));
   return min(gameObjects(p), min(min(b, r), min(a, min(m, pr))));
 }
@@ -365,12 +365,15 @@ float rayMarch(vec3 p, vec3 dir) {
     epsilon = mix(MIN_EPSILON, MAX_EPSILON, epsAdjust);
 
     float hitUnderwater = hit.y + TERRAIN_OFFSET * .5;
-    if (hitUnderwater <= 0.) {  // Decrease resolution under water
-      epsilon = hitUnderwater * hitUnderwater * .25;
+    if (hitUnderwater < -0.01) {
+      if (hitUnderwater < -TERRAIN_OFFSET) {
+        break;  // Nothing to render underwater
+      }
+      epsilon -= hitUnderwater;  // Decrease resolution under water
     }
 
     if (nearest < epsilon || i >= MAX_ITERATIONS) {
-      return dist;
+      return dist;  // Step too small, bail out with the current result.
     }
 
     prevNear = nearest;
@@ -408,7 +411,9 @@ vec3 waterFBM(vec2 p) {
   float a = 1.;
 
   float flow = 0.;
-  for (int i = 0; i < 4; i++) {
+  float distToCameraRatio = (1. - length(iCameraPos.xz - p) / MAX_DIST);
+  float octaves = 5. * distToCameraRatio * distToCameraRatio;
+  for (float i = 0.; i < octaves; ++i) {
     p += iTime;
     flow *= -.75;
     vec3 v = noiseDxy(p + sin(p.yx * .5 + iTime) * .5);
@@ -514,13 +519,23 @@ void main_c() {
   vec2 screen = fragCoord / (iResolution * 0.5) - 1.;
   vec2 pos = fragCoord / iResolution;
 
-  vec3 ray = normalize(vec3(0., screen.y, 1.));
+  vec3 ray = normalize(vec3(0., 0., 1.));
 
-  ray.xz = ray.xz * rot(screen.x * PI);
+  ray.xz = ray.xz * rot(pos.x * 2. * PI + PI);
 
-  float dist = rayMarch(iCameraPos, ray);
+  vec3 cylinderPos = vec3(iCameraPos.x, iCameraPos.y + screen.y - .8, iCameraPos.z);
 
-  oColor = vec4(dist < .5 ? 1. : 0., dist / MAX_DIST, dist / MAX_DIST, 1.0);
+  // cylinderPos.xz *= rot(pos.x * 2. * PI + iCameraEuler.x + PI);
+
+  vec3 hit = cylinderPos + ray * MIN_DIST;
+
+  float dist = distanceToNearestSurface(hit);
+
+  oColor.x = dist < .2 ? 1. : 0.;
+  oColor.y = abs(dist);
+
+  oColor.x = dist < .2 ? 1. : 0.;
+  oColor.yzw = packFloat(.2 - dist).xyz;
 }
 
 /**********************************************************************/

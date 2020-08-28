@@ -35,7 +35,7 @@ const MOUSE_ROTATION_SENSITIVITY_X = 0.001
 const MOUSE_ROTATION_SENSITIVITY_Y = MOUSE_ROTATION_SENSITIVITY_X
 
 /** Camera position */
-export const cameraPos: Vec3 = vec3New(-62, 2, 0)
+export const cameraPos: Vec3 = vec3New(-44, 4, 11)
 
 /** Camera Yaw (x) and Pitch (y) angles, in radians. */
 export const cameraEuler: Vec2 = vec2New(70 * DEG_TO_RAD, 0 * DEG_TO_RAD)
@@ -85,6 +85,7 @@ export const updateCamera = (timeDelta: number) => {
   if (isKeyPressed(KEY_FLY_DOWN)) {
     cameraMoveDown(speed)
   }
+
   if (isKeyPressed(KEY_FLASHLIGHT_TOGGLE)) {
     if (!flashLightKeyDown) {
       flashlightOn = !flashlightOn
@@ -93,8 +94,6 @@ export const updateCamera = (timeDelta: number) => {
   } else {
     flashLightKeyDown = false
   }
-
-  debug_updateCameraPosition(cameraPos)
 }
 
 const updateCameraDirFromEulerAngles = () => {
