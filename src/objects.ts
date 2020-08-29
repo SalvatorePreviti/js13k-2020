@@ -26,9 +26,9 @@ const GAME_OBJECTS = {
     _onInteract() {
       this._visible = false
       INVENTORY._key = true
-      setText('You picked up the key', 2)
+      setText('You picked up a key', 3)
     },
-    _onLookAt: () => 'A key, how convenient!'
+    _onLookAt: () => 'A key, how convenient! [press E or Space to collect]'
   },
   _flashlight: {
     _location: vec3New(-42, 3, 11.2),
@@ -37,9 +37,16 @@ const GAME_OBJECTS = {
     _onInteract() {
       this._visible = false
       INVENTORY._flashlight = true
-      setText('You picked up the flashlight. Press Q to activate', 2)
+      setText('You picked up the flashlight. [Press Q to activate/deactivate]', 3)
     },
-    _onLookAt: () => 'Pick up the flashlight'
+    _onLookAt: () => 'Pick up the flashlight [press E or Space]'
+  },
+  _oilrigInitialLookat: {
+    _location: vec3New(-40.5, 4.5, 11),
+    _visible: true,
+    _lookAtDistance: 2.8,
+    _onInteract() {},
+    _onLookAt: () => 'That looks like a big antenna, maybe I can call for help if I can make it there…'
   },
   _door: {
     _location: vec3New(-43, 3.6, 14.8),
@@ -50,11 +57,16 @@ const GAME_OBJECTS = {
       if (INVENTORY._key) {
         this._visible = false
         runAnimation(ANIMATIONS._prisonDoor)
+        GAME_OBJECTS._oilrigInitialLookat._visible = false //no longer do the oil-rig lookat text
       }
       this._checked = true
     },
     _onLookAt() {
-      return INVENTORY._key ? 'Open the door with the key' : this._checked ? 'A locked door' : 'A door'
+      return INVENTORY._key
+        ? 'Open the door with the key'
+        : this._checked
+        ? 'A locked door, I need a key'
+        : 'A door [press E or Space to open]'
     }
   }
 }
