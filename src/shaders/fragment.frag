@@ -51,6 +51,8 @@ uniform sampler2D iNoise;
 // Game object uniforms
 // Key
 uniform bool iGOKeyVisible;
+// Flashlight
+uniform bool iGOFlashlightVisible;
 
 // Animation uniforms
 // Prison Door 0 - closed, 1 - open
@@ -248,6 +250,23 @@ float prison(vec3 p) {
   return min(r, door);
 }
 
+float gameObjectFlashlight(vec3 p) {
+  if (!iGOFlashlightVisible)
+    return MAX_DIST;
+  float bounds = length(p) - .3;
+  if (bounds > .3)
+    return bounds;
+  p.xz *= rot(-1.2);
+  p.yz *= rot(-.2);
+  return min(
+    cylinder(p, .025, .1),
+    max(
+      sphere(p-vec3(0,0,.12), .05),
+      p.z-.12
+    )
+  );
+}
+
 float gameObjectKey(vec3 p) {
   if (!iGOKeyVisible)
     return MAX_DIST;
@@ -262,7 +281,10 @@ float gameObjectKey(vec3 p) {
 }
 
 float gameObjects(vec3 p) {
-  return gameObjectKey(p.yzx - vec3(2., 7.4, -45.5));
+  return min(
+    gameObjectKey(p.yzx - vec3(2., 7.4, -45.5)),
+    gameObjectFlashlight(p-vec3(-42, 3, 11.2))
+  );
 }
 
 float iterations = 0.;

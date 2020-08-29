@@ -14,20 +14,32 @@ interface GameObject {
 }
 
 const INVENTORY = {
-  _key: false
+  _key: false,
+  _flashlight: false
 }
 
 const GAME_OBJECTS = {
   _key: {
     _location: vec3New(-45.5, 2, 7.4),
     _visible: true,
-    _lookAtDistance: 2,
+    _lookAtDistance: 2.5,
     _onInteract() {
       this._visible = false
       INVENTORY._key = true
       setText('You picked up the key', 2)
     },
     _onLookAt: () => 'A key, how convenient!'
+  },
+  _flashlight: {
+    _location: vec3New(-42, 3, 11.2),
+    _visible: true,
+    _lookAtDistance: 1.5,
+    _onInteract() {
+      this._visible = false
+      INVENTORY._flashlight = true
+      setText('You picked up the flashlight. Press Q to activate', 2)
+    },
+    _onLookAt: () => 'Pick up the flashlight'
   },
   _door: {
     _location: vec3New(-43, 3.6, 14.8),

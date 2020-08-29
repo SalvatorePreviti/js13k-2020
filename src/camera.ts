@@ -26,6 +26,7 @@ import {
 } from './math/vec3'
 import { vec2New } from './math/vec2'
 import { typedArraySet } from './core/arrays'
+import { INVENTORY } from './objects'
 
 const CAMERA_SPEED_DEFAULT = 1.5
 
@@ -86,7 +87,7 @@ export const updateCamera = (timeDelta: number) => {
     cameraMoveDown(speed)
   }
 
-  if (isKeyPressed(KEY_FLASHLIGHT_TOGGLE)) {
+  if (isKeyPressed(KEY_FLASHLIGHT_TOGGLE) && INVENTORY._flashlight) {
     if (!flashLightKeyDown) {
       flashlightOn = !flashlightOn
     }
