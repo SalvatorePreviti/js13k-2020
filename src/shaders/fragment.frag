@@ -269,9 +269,11 @@ float oilrig(vec3 p) {
   float r = cylinder(q.xzy-vec3(5,5,0), .5, 7.7);     //main platform cylinders
   l = q;
   q.y = abs(w.y-4.08);  //mirror y at y=4;
-  r = min(r, cylinder(q.xyz-vec3(5.3,3.5,0), .05, 5.3));     //guard rails
   r = min(r, cylinder(q.zyx-vec3(5.3,3.5,0), .05, 5.3));     //guard rails
-  r = max(r, -cuboid(p-vec3(5,.7,4), vec3(.5)));          //cut a hole in the guard rails where the bridge will connect
+  r = min(r, max(
+    cylinder(q.xyz-vec3(5.3,3.5,0), .05, 5.3),               //guard rails
+    -cuboid(p-vec3(5,.7,4), vec3(.7))                       //cut a hole in the guard rails where the bridge will connect
+  ));
   w.y = abs(w.y-3.5);                                 //mirror y at y=3.5
   r = min(r, cuboid(w-vec3(0,3.5,0), vec3(6,.2, 6))-.05); //platforms (mirrored around y=3.5)
   r = max(r, -cuboid(p-vec3(2,7,2), vec3(1.5)));      //hole in upper platform
@@ -299,7 +301,7 @@ float oilrig(vec3 p) {
 float oilrigBridge(vec3 p) {
   vec3 q = p.zyx - vec3(-26, 4, -48);
   q.zy *= rot(-.2);
-  q.z -= 20.; // 20: sticking out of sand slightly, 0 - connected with the oil rig
+  q.z -= 0.; // 20: sticking out of sand slightly, 0 - connected with the oil rig
   return bridge(q, 20., 0.);
 }
 
