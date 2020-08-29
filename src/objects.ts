@@ -48,6 +48,13 @@ const GAME_OBJECTS = {
     _onInteract() {},
     _onLookAt: () => 'That looks like a big antenna, maybe I can call for help if I can make it there…'
   },
+  _oilrigBridge: {
+    _location: vec3New(11.8, 2, -34.3),
+    _visible: true,
+    _lookAtDistance: 5,
+    _onInteract() {},
+    _onLookAt: () => 'This bridge looks broken'
+  },
   _door: {
     _location: vec3New(-43, 3.6, 14.8),
     _lookAtDistance: 2,
