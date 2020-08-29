@@ -284,7 +284,7 @@ float oilrig(vec3 p) {
   r = min(r, cylinder(o.zyx-vec3(-3,.2,0),.1,5.));  //pipes from console to tank
   //r = min(r, cylinder(o-vec3(-6,.2,-2),.1,1.));    //pipes between tanks
   u=p-vec3(5,7.6,-2);
-  u.xy *= rot(.3);
+  u.xy *= rot(.3);                          //rotate the console towards player
   r = min(r, cuboid(u, vec3(.5, .6, 1.5))); //console
   t = u-vec3(0,.8,0);
   //TODO: rotate wheel around xz based on uniform. something like:
@@ -301,7 +301,7 @@ float oilrig(vec3 p) {
 }
 
 float oilrigBridge(vec3 p) {
-  vec3 q = p.zyx - vec3(-26, 4, -48);
+  vec3 q = p.zyx - vec3(4, -1, 17);
   q.zy *= rot(-.2);
   q.z -= 0.; // 20: sticking out of sand slightly, 0 - connected with the oil rig
   return bridge(q, 20., 0.);
@@ -373,8 +373,10 @@ float nonTerrain(vec3 p) {
   float m = monument(p - vec3(47.5, 3.5, 30.5));
   float pr = prison(p.zyx - vec3(11, 1.25, -44));
   float r = ruinedBuildings(p - vec3(100, 10, 300));
-  float o = oilrig(p-vec3(-65,5,-30));
-  float ob = oilrigBridge(p);
+  vec3 oilrigCoords = p-vec3(26,5,-58);
+  oilrigCoords.xz *= rot(PI/2.+0.4);
+  float o = oilrig(oilrigCoords);
+  float ob = oilrigBridge(oilrigCoords);
   //float lever1 = lever(p-vec3(-65,14,-30), sin(iTime)*.5+.5);
 
   return min(

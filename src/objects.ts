@@ -42,7 +42,7 @@ const GAME_OBJECTS = {
     _onLookAt: () => 'Pick up the flashlight'
   },
   _oilrigBridge: {
-    _location: vec3New(-38.5, 2, -26),
+    _location: vec3New(11.8, 2, -34.3),
     _visible: true,
     _lookAtDistance: 5,
     _onInteract() {},
