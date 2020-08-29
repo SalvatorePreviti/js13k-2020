@@ -660,7 +660,7 @@ void main_c() {
 
 // Main shader
 void main_() {
-  SUNLIGHT_DIRECTION = normalize(vec3(cos(iTime*.1), sin(iTime*.1)*0.5+0.8, sin(iTime*.1)));
+  SUNLIGHT_DIRECTION = normalize(vec3(cos(iTime*.02), sin(iTime*.02)*0.5+0.8, sin(iTime*.02)));
   WaterLevel = sin(iTime * 2. + 3.) * .2;
 
   vec2 screen = fragCoord / (iResolution * .5) - 1.;
