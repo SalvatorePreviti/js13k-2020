@@ -70,7 +70,7 @@ float WaterLevel;
 
 //=== COLORS ===
 
-const vec3 SUNLIGHT_DIRECTION = normalize(vec3(1, 1, -1));
+vec3 SUNLIGHT_DIRECTION = normalize(vec3(1, 1, 0));
 
 const vec3 COLOR_SKY = vec3(.4, .8, 1);
 const vec3 COLOR_SUN = vec3(1.1, .9, .85);
@@ -660,6 +660,7 @@ void main_c() {
 
 // Main shader
 void main_() {
+  SUNLIGHT_DIRECTION = normalize(vec3(cos(iTime), sin(iTime), sin(iTime)));
   WaterLevel = sin(iTime * 2. + 3.) * .2;
 
   vec2 screen = fragCoord / (iResolution * .5) - 1.;
