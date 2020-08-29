@@ -4,6 +4,7 @@ precision highp float;
 #define MATERIAL_SKY 0
 #define MATERIAL_TERRAIN 1
 #define MATERIAL_BUILDINGS 2
+#define MATERIAL_SCREEN 3
 
 const float PI = 3.14159265359;
 
@@ -290,7 +291,7 @@ float prison(vec3 p) {
       cuboid(p - vec3(4, -.37, 1), vec3(2, 1, .53))   //the door
     )
   );
-  
+
   //The door itself & animation:
   vec3 q = p - vec3(4, -.77, .5);
   q.xz *= rot(-iAnimPrisonDoor * PI / 2.);
@@ -350,6 +351,15 @@ float oilrigBridge(vec3 p) {
   q.zy *= rot(-.2);
   q.z -= 0.; // 20: sticking out of sand slightly, 0 - connected with the oil rig
   return bridge(q, 20., 0.);
+}
+
+vec2 screenCoords;
+float screen(vec3 p, vec3 screenPosition, vec2 size, float angle) {
+  p -= screenPosition;
+  p.xz *= rot(angle); 
+  screenCoords = (p.xy+size)/(size*2.);
+  float screen = cuboid(p,vec3(size.x,size.y,0.01));
+  return screen;
 }
 
 /* leverState goes from 0-1 - 0 is up, 1 is down */
@@ -447,9 +457,14 @@ int material = MATERIAL_SKY;
 float distanceToNearestSurface(vec3 p) {
   float t = terrain(p);
   float n = nonTerrain(p);
-  if (t < n) {
+  float s = screen(p, vec3(-44.7,3.6,13.6), vec2(.3,.2), 0.);
+  if (t < min(s,n)) {
     material = MATERIAL_TERRAIN;
     return t;
+  }
+  if (s < n) {
+    material = MATERIAL_SCREEN;
+    return s;
   }
   material = MATERIAL_BUILDINGS;
   return n;
@@ -627,6 +642,9 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
 
   float specular = 0.;
 
+  if (material == MATERIAL_SCREEN) {
+    return texture(iHeightmap, screenCoords).xyz;
+  }
   if (material == MATERIAL_SKY) {
     color = COLOR_SKY;  // mix(COLOR_SKY, COLOR_SUN, pow(clamp(dot(dir, SUNLIGHT_DIRECTION),0.,1.),10.));
   } else {
