@@ -199,13 +199,29 @@ float bridge(vec3 p, float s, float bend) {
   return min(boards, ropes);
 }
 
+float antennaConsole(vec3 p) {
+  float bounds = length(p) - 2.;
+  if (bounds > 1.)
+    return bounds;
+  vec3 q=p;
+  q.xy *= rot(-.25);
+  float r = cuboid(q+vec3(.2,.25,0), vec3(.25,.5,.5));
+  q -= vec3(-.13,.25,0);
+  pModInterval(q.z, .04, -10.,10.);
+  pModInterval(q.x, .03, -5.,5.);
+  r = min(r, cuboid(q, vec3(.01)));
+  r = min(r, cuboid(p-vec3(-.45,.2,0), vec3(.2,.8,.5)));
+  return r;
+}
+
 // rotation.x controls elevation/altitude, rotation.y controls azimuth
 float antenna(vec3 p, vec2 rotation) {
-  float size = 9.;
+  const float size = 9.;
   float bounds = length(p) - size * 2.;
   if (bounds > 15.)
     return bounds;
   p.y -= size;
+
   vec3 q = p;
   q.xz *= rot(rotation.y);
   q.xy *= rot(rotation.x);
@@ -217,9 +233,25 @@ float antenna(vec3 p, vec2 rotation) {
   r = min(r, sphere(q, size / 20.));
   p.y += size * .75;
   r = min(r, cuboid(p, vec3(size / 4., size / 3., size / 2.)));
+  r = min(r, 
+    min(
+      max(
+        opOnion(cylinder(p.xzy - vec3(size/4.,0,0), size/2.-.1, size/3.-.1), .1),
+        -min(
+          cylinder(p.zyx-vec3(0,1.8,0), 1.,100.), //hole for the door
+          cylinder(p-vec3(4,2,0), .4, 100.)       //hole for the windows
+        )
+      ),
+      cylinder(p.xzy - vec3(size/4.,0,-2), size/2.-.1, size/3.-.1)  //Floor of the internal room
+    )
+  );
+  float console = antennaConsole(p-vec3(3,1.5,2));
   p.y -= size * .25;
   r = min(r, cylinder(p.xzy, size * .05, size * .5));
-  return r;
+  return min(
+    r,
+    console
+  );
 }
 
 float ruinedBuildings(vec3 p) {
