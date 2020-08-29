@@ -69,7 +69,6 @@ export const buildNoiseTexture = () => {
   gl_texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
   gl_texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
-  gl_bindTexture(GL_TEXTURE_2D, noiseTexture)
   gl_activeTexture(GL_TEXTURE0)
 
   debug_timeEnd(buildNoiseTexture)

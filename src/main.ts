@@ -11,10 +11,12 @@ import { updateGameObjects } from './objects'
 import { updateText } from './text'
 import { loadMainShader, mainShader } from './shader-program'
 import { updateCollider } from './collider'
+import { buildScreenTexture } from './texture-screen'
 
 let prevTime = 0
 let time = 0
 
+buildScreenTexture()
 buildNoiseTexture()
 buildHeightmapTexture()
 loadMainShader()
