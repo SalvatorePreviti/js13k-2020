@@ -263,7 +263,7 @@ float oilrig(vec3 p) {
   float bounds = length(p) - 12.;
   if (bounds > 2.)
     return bounds;
-  vec3 q,w,e,o,t,l; //copies of p for different co-ordinate systems
+  vec3 q,w,e,o,t,l,u; //copies of p for different co-ordinate systems
   q=p; w=p; e=p; o=p;
   q.xz = abs(q.xz); //mirror in x & z
   float r = cylinder(q.xzy-vec3(5,5,0), .5, 7.7);     //main platform cylinders
@@ -283,8 +283,10 @@ float oilrig(vec3 p) {
   o.y = abs(o.y-7.6);
   r = min(r, cylinder(o.zyx-vec3(-3,.2,0),.1,5.));  //pipes from console to tank
   //r = min(r, cylinder(o-vec3(-6,.2,-2),.1,1.));    //pipes between tanks
-  r = min(r, cuboid(p-vec3(5,7.5,-2), vec3(.5, .5, 1.5))); //console
-  t = p-vec3(5,8.2,-2);
+  u=p-vec3(5,7.6,-2);
+  u.xy *= rot(.3);
+  r = min(r, cuboid(u, vec3(.5, .6, 1.5))); //console
+  t = u-vec3(0,.8,0);
   //TODO: rotate wheel around xz based on uniform. something like:
   // t.xz *= rot(iOilRigWheelRotation);
   r = min(r, torus(t, vec2(.5,.02)));                   //wheel
