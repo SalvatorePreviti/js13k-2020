@@ -41,6 +41,13 @@ const GAME_OBJECTS = {
     },
     _onLookAt: () => 'Pick up the flashlight'
   },
+  _oilrigBridge: {
+    _location: vec3New(-38.5, 2, -26),
+    _visible: true,
+    _lookAtDistance: 5,
+    _onInteract() {},
+    _onLookAt: () => 'This bridge looks broken'
+  },
   _door: {
     _location: vec3New(-43, 3.6, 14.8),
     _lookAtDistance: 2,

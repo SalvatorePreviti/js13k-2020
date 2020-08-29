@@ -138,6 +138,12 @@ float cylinder(vec3 p, float r, float l) {
   return d;
 }
 
+float torus( vec3 p, vec2 t )
+{
+  vec2 q = vec2(length(p.xz)-t.x,p.y);
+  return length(q)-t.y;
+}
+
 //=== OPERATIONS ===
 // hg_sdf: http://mercury.sexy/hg_sdf/
 // splits world up with limits
@@ -177,16 +183,19 @@ mat2 rot(float a) {
 // === GEOMETRY ===
 
 // s is number of segments (*2 + 1, so 5 = 11 segments)
-float bridge(vec3 p, float s) {
+float bridge(vec3 p, float s, float bend) {
   float bounds = length(p) - s * .6;
   if (bounds > 4.)
     return bounds;
-  p.y += cos(p.z * 2. / s);
+  p.y += cos(p.z * bend / s);
   p.x = abs(p.x);
+  float boards = cuboid(p-vec3(.2,0,0), vec3(.1, .03,s*.55));
   float ropes = cylinder(p - vec3(.5, 1., 0), .01, s * .55);
   pModInterval(p.z, .55, -s, s);
   ropes = min(ropes, cylinder(p.xzy - vec3(.5, 0, .5), .01, .5));
-  float boards = cuboid(p, vec3(.5, .05, .2));
+  boards = min(boards,
+    cuboid(p, vec3(.5, .05, .2))
+  );
   return min(boards, ropes);
 }
 
@@ -231,7 +240,7 @@ float monument(vec3 p) {
     return bounds;
   pModPolar(p.xz, 8.);
   p.x -= 1.5;
-  return cuboid(p, vec3(.1, 1, .2));
+  return cuboid(p, vec3(.1, 5, .2));
 }
 
 float prison(vec3 p) {
@@ -251,19 +260,56 @@ float prison(vec3 p) {
 }
 
 float oilrig(vec3 p) {
-  float bounds = length(p) - 10.;
+  float bounds = length(p) - 12.;
   if (bounds > 2.)
     return bounds;
-  vec3 q = p;
-  vec3 w = p;
+  vec3 q,w,e,o,t; //copies of p for different co-ordinate systems
+  q=p; w=p; e=p; o=p;
   q.xz = abs(q.xz); //mirror in x & z
-  float r = cylinder(q.xzy-vec3(5,5,0), .5, 7.); //cylinders
-  w.y = abs(w.y-3.5); //mirror y at y=3.5
-  r = min(r, cuboid(w-vec3(0,3.5,0), vec3(6,.2, 6))); //platforms
+  float r = cylinder(q.xzy-vec3(5,5,0), .5, 7.5);     //main platform cylinders
+  w.y = abs(w.y-3.5);                                 //mirror y at y=3.5
+  r = min(r, cuboid(w-vec3(0,3.5,0), vec3(6,.2, 6))); //platforms (mirrored around y=3.5)
   r = max(r, -cuboid(p-vec3(2,7,2), vec3(1.5)));      //hole in upper platform
+  e.z=abs(e.z+2.);                                        //mirror around z=2
+  r = min(r, cylinder(e.xzy-vec3(-6,1.1,8.7), 1., 1.75)); //tanks
+  r = min(r, cylinder(e.xzy-vec3(-6.5,1.1,0), .2, 8.));   //pipes from tanks to sea
+  o.y = abs(o.y-7.6);
+  r = min(r, cylinder(o.zyx-vec3(-3,.2,0),.1,5.));  //pipes from console to tank
+  r = min(r, cylinder(o-vec3(-6,.2,-2),.1,1.));    //pipes between tanks
+  
+  r = min(r, cuboid(p-vec3(5,7.5,-2), vec3(.5, .5, 1.5))); //console
+
+  t = p-vec3(5,8.2,-2);
+  r = min(r, torus(t, vec2(.5,.02)));                   //wheel
+  r = min(r, cylinder(t.xzy+vec3(0,0,.5), .02,.5));     //center-column of spokes
+  pModPolar(t.xz, 5.);
+  r = min(r, cylinder(t.zyx-vec3(0,0,.25), .01, .25));  //spokes
+
   p-=vec3(2,3.53,-.05);
   p.zy *= rot(-PI/4.);
-  r = min(r, cuboid(p, vec3(1,5.1,.1)));  //ramp
+  r = min(r, cuboid(p, vec3(1,5.1,.1)));  //ramp from lower platform to upper
+  return r;
+}
+
+float oilrigBridge(vec3 p) {
+  vec3 q = p.zyx - vec3(-26, 4, -48);
+  q.zy *= rot(-.2);
+  q.z -= 20.; // 20: sticking out of sand slightly, 0 - connected with the bridge
+  return bridge(q, 20., 0.);
+}
+
+/* leverState goes from 0-1 - 0 is up, 1 is down */
+float lever(vec3 p, float leverState) {
+  float bounds = length(p) - 1.;
+  if (bounds > 1.)
+    return bounds;
+  float r = cuboid(p, vec3(.2, .5, .05));
+  r = max(r, -cuboid(p, vec3(.03, .2, 1)));
+  p.yz *= rot(-PI/2.*leverState + PI/4.);
+  p.z+=.2;
+  r = min(r, cylinder(p, .02, .2));
+  p.z+=.2;
+  r = min(r, cylinder(p, .03, .05));
   return r;
 }
 
@@ -313,13 +359,31 @@ float terrain(vec3 p) {
 }
 
 float nonTerrain(vec3 p) {
-  float b = bridge(p - vec3(45, 1.7, 22.4), 10.);
+  float b = bridge(p - vec3(45, 1.7, 22.4), 10., 2.);
   float a = antenna(p - vec3(2, 10, 2), vec2(0.5, iTime));
   float m = monument(p - vec3(47.5, 3.5, 30.5));
   float pr = prison(p.zyx - vec3(11, 1.25, -44));
   float r = ruinedBuildings(p - vec3(100, 10, 300));
   float o = oilrig(p-vec3(-65,5,-30));
-  return min(gameObjects(p), min(min(b, r), min(min(a,o), min(m, pr))));
+  float ob = oilrigBridge(p);
+  //float lever1 = lever(p-vec3(-65,14,-30), sin(iTime)*.5+.5);
+
+  return min(
+      min(
+        min(gameObjects(p), b),
+        min(a,
+          min(
+            o,
+            ob
+          )
+        )
+      ),
+      min(
+        r,
+        min(m, pr)
+      )
+    );
+
 }
 
 int material = MATERIAL_SKY;
