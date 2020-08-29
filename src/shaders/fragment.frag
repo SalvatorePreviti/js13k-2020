@@ -250,6 +250,23 @@ float prison(vec3 p) {
   return min(r, door);
 }
 
+float oilrig(vec3 p) {
+  float bounds = length(p) - 10.;
+  if (bounds > 2.)
+    return bounds;
+  vec3 q = p;
+  vec3 w = p;
+  q.xz = abs(q.xz); //mirror in x & z
+  float r = cylinder(q.xzy-vec3(5,5,0), .5, 7.); //cylinders
+  w.y = abs(w.y-3.5); //mirror y at y=3.5
+  r = min(r, cuboid(w-vec3(0,3.5,0), vec3(6,.2, 6))); //platforms
+  r = max(r, -cuboid(p-vec3(2,7,2), vec3(1.5)));      //hole in upper platform
+  p-=vec3(2,3.53,-.05);
+  p.zy *= rot(-PI/4.);
+  r = min(r, cuboid(p, vec3(1,5.1,.1)));  //ramp
+  return r;
+}
+
 float gameObjectFlashlight(vec3 p) {
   if (!iGOFlashlightVisible)
     return MAX_DIST;
@@ -301,7 +318,8 @@ float nonTerrain(vec3 p) {
   float m = monument(p - vec3(47.5, 3.5, 30.5));
   float pr = prison(p.zyx - vec3(11, 1.25, -44));
   float r = ruinedBuildings(p - vec3(100, 10, 300));
-  return min(gameObjects(p), min(min(b, r), min(a, min(m, pr))));
+  float o = oilrig(p-vec3(-65,5,-30));
+  return min(gameObjects(p), min(min(b, r), min(min(a,o), min(m, pr))));
 }
 
 int material = MATERIAL_SKY;
