@@ -28,7 +28,7 @@ const animationFrame = debug_trycatch_wrap(
     requestAnimationFrame(animationFrame)
 
     updateCamera(timeDelta)
-    //updateCollider(time, timeDelta)
+    updateCollider(time, timeDelta)
     debug_updateCameraPosition(cameraPos)
 
     updateAnimations(timeDelta)

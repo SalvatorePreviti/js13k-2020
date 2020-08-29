@@ -273,7 +273,7 @@ float oilrig(vec3 p) {
   r = min(r, cylinder(q.zyx-vec3(5.3,3.5,0), .05, 5.3));     //guard rails
   r = max(r, -cuboid(p-vec3(5,.7,4), vec3(.5)));          //cut a hole in the guard rails where the bridge will connect
   w.y = abs(w.y-3.5);                                 //mirror y at y=3.5
-  r = min(r, cuboid(w-vec3(0,3.5,0), vec3(6,.2, 6))); //platforms (mirrored around y=3.5)
+  r = min(r, cuboid(w-vec3(0,3.5,0), vec3(6,.2, 6))-.05); //platforms (mirrored around y=3.5)
   r = max(r, -cuboid(p-vec3(2,7,2), vec3(1.5)));      //hole in upper platform
   e.z=abs(e.z+2.);                                        //mirror around z=2
   r = min(r, cylinder(e.xzy-vec3(-6,1.1,8.7), 1., 1.75)); //tanks
@@ -292,14 +292,14 @@ float oilrig(vec3 p) {
 
   p-=vec3(2,3.53,-.05);
   p.zy *= rot(-PI/4.);
-  r = min(r, cuboid(p, vec3(1,5.1,.1)));  //ramp from lower platform to upper
+  r = min(r, cuboid(p, vec3(1,5.1,.1))-.05);  //ramp from lower platform to upper
   return r;
 }
 
 float oilrigBridge(vec3 p) {
   vec3 q = p.zyx - vec3(-26, 4, -48);
   q.zy *= rot(-.2);
-  q.z -= 0.; // 20: sticking out of sand slightly, 0 - connected with the bridge
+  q.z -= 20.; // 20: sticking out of sand slightly, 0 - connected with the oil rig
   return bridge(q, 20., 0.);
 }
 
