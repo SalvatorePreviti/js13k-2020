@@ -248,14 +248,27 @@ float prison(vec3 p) {
   if (bounds > 5.)
     return bounds;
   p.y -= 2.;
-  float r = max(opOnion(cuboid(p, vec3(4, 1.6, 2)), 0.23),
-      -min(cylinder(p-vec3(0,.5,0), .8, 100.), cuboid(p - vec3(4, -.37, 1), vec3(2, 1, .53))));
+  float r = max(
+    min(
+      opOnion(cuboid(p, vec3(4, 1.6, 2)), 0.23),  //The main box
+      cuboid(p-vec3(-3, -1, -1.3), vec3(0.3,.5,.5)) //corner box (key hides behind it)
+    ),
+    -min(                                       //Cut holes for:
+      cylinder(p-vec3(0,.5,0), .8, 100.),             //the windows
+      cuboid(p - vec3(4, -.37, 1), vec3(2, 1, .53))   //the door
+    )
+  );
+  
+  //The door itself & animation:
   vec3 q = p - vec3(4, -.77, .5);
   q.xz *= rot(-iAnimPrisonDoor * PI / 2.);
   float door = cuboid(q - vec3(0, .4, .5), vec3(.05, .99, .52));
-  pModInterval(p.x, .3, -10., 10.);
-  p.z = abs(p.z);
-  r = min(r, cylinder(p.xzy - vec3(0, 2, .5), .01, 1.));
+  
+  //The bars on the windows:
+  pModInterval(p.x, .3, -10., 10.); //repeat along x
+  p.z = abs(p.z);                   //mirror on z axis
+  r = min(r, cylinder(p.xzy - vec3(0, 2, .5), .01, 1.)); //draw a single bar
+
   return min(r, door);
 }
 

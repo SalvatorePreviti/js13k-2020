@@ -22,7 +22,7 @@ const GAME_OBJECTS = {
   _key: {
     _location: vec3New(-45.5, 2, 7.4),
     _visible: true,
-    _lookAtDistance: 2.5,
+    _lookAtDistance: 2,
     _onInteract() {
       this._visible = false
       INVENTORY._key = true
@@ -70,7 +70,7 @@ const GAME_OBJECTS = {
     },
     _onLookAt() {
       return INVENTORY._key
-        ? 'Open the door with the key'
+        ? 'Open the door with the key [press E or Space]'
         : this._checked
         ? 'A locked door, I need a key'
         : 'A door [press E or Space to open]'
