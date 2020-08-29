@@ -269,9 +269,9 @@ float oilrig(vec3 p) {
   float r = cylinder(q.xzy-vec3(5,5,0), .5, 7.7);     //main platform cylinders
   l = q;
   q.y = abs(w.y-4.08);  //mirror y at y=4;
-  r = min(r, cylinder(q.xyz-vec3(4.9,3.5,0), .05, 5.));     //guard rails
-  r = min(r, cylinder(q.zyx-vec3(4.9,3.5,0), .05, 5.));     //guard rails
-  r = max(r, -cuboid(p-vec3(4.6,.7,4), vec3(.5)));          //cut a hole in the guard rails where the bridge will connect
+  r = min(r, cylinder(q.xyz-vec3(5.3,3.5,0), .05, 5.3));     //guard rails
+  r = min(r, cylinder(q.zyx-vec3(5.3,3.5,0), .05, 5.3));     //guard rails
+  r = max(r, -cuboid(p-vec3(5,.7,4), vec3(.5)));          //cut a hole in the guard rails where the bridge will connect
   w.y = abs(w.y-3.5);                                 //mirror y at y=3.5
   r = min(r, cuboid(w-vec3(0,3.5,0), vec3(6,.2, 6))); //platforms (mirrored around y=3.5)
   r = max(r, -cuboid(p-vec3(2,7,2), vec3(1.5)));      //hole in upper platform
@@ -280,10 +280,10 @@ float oilrig(vec3 p) {
   r = min(r, cylinder(e.xzy-vec3(-6.5,1.1,0), .2, 8.));   //pipes from tanks to sea
   o.y = abs(o.y-7.6);
   r = min(r, cylinder(o.zyx-vec3(-3,.2,0),.1,5.));  //pipes from console to tank
-  r = min(r, cylinder(o-vec3(-6,.2,-2),.1,1.));    //pipes between tanks
+  //r = min(r, cylinder(o-vec3(-6,.2,-2),.1,1.));    //pipes between tanks
   r = min(r, cuboid(p-vec3(5,7.5,-2), vec3(.5, .5, 1.5))); //console
   t = p-vec3(5,8.2,-2);
-  //TODO: rotate around xz. something like:
+  //TODO: rotate wheel around xz based on uniform. something like:
   // t.xz *= rot(iOilRigWheelRotation);
   r = min(r, torus(t, vec2(.5,.02)));                   //wheel
   r = min(r, cylinder(t.xzy+vec3(0,0,.5), .02,.5));     //center-column of spokes
