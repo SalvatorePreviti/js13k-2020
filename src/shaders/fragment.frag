@@ -154,6 +154,11 @@ float cylinder(vec3 p, float r, float l) {
   d = max(d, abs(p.z) - l);
   return d;
 }
+float cylinderY(vec3 p, float r, float l) {
+  float d = length(p.xz) - r;
+  d = max(d, abs(p.y) - l);
+  return d;
+}
 
 float torus(vec3 p, vec2 t) {
   vec2 q = vec2(length(p.xz) - t.x, p.y);
@@ -214,7 +219,7 @@ float bridge(vec3 p, float s, float bend) {
   float boards = cuboid(p - vec3(.2, 0, 0), vec3(.1, .03, s * .55));
   float ropes = cylinder(p - vec3(.5, 1., 0), .01, s * .55);
   pModInterval(p.z, .55, -s, s);
-  ropes = min(ropes, cylinder(p.xzy - vec3(.5, 0, .5), .01, .5));
+  ropes = min(ropes, cylinderY(p - vec3(.5,.5, 0), .01, .5));
   boards = min(boards, cuboid(p, vec3(.5, .05, .2)));
   return min(boards, ropes);
 }
@@ -285,23 +290,23 @@ float antenna(vec3 p, vec2 rotation) {
   float r = max(opOnion(sphere(q, size), size / 50.),
       q.y + size / 2.  // cut the sphere part-way up
   );
-  r = min(r, cylinder(q.xzy + vec3(0, 0, size * .5), size * .02, size * .5));
+  r = min(r, cylinderY(q + vec3(0, size * .5, 0), size * .02, size * .5));
   r = min(r, sphere(q, size / 20.));
   p.y += size * .75;
   r = min(r, cuboid(p, vec3(size / 4., size / 3., size / 2.)));
   r = min(r,
-      min(max(opOnion(cylinder(p.xzy - vec3(size / 4., 0, 0), size / 2. - .1, size / 3. - .1), .1),
+      min(max(opOnion(cylinderY(p - vec3(size / 4., 0, 0), size / 2. - .1, size / 3. - .1), .1),
               -min(cylinder(p.zyx - vec3(0, 1.8, 0), 1., 100.),  // hole for the door
                   cylinder(p - vec3(4.5, 2.3, 0), .4, 100.)  // hole for the windows
                   )),
-          cylinder(p.xzy - vec3(size / 4., 0, -2.2), size / 2. - .1, size / 3. - .1)  // Floor of the internal room
+          cylinderY(p - vec3(size / 4., -2.2, 0), size / 2. - .1, size / 3. - .1)  // Floor of the internal room
           ));
   float console = antennaConsole(p - vec3(3, 1.5, 2));
   float door = antennaDoor(p.zyx - vec3(0, 1.8, 6.5));
   float l = lever(invZ(p - vec3(3.7, 2, -4)), clamp(iAnimOilrigRamp, 0., 1.));
 
   p.y -= size * .25;
-  r = min(r, cylinder(p.xzy, size * .05, size * .5));
+  r = min(r, cylinderY(p, size * .05, size * .5));
   p -= vec3(7, -2.85, 0);
   p.xy *= rot(-.5);
   r = min(r, cuboid(p, vec3(1, 1, .8)));
@@ -324,7 +329,7 @@ float monument(vec3 p) {
   float bounds = length(p) - 12.;
   if (bounds > 2.)
     return bounds;
-  float r = min(cylinder(p.xzy, .2, .5), cylinder(p.xzy + vec3(0, 0, clamp(iAnimMonumentDescend, 0., .02)), .05, .53));
+  float r = min(cylinderY(p, .2, .5), cylinderY(p + vec3(0, clamp(iAnimMonumentDescend, 0., .02), 0), .05, .53));
 
   p.y += iAnimMonumentDescend * 4.;
   if (iGOAntennaKeyVisible) {
@@ -358,7 +363,7 @@ float prison(vec3 p) {
   // The bars on the windows:
   pModInterval(p.x, .3, -10., 10.);  // repeat along x
   p.z = abs(p.z);  // mirror on z axis
-  r = min(r, cylinder(p.xzy - vec3(0, 2, .5), .01, 1.));  // draw a single bar
+  r = min(r, cylinderY(p - vec3(0, .5, 2), .01, 1.));  // draw a single bar
 
   return min(r, door);
 }
@@ -373,20 +378,20 @@ float oilrig(vec3 p) {
   e = p;
   o = p;
   q.xz = abs(q.xz);  // mirror in x & z
-  float r = cylinder(q.xzy - vec3(5, 5, 0), .5, 7.7);  // main platform cylinders
+  float r = cylinderY(q - vec3(5, 0, 5), .5, 7.7);  // main platform cylinders
   l = q;
   q.y = abs(w.y - 4.08);  // mirror y at y=4;
   r = min(r, cylinder(q.zyx - vec3(5.3, 3.5, 0), .05, 5.3));  // guard rails
   r = min(r,
-      max(cylinder(q.xyz - vec3(5.3, 3.5, 0), .05, 5.3),  // guard rails
+      max(cylinder(q - vec3(5.3, 3.5, 0), .05, 5.3),  // guard rails
           -cuboid(p - vec3(5, .7, 4), vec3(.7))  // cut a hole in the guard rails where the bridge will connect
           ));
   w.y = abs(w.y - 3.5);  // mirror y at y=3.5
   r = min(r, cuboid(w - vec3(0, 3.5, 0), vec3(6, .2, 6)) - .05);  // platforms (mirrored around y=3.5)
   r = max(r, -cuboid(p - vec3(2, 7, 2), vec3(1.5)));  // hole in upper platform
   e.z = abs(e.z + 2.);  // mirror around z=2
-  r = min(r, cylinder(e.xzy - vec3(-6, 1.1, 8.7), 1., 1.75));  // tanks
-  r = min(r, cylinder(e.xzy - vec3(-6.5, 1.1, 0), .2, 8.));  // pipes from tanks to sea
+  r = min(r, cylinderY(e - vec3(-6, 8.7,1.1), 1., 1.75));  // tanks
+  r = min(r, cylinderY(e - vec3(-6.5, 0,1.1), .2, 8.));  // pipes from tanks to sea
   o.y = abs(o.y - 7.6);
   r = min(r, cylinder(o.zyx - vec3(-3, .2, 0), .1, 5.));  // pipes from console to tank
   // r = min(r, cylinder(o-vec3(-6,.2,-2),.1,1.));    //pipes between tanks
@@ -397,7 +402,7 @@ float oilrig(vec3 p) {
   // rotate wheel around xz based on animation uniform:
   t.xz *= rot(iAnimOilrigWheel);
   r = min(r, torus(t, vec2(.5, .02)));  // wheel
-  r = min(r, cylinder(t.xzy + vec3(0, 0, .5), .02, .5));  // center-column of spokes
+  r = min(r, cylinderY(t + vec3(0, .5, 0), .02, .5));  // center-column of spokes
   pModPolar(t.xz, 5.);
   r = min(r, cylinder(t.zyx - vec3(0, 0, .25), .01, .25));  // spokes
 
@@ -411,7 +416,7 @@ float oilrigBridge(vec3 p) {
   vec3 q = p.zyx - vec3(4, -1, 17);
   q.zy *= rot(-.2);
   q.z -= 19. - iAnimOilrigRamp;  // 0: sticking out of sand slightly, 20 - connected with the oil rig
-  return min(bridge(q, 20., 0.), cylinder(q.xzy + vec3(0, 10.5, 6), 0.15, 5.));
+  return min(bridge(q, 20., 0.), cylinderY(q + vec3(0, 6, 10.5), 0.15, 5.));
 }
 
 vec2 screenCoords;
