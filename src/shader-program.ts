@@ -30,6 +30,7 @@ export const loadMainShaderProgram = (mainFunction: string) => {
   const {
     iHeightmap,
     iNoise,
+    iScreens,
     iResolution,
     iTime,
     iCameraPos,
@@ -53,6 +54,9 @@ export const loadMainShaderProgram = (mainFunction: string) => {
 
   // Texture 1
   gl_uniform1i(iNoise, 1)
+
+  // Texture 1
+  gl_uniform1i(iScreens, 3)
 
   const _use = (time: number, width: number, height: number) => {
     gl_viewport(0, 0, width, height)

@@ -1,6 +1,6 @@
 import { canvasElement } from './canvas'
 
-import { functionBind, newProxyGetter } from '../core/objects'
+import { newProxyBinder } from '../core/objects'
 
 export const gl_context = canvasElement.getContext('webgl2', {
   /** Boolean that indicates if the canvas contains an alpha buffer. */
@@ -21,7 +21,7 @@ export const gl_context = canvasElement.getContext('webgl2', {
   stencil: false
 })
 
-const _functions = newProxyGetter((name) => functionBind(gl_context, gl_context[name]), gl_context)
+const _functions = newProxyBinder(gl_context)
 
 /** Selects the active texture unit. */
 export const gl_activeTexture = _functions.activeTexture

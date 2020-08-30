@@ -20,11 +20,9 @@ import {
 import { collisionShader } from './shader-program'
 import { debug_collisionBufferCanvasPrepare } from './debug'
 import { PI, cos, sin, unpackFloatBytes3, abs } from './math/scalar'
-import { cameraMoveDown, cameraPos } from './camera'
+import { cameraPos } from './camera'
 
 const COLLIDER_SIZE = 128
-
-const GROUND_COLLISION = 0
 
 const _colliderTexture: WebGLTexture = gl_createTexture()
 const _colliderFrameBuffer = gl_createFramebuffer()
@@ -40,7 +38,7 @@ const readDist = (x: number, y: number): number => {
 
 const getAngleFromIdx = (x: number): number => -((PI * (x - 64)) / 64) - PI / 2
 
-export const updateCollider = (time: number, timeDelta: number) => {
+export const updateCollider = (time: number) => {
   // Create and bind the framebuffer
 
   gl_bindFramebuffer(GL_FRAMEBUFFER, _colliderFrameBuffer)
