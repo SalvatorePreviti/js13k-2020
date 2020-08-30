@@ -415,26 +415,35 @@ float oilrigBridge(vec3 p) {
 }
 
 float guardTower(vec3 p) {
-  vec3 q = p;
+  vec3 q,z;
+  q = p;
   pModPolar(q.xz, 6.);
+  z = q;
+  pModInterval(z.y, 1.5, -3., 7.);
   float r = min(
     max(
       max(
         min(
-          cylinder(p.xzy,1.1,11.),  //outer cylinder
+          cylinder(p.xzy,1.1,12.),  //outer cylinder
           max(
-            opOnion(cylinder(p.xzy-vec3(0,0,13.),4.,2.), .2),  //top part
-            -cuboid(q-vec3(4.,13,0),vec3(1., 1., 2.))  //cut out the windows
+            opOnion(cylinder(p.xzy-vec3(0,0,14.),4.,2.), .2),  //top part
+            -cuboid(q-vec3(4.,14,0),vec3(1., 1., 2.))  //cut out the windows
           )
         ),
-        -cylinder(p.xzy,1.,12.)  //cut hole down center (not using opOnion, because want to cut out the end too)
+        -min(
+          cylinder(p.xzy,1.,13.),  //cut hole down center (not using opOnion, because want to cut out the end too)
+          cuboid(z-vec3(1.,0,0),vec3(.2, .3, .05)) //cut out the slits
+        )
       ),
-      -cuboid(p+vec3(0,8,1), vec3(.8,1.2,.8))  //cut doorway out
+      -cuboid(p+vec3(0,7,1), vec3(.8,1.2,.8))  //cut doorway out
     ),
-    cylinder(p.xzy-vec3(0,0,clamp(sin(iAnimAntennaRotation)*14.-10.,-20.2, 0.)),1.,11.)  //elevator
+    cylinder(p.xzy-vec3(0,0,clamp(cos(iAnimAntennaRotation)*14.-11.,-19.2, 1.)),1.,11.)  //elevator
   );
 
-  return r;
+  return min(
+    r,
+    cuboid(p+vec3(0,10.3,3), vec3(1.1,2.,3.))
+  );
 }
 
 
@@ -497,7 +506,7 @@ float nonTerrain(vec3 p) {
   float o = oilrig(oilrigCoords);
   float ob = oilrigBridge(oilrigCoords);
   float aoc = antennaCable(oilrigCoords.zyx - vec3(-2, 9.4, 32.5));
-  float guardTower = guardTower(p - vec3(8.7, 10.3, 34));
+  float guardTower = guardTower(p - vec3(8.7, 9.3, 37));
 
   return min(min(min(gameObjects(p), b), min(a, min(o, min(ob, aoc)))), min(min(r, guardTower), min(m, pr)));
 }
