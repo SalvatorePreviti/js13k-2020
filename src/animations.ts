@@ -41,7 +41,7 @@ const ANIMATIONS = {
     _value: 0,
     _speed: 1,
     _initial: 0,
-    _max: 20,
+    _max: 19,
     _running: 0
   },
   _oilrigWheel: {

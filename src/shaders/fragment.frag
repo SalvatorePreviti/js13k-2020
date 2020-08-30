@@ -417,8 +417,11 @@ float oilrig(vec3 p) {
 float oilrigBridge(vec3 p) {
   vec3 q = p.zyx - vec3(4, -1, 17);
   q.zy *= rot(-.2);
-  q.z -= 20. - iAnimOilrigRamp; // 0: sticking out of sand slightly, 20 - connected with the oil rig
-  return bridge(q, 20., 0.);
+  q.z -= 19. - iAnimOilrigRamp; // 0: sticking out of sand slightly, 19 - connected with the oil rig
+  return min(
+    bridge(q, 20., 0.),
+    cylinder(q.xzy+vec3(0,10.5,6), 0.15, 5.)
+  );
 }
 
 vec2 screenCoords;
