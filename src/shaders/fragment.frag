@@ -324,7 +324,7 @@ float monument(vec3 p) {
   float bounds = length(p) - 12.;
   if (bounds > 2.)
     return bounds;
-  float r = min(cylinder(p.xzy, .2, .5), cylinder(p.xzy + vec3(0, 0, clamp(iAnimMonumentDescend, 0., .015)), .05, .52));
+  float r = min(cylinder(p.xzy, .2, .5), cylinder(p.xzy + vec3(0, 0, clamp(iAnimMonumentDescend, 0., .02)), .05, .53));
 
   p.y += iAnimMonumentDescend * 4.;
   if (iGOAntennaKeyVisible) {
