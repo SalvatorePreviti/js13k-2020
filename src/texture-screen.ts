@@ -75,12 +75,13 @@ export const buildScreenTextures = () => {
 
   setFontSize(17)
 
+  setFillColor('000015')
   fillRect(0, 0, SCREEN_TEXTURE_SIZE, SCREEN_TEXTURE_SIZE)
 
   setFillColor('4f8aff')
   fillText('JS13K Modular Bios v.13', 10, 30)
 
-  setFillColor('bbb')
+  setFillColor('aee')
   fillText('Memory Core: 131072K', 10, 100)
   fillText('Launching xx142-b2.exe', 10, 124)
   fillText('Antenna self test', 10, 146)
