@@ -359,6 +359,9 @@ float oilrigBridge(vec3 p) {
 vec2 screenCoords;
 float screen(vec3 p, vec3 screenPosition, vec2 size, float angle) {
   p -= screenPosition;
+  float bounds = length(p) - 2.;
+  if (bounds > .5)
+    return bounds;
   p.xz *= rot(angle); 
   screenCoords = (p.xy+size)/(size*2.);
   float screen = cuboid(p,vec3(size.x,size.y,0.01));
