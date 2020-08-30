@@ -1,6 +1,6 @@
 import { debug_time, debug_timeEnd } from './debug'
 import { gl_createTexture, gl_bindTexture, gl_texImage2D, gl_pixelStorei, gl_activeTexture } from './gl/gl-context'
-import { objectAssign, newProxyBinder } from './core/objects'
+import { newProxyBinder } from './core/objects'
 import {
   GL_TEXTURE3,
   GL_TEXTURE_2D,
