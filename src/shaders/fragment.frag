@@ -713,8 +713,8 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
     shadow += flashLightShadow * (1. - shadow);
   }
 
-  color = mix(color, waterColor, waterTransparencyMix) * (COLOR_SUN * lightIntensity);
-  color *= mix(0.3, 1.01, shadow) + specular;
+  color =
+      (mix(color, waterColor, waterTransparencyMix) * (COLOR_SUN * lightIntensity) + specular) * mix(0.3, 1., shadow);
 
   return applyFog(color, mdist, dir);
 }
