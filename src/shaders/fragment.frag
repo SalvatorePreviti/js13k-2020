@@ -241,7 +241,7 @@ float antennaCable(vec3 p) {
 }
 
 float antennaDoor(vec3 p) {
-  float bounds = length(p) - 2.;
+  float bounds = length(p) - 3.;
   if (bounds > .5)
     return bounds;
   p.xz -= vec2(1., -.05);
