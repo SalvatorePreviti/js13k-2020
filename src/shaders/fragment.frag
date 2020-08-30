@@ -411,10 +411,7 @@ float oilrigBridge(vec3 p) {
   vec3 q = p.zyx - vec3(4, -1, 17);
   q.zy *= rot(-.2);
   q.z -= 19. - iAnimOilrigRamp;  // 0: sticking out of sand slightly, 20 - connected with the oil rig
-  return min(
-    bridge(q, 20., 0.),
-    cylinder(q.xzy+vec3(0,10.5,6), 0.15, 5.)
-  );
+  return min(bridge(q, 20., 0.), cylinder(q.xzy + vec3(0, 10.5, 6), 0.15, 5.));
 }
 
 vec2 screenCoords;
@@ -716,8 +713,8 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
     shadow += flashLightShadow * (1. - shadow);
   }
 
-  color = mix(color, waterColor, waterTransparencyMix) * (COLOR_SUN * lightIntensity) + specular;
-  color *= (shadow * 0.9 + 0.1);
+  color = mix(color, waterColor, waterTransparencyMix) * (COLOR_SUN * lightIntensity);
+  color *= mix(0.38, 1.03, shadow) + specular;
 
   return applyFog(color, mdist, dir);
 }
