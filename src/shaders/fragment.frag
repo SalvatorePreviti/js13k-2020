@@ -432,7 +432,7 @@ float guardTower(vec3 p) {
         ),
         -min(
           cylinder(p.xzy,1.,13.),  //cut hole down center (not using opOnion, because want to cut out the end too)
-          cuboid(z-vec3(1.,0,0),vec3(.2, .3, .05)) //cut out the slits
+          cuboid(z-vec3(1.,0,0),vec3(.2, .3, .13)) //cut out the slits
         )
       ),
       -cuboid(p+vec3(0,7,1), vec3(.8,1.2,.8))  //cut doorway out
