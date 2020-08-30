@@ -15,6 +15,7 @@ interface GameObject {
 
 const INVENTORY = {
   _key: false,
+  _antennaKey: false,
   _flashlight: false
 }
 
@@ -41,12 +42,76 @@ const GAME_OBJECTS = {
     },
     _onLookAt: () => 'Pick up the flashlight [press E or Space]'
   },
-  _oilrigInitialLookat: {
+  _antennaInitialLookat: {
     _location: vec3New(-40.5, 4.5, 11),
     _visible: true,
     _lookAtDistance: 2.8,
     _onInteract() {},
     _onLookAt: () => 'That looks like a big antenna, maybe I can call for help if I can make it there…'
+  },
+  _antennaDoor: {
+    _location: vec3New(8.5, 14, 2),
+    _visible: true,
+    _lookAtDistance: 2.5,
+    _checked: false,
+    _onInteract() {
+      if (INVENTORY._antennaKey) {
+        this._visible = false
+        runAnimation(ANIMATIONS._antennaDoor)
+      }
+      this._checked = true
+    },
+    _onLookAt() {
+      return this._checked ? 'A locked door… The symbol on it looks familiar' : 'A door'
+    }
+  },
+  _antennaKey: {
+    _location: vec3New(0, 1000, 0), //initial location is far away
+    _visible: true,
+    _lookAtDistance: 2.5,
+    _onInteract() {
+      INVENTORY._antennaKey = true
+      this._visible = false
+      GAME_OBJECTS._monumentButton._visible = true
+      runAnimation(ANIMATIONS._monumentDescend, false) //play monumentDescend in reverse
+    },
+    _onLookAt: () => 'A key'
+  },
+  _antennaOilrigLever: {
+    _location: vec3New(5.7, 14.2, -1.9),
+    _visible: true,
+    _lookAtDistance: 1,
+    _onInteract() {
+      this._visible = false
+      runAnimation(ANIMATIONS._oilrigRamp)
+      GAME_OBJECTS._oilrigBridge._visible = false
+    },
+    _onLookAt: () => 'A lever [press E or Space]'
+  },
+  _antennaConsole: {
+    _location: vec3New(4.8, 14.4, 3.7),
+    _visible: true,
+    _lookAtDistance: 1.5,
+    _onInteract: () => {},
+    _onLookAt: () =>
+      ANIMATIONS._antennaRotation._running
+        ? 'Damn, I need to find this floppy disk'
+        : 'There is no electricity, there must be a generator somewhere in this damn island'
+  },
+  _monumentButton: {
+    _location: vec3New(47.5, 4, 30.5),
+    _visible: true,
+    _lookAtDistance: 1.5,
+    _onInteract() {
+      if (INVENTORY._antennaKey) {
+        setText('I already got the key', 2)
+      }
+      runAnimation(ANIMATIONS._monumentDescend)
+      this._visible = false
+    },
+    _onLookAt() {
+      return 'A button [press E or Space]'
+    }
   },
   _oilrigBridge: {
     _location: vec3New(11.8, 2, -34.3),
@@ -54,6 +119,16 @@ const GAME_OBJECTS = {
     _lookAtDistance: 5,
     _onInteract() {},
     _onLookAt: () => 'This bridge looks broken'
+  },
+  _oilrigWheel: {
+    _location: vec3New(26, 13.5, -52.9),
+    _visible: true,
+    _lookAtDistance: 2,
+    _onInteract() {
+      runAnimation(ANIMATIONS._oilrigWheel)
+      this._visible = false
+    },
+    _onLookAt: () => 'A big wheel, I suppose it will feed fuel to the generator…'
   },
   _door: {
     _location: vec3New(-43, 3.6, 14.8),
@@ -64,7 +139,7 @@ const GAME_OBJECTS = {
       if (INVENTORY._key) {
         this._visible = false
         runAnimation(ANIMATIONS._prisonDoor)
-        GAME_OBJECTS._oilrigInitialLookat._visible = false //no longer do the oil-rig lookat text
+        GAME_OBJECTS._antennaInitialLookat._visible = false //no longer do the initial antenna lookat text
       }
       this._checked = true
     },

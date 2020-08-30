@@ -53,14 +53,27 @@ uniform sampler2D iNoise;
 uniform sampler2D iScreens;
 
 // Game object uniforms
-// Key
+// Prison Key
 uniform bool iGOKeyVisible;
 // Flashlight
 uniform bool iGOFlashlightVisible;
 
+//Antenna key
+uniform bool iGOAntennaKeyVisible;
+
 // Animation uniforms
 // Prison Door 0 - closed, 1 - open
 uniform float iAnimPrisonDoor;
+// Antenna Door 0-1
+uniform float iAnimAntennaDoor;
+// Monument Descend
+uniform float iAnimMonumentDescend;
+// Oil Rig Ramp (and lever in antenna room for 0-1 of it)
+uniform float iAnimOilrigRamp;
+//the wheel on the rig
+uniform float iAnimOilrigWheel;
+//antenna rotation
+uniform float iAnimAntennaRotation;
 
 uniform bool iFlashlightOn;
 
@@ -116,7 +129,7 @@ float unpackFloat(vec4 rgba) {
  Returns 3D value noise (in .x)  and its derivatives (in .yz).
  Based on https://www.iquilezles.org/www/articles/gradientnoise/gradientnoise.htm by Iq
 */
-vec3 noiseDxy(in vec2 x) {
+vec3 noiseDxy(vec2 x) {
   vec4 T = texelFetch(iNoise, ivec2(floor(x)) & NOISE_TEXTURE_BITMASK, 0);
   float xba = T.y - T.x, xca = T.z - T.x;
   float abcd = T.w - xba - T.z;
@@ -174,7 +187,7 @@ void pModPolar(inout vec2 p, float repetitions) {
   p = vec2(cos(a), sin(a)) * r;
 }
 
-float opOnion(in float sdf, in float thickness) {
+float opOnion(float sdf, float thickness) {
   return abs(sdf) - thickness;
 }
 
@@ -183,6 +196,12 @@ mat2 rot(float a) {
   return mat2(c, s, -s, c);
 }
 
+vec3 invX(vec3 p) {
+  return vec3(-p.x,p.yz);
+}
+vec3 invZ(vec3 p) {
+  return vec3(p.xy,-p.z);
+}
 // === GEOMETRY ===
 
 // s is number of segments (*2 + 1, so 5 = 11 segments)
@@ -215,6 +234,42 @@ float antennaConsole(vec3 p) {
   return r;
 }
 
+float antennaCable(vec3 p) {
+  p.zy *= rot(.05);
+  p.y += cos(p.z/20.)*3.;
+  return cylinder(p, 0.01,27.5);
+}
+
+float antennaDoor(vec3 p) {
+  float bounds = length(p) - 2.;
+  if (bounds > .5)
+    return bounds;
+  p.xz -= vec2(1.,-.05);
+  p.zx *= rot(iAnimAntennaDoor * -2.5);  //Door opening animation
+  p.xz += vec2(1.,-.05);
+  float door = cylinder(p, .99,.05); //the door itself
+  pModPolar(p.xy, 8.);
+  return max(door, -min(
+    cuboid(p-vec3(.5,0,.1), vec3(.02, .1, .1)),  //The monument-style impression
+    cylinder(p-vec3(0,0,.1), .02,.1)             //key-hole in the center
+  ));
+}
+
+/* leverState goes from 0-1 - 0 is up, 1 is down */
+float lever(vec3 p, float leverState) {
+  float bounds = length(p) - 1.;
+  if (bounds > 1.)
+    return bounds;
+  float r = cuboid(p, vec3(.2, .5, .05));
+  r = max(r, -cuboid(p, vec3(.03, .2, 1)));
+  p.yz *= rot(-PI / 2. * leverState + PI / 4.);
+  p.z += .2;
+  r = min(r, cylinder(p, .02, .2));
+  p.z += .2;
+  r = min(r, cylinder(p, .03, .05));
+  return r;
+}
+
 // rotation.x controls elevation/altitude, rotation.y controls azimuth
 float antenna(vec3 p, vec2 rotation) {
   const float size = 9.;
@@ -242,12 +297,19 @@ float antenna(vec3 p, vec2 rotation) {
           cylinder(p.xzy - vec3(size / 4., 0, -2.2), size / 2. - .1, size / 3. - .1)  // Floor of the internal room
           ));
   float console = antennaConsole(p - vec3(3, 1.5, 2));
+  float door = antennaDoor(p.zyx-vec3(0,1.8,6.5));
+  float l = lever(invZ(p-vec3(3.7,2,-4)), clamp(iAnimOilrigRamp, 0., 1.));
+
   p.y -= size * .25;
   r = min(r, cylinder(p.xzy, size * .05, size * .5));
   p -= vec3(7, -2.85, 0);
   p.xy *= rot(-.5);
   r = min(r, cuboid(p, vec3(1, 1, .8)));
-  return min(r, console);
+  return min(
+    min(r,door),
+    min(console, l)
+  );
+
 }
 
 float ruinedBuildings(vec3 p) {
@@ -264,11 +326,22 @@ float ruinedBuildings(vec3 p) {
 
 float monument(vec3 p) {
   float bounds = length(p) - 12.;
-  if (bounds > 3.)
+  if (bounds > 2.)
     return bounds;
+  float r = min(
+    cylinder(p.xzy, .2,.5),
+    cylinder(p.xzy, .05,.51)
+  );
+  
+  p.y += iAnimMonumentDescend * 4.;
+  if (iGOAntennaKeyVisible) {
+    r = min(r, sphere(p-vec3(-1.05,5.05,-1.05), .05)); //use a sphere for the antenna key for now
+  }
+  vec3 q=p;
   pModPolar(p.xz, 8.);
   p.x -= 1.5;
-  return cuboid(p, vec3(.1, 5, .2));
+
+  return min(r,cuboid(p, vec3(.1, 5, .2)));
 }
 
 float prison(vec3 p) {
@@ -328,8 +401,8 @@ float oilrig(vec3 p) {
   u.xy *= rot(.3);  // rotate the console towards player
   r = min(r, cuboid(u, vec3(.5, .6, 1.5)));  // console
   t = u - vec3(0, .8, 0);
-  // TODO: rotate wheel around xz based on uniform. something like:
-  // t.xz *= rot(iOilRigWheelRotation);
+  //rotate wheel around xz based on animation uniform:
+  t.xz *= rot(iAnimOilrigWheel);
   r = min(r, torus(t, vec2(.5, .02)));  // wheel
   r = min(r, cylinder(t.xzy + vec3(0, 0, .5), .02, .5));  // center-column of spokes
   pModPolar(t.xz, 5.);
@@ -344,33 +417,22 @@ float oilrig(vec3 p) {
 float oilrigBridge(vec3 p) {
   vec3 q = p.zyx - vec3(4, -1, 17);
   q.zy *= rot(-.2);
-  q.z -= 0.;  // 20: sticking out of sand slightly, 0 - connected with the oil rig
+  q.z -= 20. - iAnimOilrigRamp; // 0: sticking out of sand slightly, 20 - connected with the oil rig
   return bridge(q, 20., 0.);
 }
 
 vec2 screenCoords;
 float screen(vec3 p, vec3 screenPosition, vec2 size, float angle) {
   p -= screenPosition;
+  float bounds = length(p) - 2.;
+  if (bounds > .5)
+    return bounds;
   p.xz *= rot(angle);
   screenCoords = (size - p.xy) / (size * 2.);
   float screen = cuboid(p, vec3(size.x, size.y, 0.01));
   return screen;
 }
 
-/* leverState goes from 0-1 - 0 is up, 1 is down */
-float lever(vec3 p, float leverState) {
-  float bounds = length(p) - 1.;
-  if (bounds > 1.)
-    return bounds;
-  float r = cuboid(p, vec3(.2, .5, .05));
-  r = max(r, -cuboid(p, vec3(.03, .2, 1)));
-  p.yz *= rot(-PI / 2. * leverState + PI / 4.);
-  p.z += .2;
-  r = min(r, cylinder(p, .02, .2));
-  p.z += .2;
-  r = min(r, cylinder(p, .03, .05));
-  return r;
-}
 
 float gameObjectFlashlight(vec3 p) {
   if (!iGOFlashlightVisible)
@@ -410,7 +472,7 @@ float terrain(vec3 p) {
 
 float nonTerrain(vec3 p) {
   float b = bridge(p - vec3(45, 1.7, 22.4), 10., 2.);
-  float a = antenna(p - vec3(2, 10, 2), vec2(0.5, iTime));
+  float a = antenna(p - vec3(2, 10, 2), vec2(0.5, iAnimAntennaRotation));
   float m = monument(p - vec3(47.5, 3.5, 30.5));
   float pr = prison(p.zyx - vec3(11, 1.25, -44));
   float r = ruinedBuildings(p - vec3(100, 10, 300));
@@ -418,9 +480,9 @@ float nonTerrain(vec3 p) {
   oilrigCoords.xz *= rot(PI / 2. + 0.4);
   float o = oilrig(oilrigCoords);
   float ob = oilrigBridge(oilrigCoords);
-  // float lever1 = lever(p-vec3(-65,14,-30), sin(iTime)*.5+.5);
+  float aoc = antennaCable(oilrigCoords.zyx-vec3(-2,9.4,32.5));
 
-  return min(min(min(gameObjects(p), b), min(a, min(o, ob))), min(r, min(m, pr)));
+  return min(min(min(gameObjects(p), b), min(a, min(o, min(ob,aoc)))), min(r, min(m, pr)));
 }
 
 int material = MATERIAL_SKY;
@@ -614,7 +676,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   float specular = 0.;
 
   if (material == MATERIAL_SCREEN) {
-    return texture(iScreens, screenCoords).xyz;
+    return iAnimAntennaRotation > 0. ? texture(iScreens, screenCoords).xyz : vec3(0);
   }
   if (material == MATERIAL_SKY) {
     color = COLOR_SKY;  // mix(COLOR_SKY, COLOR_SUN, pow(clamp(dot(dir, SUNLIGHT_DIRECTION),0.,1.),10.));
