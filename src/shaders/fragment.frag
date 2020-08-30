@@ -414,6 +414,30 @@ float oilrigBridge(vec3 p) {
   return min(bridge(q, 20., 0.), cylinder(q.xzy + vec3(0, 10.5, 6), 0.15, 5.));
 }
 
+float guardTower(vec3 p) {
+  vec3 q = p;
+  pModPolar(q.xz, 6.);
+  float r = min(
+    max(
+      max(
+        min(
+          cylinder(p.xzy,1.6,11.),  //outer cylinder
+          max(
+            opOnion(cylinder(p.xzy-vec3(0,0,13.),4.,2.), .2),  //top part
+            -cuboid(q-vec3(4.,13,0),vec3(1., 1., 2.))  //cut out the windows
+          )
+        ),
+        -cylinder(p.xzy,1.5,12.)  //cut hole down center (not using opOnion, because want to cut out the end too)
+      ),
+      -cuboid(p+vec3(0,8,1), vec3(1,1.2,1))  //cut doorway out
+    ),
+    cylinder(p.xzy-vec3(0,0,clamp(sin(iAnimAntennaRotation)*14.-10.,-20.2, 0.)),1.5,11.)  //elevator
+  );
+
+  return r;
+}
+
+
 vec2 screenCoords;
 float screen(vec3 p, vec3 screenPosition, vec2 size, float angle) {
   p -= screenPosition;
@@ -473,8 +497,9 @@ float nonTerrain(vec3 p) {
   float o = oilrig(oilrigCoords);
   float ob = oilrigBridge(oilrigCoords);
   float aoc = antennaCable(oilrigCoords.zyx - vec3(-2, 9.4, 32.5));
+  float guardTower = guardTower(p - vec3(8.7, 11.5, 31.7));
 
-  return min(min(min(gameObjects(p), b), min(a, min(o, min(ob, aoc)))), min(r, min(m, pr)));
+  return min(min(min(gameObjects(p), b), min(a, min(o, min(ob, aoc)))), min(min(r, guardTower), min(m, pr)));
 }
 
 int material = MATERIAL_SKY;
