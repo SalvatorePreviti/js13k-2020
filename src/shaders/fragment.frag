@@ -58,7 +58,7 @@ uniform bool iGOKeyVisible;
 // Flashlight
 uniform bool iGOFlashlightVisible;
 
-//Antenna key
+// Antenna key
 uniform bool iGOAntennaKeyVisible;
 
 // Animation uniforms
@@ -70,9 +70,9 @@ uniform float iAnimAntennaDoor;
 uniform float iAnimMonumentDescend;
 // Oil Rig Ramp (and lever in antenna room for 0-1 of it)
 uniform float iAnimOilrigRamp;
-//the wheel on the rig
+// the wheel on the rig
 uniform float iAnimOilrigWheel;
-//antenna rotation
+// antenna rotation
 uniform float iAnimAntennaRotation;
 
 uniform bool iFlashlightOn;
@@ -169,13 +169,13 @@ void pModInterval(inout float p, float size, float start, float stop) {
   p = mod(p + halfsize, size) - halfsize;
   if (c > stop) {
     p += size * (c - stop);
-   //c = stop;
+    // c = stop;
   }
   if (c < start) {
     p += size * (c - start);
-    //c = start;
+    // c = start;
   }
-  //return c;
+  // return c;
 }
 
 // Repeat around the origin a number of times
@@ -197,10 +197,10 @@ mat2 rot(float a) {
 }
 
 vec3 invX(vec3 p) {
-  return vec3(-p.x,p.yz);
+  return vec3(-p.x, p.yz);
 }
 vec3 invZ(vec3 p) {
-  return vec3(p.xy,-p.z);
+  return vec3(p.xy, -p.z);
 }
 // === GEOMETRY ===
 
@@ -236,23 +236,23 @@ float antennaConsole(vec3 p) {
 
 float antennaCable(vec3 p) {
   p.zy *= rot(.05);
-  p.y += cos(p.z/20.)*3.;
-  return cylinder(p, 0.01,27.5);
+  p.y += cos(p.z / 20.) * 3.;
+  return cylinder(p, 0.01, 27.5);
 }
 
 float antennaDoor(vec3 p) {
   float bounds = length(p) - 2.;
   if (bounds > .5)
     return bounds;
-  p.xz -= vec2(1.,-.05);
-  p.zx *= rot(iAnimAntennaDoor * -2.5);  //Door opening animation
-  p.xz += vec2(1.,-.05);
-  float door = cylinder(p, .99,.05); //the door itself
+  p.xz -= vec2(1., -.05);
+  p.zx *= rot(iAnimAntennaDoor * -2.5);  // Door opening animation
+  p.xz += vec2(1., -.05);
+  float door = cylinder(p, .99, .05);  // the door itself
   pModPolar(p.xy, 8.);
-  return max(door, -min(
-    cuboid(p-vec3(.5,0,.1), vec3(.02, .1, .1)),  //The monument-style impression
-    cylinder(p-vec3(0,0,.1), .02,.1)             //key-hole in the center
-  ));
+  return max(door,
+      -min(cuboid(p - vec3(.5, 0, .1), vec3(.02, .1, .1)),  // The monument-style impression
+          cylinder(p - vec3(0, 0, .1), .02, .1)  // key-hole in the center
+          ));
 }
 
 /* leverState goes from 0-1 - 0 is up, 1 is down */
@@ -297,19 +297,15 @@ float antenna(vec3 p, vec2 rotation) {
           cylinder(p.xzy - vec3(size / 4., 0, -2.2), size / 2. - .1, size / 3. - .1)  // Floor of the internal room
           ));
   float console = antennaConsole(p - vec3(3, 1.5, 2));
-  float door = antennaDoor(p.zyx-vec3(0,1.8,6.5));
-  float l = lever(invZ(p-vec3(3.7,2,-4)), clamp(iAnimOilrigRamp, 0., 1.));
+  float door = antennaDoor(p.zyx - vec3(0, 1.8, 6.5));
+  float l = lever(invZ(p - vec3(3.7, 2, -4)), clamp(iAnimOilrigRamp, 0., 1.));
 
   p.y -= size * .25;
   r = min(r, cylinder(p.xzy, size * .05, size * .5));
   p -= vec3(7, -2.85, 0);
   p.xy *= rot(-.5);
   r = min(r, cuboid(p, vec3(1, 1, .8)));
-  return min(
-    min(r,door),
-    min(console, l)
-  );
-
+  return min(min(r, door), min(console, l));
 }
 
 float ruinedBuildings(vec3 p) {
@@ -328,20 +324,17 @@ float monument(vec3 p) {
   float bounds = length(p) - 12.;
   if (bounds > 2.)
     return bounds;
-  float r = min(
-    cylinder(p.xzy, .2,.5),
-    cylinder(p.xzy+vec3(0,0,clamp(iAnimMonumentDescend,0.,.02)), .05,.53)
-  );
-  
+  float r = min(cylinder(p.xzy, .2, .5), cylinder(p.xzy + vec3(0, 0, clamp(iAnimMonumentDescend, 0., .02)), .05, .53));
+
   p.y += iAnimMonumentDescend * 4.;
   if (iGOAntennaKeyVisible) {
-    r = min(r, sphere(p-vec3(-1.05,5.05,-1.05), .05)); //use a sphere for the antenna key for now
+    r = min(r, sphere(p - vec3(-1.05, 5.05, -1.05), .05));  // use a sphere for the antenna key for now
   }
-  vec3 q=p;
+  vec3 q = p;
   pModPolar(p.xz, 8.);
   p.x -= 1.5;
 
-  return min(r,cuboid(p, vec3(.1, 5, .2)));
+  return min(r, cuboid(p, vec3(.1, 5, .2)));
 }
 
 float prison(vec3 p) {
@@ -401,7 +394,7 @@ float oilrig(vec3 p) {
   u.xy *= rot(.3);  // rotate the console towards player
   r = min(r, cuboid(u, vec3(.5, .6, 1.5)));  // console
   t = u - vec3(0, .8, 0);
-  //rotate wheel around xz based on animation uniform:
+  // rotate wheel around xz based on animation uniform:
   t.xz *= rot(iAnimOilrigWheel);
   r = min(r, torus(t, vec2(.5, .02)));  // wheel
   r = min(r, cylinder(t.xzy + vec3(0, 0, .5), .02, .5));  // center-column of spokes
@@ -417,7 +410,7 @@ float oilrig(vec3 p) {
 float oilrigBridge(vec3 p) {
   vec3 q = p.zyx - vec3(4, -1, 17);
   q.zy *= rot(-.2);
-  q.z -= 19. - iAnimOilrigRamp; // 0: sticking out of sand slightly, 19 - connected with the oil rig
+  q.z -= 19. - iAnimOilrigRamp;  // 0: sticking out of sand slightly, 20 - connected with the oil rig
   return min(
     bridge(q, 20., 0.),
     cylinder(q.xzy+vec3(0,10.5,6), 0.15, 5.)
@@ -435,7 +428,6 @@ float screen(vec3 p, vec3 screenPosition, vec2 size, float angle) {
   float screen = cuboid(p, vec3(size.x, size.y, 0.01));
   return screen;
 }
-
 
 float gameObjectFlashlight(vec3 p) {
   if (!iGOFlashlightVisible)
@@ -483,9 +475,9 @@ float nonTerrain(vec3 p) {
   oilrigCoords.xz *= rot(PI / 2. + 0.4);
   float o = oilrig(oilrigCoords);
   float ob = oilrigBridge(oilrigCoords);
-  float aoc = antennaCable(oilrigCoords.zyx-vec3(-2,9.4,32.5));
+  float aoc = antennaCable(oilrigCoords.zyx - vec3(-2, 9.4, 32.5));
 
-  return min(min(min(gameObjects(p), b), min(a, min(o, min(ob,aoc)))), min(r, min(m, pr)));
+  return min(min(min(gameObjects(p), b), min(a, min(o, min(ob, aoc)))), min(r, min(m, pr)));
 }
 
 int material = MATERIAL_SKY;
@@ -597,6 +589,10 @@ float rayMarch(vec3 p, vec3 dir) {
 
 #define SHADOW_ITERATIONS 50
 float getShadow(vec3 p, float camDistance, vec3 n) {
+  if (camDistance >= MAX_DIST / 2.) {
+    // Skip objects too far
+    return 1.;
+  }
   float res = 1.;
   float dist = clamp(camDistance * 0.005, 0.01, .1);  // start further out from the surface if the camera is far away
   p = p + n * dist;  // Jump out of the surface by the normal * that dist
