@@ -1,7 +1,14 @@
 import { glDrawFullScreenTriangle, glSetTextureLinearSampling } from './gl/gl-utils'
 
 import { debug_time, debug_timeEnd } from './debug'
-import { GL_UNSIGNED_BYTE, GL_RGBA, GL_TEXTURE_2D, GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 } from './gl/gl-constants'
+import {
+  GL_UNSIGNED_BYTE,
+  GL_RGBA,
+  GL_TEXTURE_2D,
+  GL_FRAMEBUFFER,
+  GL_COLOR_ATTACHMENT0,
+  GL_CLAMP_TO_EDGE
+} from './gl/gl-constants'
 import {
   gl_createTexture,
   gl_bindTexture,
@@ -34,7 +41,7 @@ export const buildHeightmapTexture = () => {
     null
   )
 
-  glSetTextureLinearSampling()
+  glSetTextureLinearSampling(GL_CLAMP_TO_EDGE)
 
   // Create and bind the framebuffer
 
