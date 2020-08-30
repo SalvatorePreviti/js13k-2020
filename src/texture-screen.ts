@@ -30,16 +30,9 @@ export const buildScreenTextures = () => {
   debug_time(buildScreenTextures)
 
   const canvas = document.createElement('canvas')
+  canvas.id = 'S'
   canvas.width = SCREEN_TEXTURE_SIZE
   canvas.height = SCREEN_TEXTURE_SIZE
-
-  objectAssign(canvas.style, {
-    width: `${SCREEN_TEXTURE_SIZE}px`,
-    height: `${SCREEN_TEXTURE_SIZE}px`,
-    opacity: '.01',
-    zIndex: '-1',
-    position: 'absolute'
-  } as Partial<CSSStyleDeclaration>)
 
   document.body.appendChild(canvas)
 
@@ -72,14 +65,12 @@ export const buildScreenTextures = () => {
   }
 
   context.lineWidth = 5
-
-  setFontSize(17)
+  context.scale(1, 1.3)
 
   setFillColor('000015')
   fillRect(0, 0, SCREEN_TEXTURE_SIZE, SCREEN_TEXTURE_SIZE)
 
-  setFillColor('4f8aff')
-  fillText('JS13K Modular Bios v.13', 10, 30)
+  setFontSize(17)
 
   setFillColor('aee')
   fillText('Memory Core: 131072K', 10, 100)
@@ -95,11 +86,13 @@ export const buildScreenTextures = () => {
   setFillColor('f66')
   fillText('FAIL', 245, 170)
 
-  setFontSize(17)
   fillText('Insert floppy disk and press E to continue', 42, 280)
 
   setFontSize(20)
   fillText('💾 ERROR 404 - data disk not found', 48, 250)
+
+  setFillColor('4f8aff')
+  fillText('⬣ JS13K Modular Bios v.13', 10, 30)
 
   captureScreenTexture(0)
 

@@ -1,9 +1,3 @@
-*,
-*:before,
-*:after {
-  box-sizing: inherit;
-}
-
 html,
 body {
   margin: 0;
@@ -11,9 +5,9 @@ body {
 }
 
 body {
+  align-items: center;
   background: #111;
   display: flex;
-  align-items: center;
   justify-content: center;
 }
 
@@ -22,7 +16,13 @@ body {
 }
 
 #T {
-  position: relative;
-  color: #fff;
   bottom: 1.1rem;
+  color: #fff;
+  position: relative;
+}
+
+#S {
+  width: 9px;
+  height: 9px;
+  position: absolute;
 }
