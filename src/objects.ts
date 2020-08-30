@@ -88,6 +88,16 @@ const GAME_OBJECTS = {
     },
     _onLookAt: () => 'A lever [press E or Space]'
   },
+  _antennaConsole: {
+    _location: vec3New(4.8, 14.4, 3.7),
+    _visible: true,
+    _lookAtDistance: 1.5,
+    _onInteract: () => {},
+    _onLookAt: () =>
+      ANIMATIONS._antennaRotation._running
+        ? 'Damn, I need to find this floppy disk'
+        : 'There is no electricity, there must be a generator somewhere in this damn island'
+  },
   _monumentButton: {
     _location: vec3New(47.5, 4, 30.5),
     _visible: true,

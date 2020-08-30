@@ -676,7 +676,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   float specular = 0.;
 
   if (material == MATERIAL_SCREEN) {
-    return texture(iScreens, screenCoords).xyz;
+    return iAnimAntennaRotation > 0. ? texture(iScreens, screenCoords).xyz : vec3(0);
   }
   if (material == MATERIAL_SKY) {
     color = COLOR_SKY;  // mix(COLOR_SKY, COLOR_SUN, pow(clamp(dot(dir, SUNLIGHT_DIRECTION),0.,1.),10.));
