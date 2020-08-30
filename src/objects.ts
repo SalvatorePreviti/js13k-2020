@@ -62,7 +62,7 @@ const GAME_OBJECTS = {
       this._checked = true
     },
     _onLookAt() {
-      return this._checked ? 'A locked door' : 'A door'
+      return this._checked ? 'A locked door… The symbol on it looks familiar' : 'A door'
     }
   },
   _oilrigBridge: {
