@@ -15,6 +15,7 @@ interface GameObject {
 
 const INVENTORY = {
   _key: false,
+  _antennaKey: true,
   _flashlight: false
 }
 
@@ -41,12 +42,28 @@ const GAME_OBJECTS = {
     },
     _onLookAt: () => 'Pick up the flashlight [press E or Space]'
   },
-  _oilrigInitialLookat: {
+  _antennaInitialLookat: {
     _location: vec3New(-40.5, 4.5, 11),
     _visible: true,
     _lookAtDistance: 2.8,
     _onInteract() {},
     _onLookAt: () => 'That looks like a big antenna, maybe I can call for help if I can make it there…'
+  },
+  _antennaDoor: {
+    _location: vec3New(8.5, 14, 2),
+    _visible: true,
+    _lookAtDistance: 2.5,
+    _checked: false,
+    _onInteract() {
+      if (INVENTORY._antennaKey) {
+        this._visible = false
+        runAnimation(ANIMATIONS._antennaDoor)
+      }
+      this._checked = true
+    },
+    _onLookAt() {
+      return this._checked ? 'A locked door' : 'A door'
+    }
   },
   _oilrigBridge: {
     _location: vec3New(11.8, 2, -34.3),
@@ -64,7 +81,7 @@ const GAME_OBJECTS = {
       if (INVENTORY._key) {
         this._visible = false
         runAnimation(ANIMATIONS._prisonDoor)
-        GAME_OBJECTS._oilrigInitialLookat._visible = false //no longer do the oil-rig lookat text
+        GAME_OBJECTS._antennaInitialLookat._visible = false //no longer do the initial antenna lookat text
       }
       this._checked = true
     },

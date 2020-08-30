@@ -58,6 +58,8 @@ uniform bool iGOFlashlightVisible;
 // Animation uniforms
 // Prison Door 0 - closed, 1 - open
 uniform float iAnimPrisonDoor;
+// Antenna Door 0-1
+uniform float iAnimAntennaDoor;
 
 uniform bool iFlashlightOn;
 
@@ -113,7 +115,7 @@ float unpackFloat(vec4 rgba) {
  Returns 3D value noise (in .x)  and its derivatives (in .yz).
  Based on https://www.iquilezles.org/www/articles/gradientnoise/gradientnoise.htm by Iq
 */
-vec3 noiseDxy(in vec2 x) {
+vec3 noiseDxy(vec2 x) {
   vec4 T = texelFetch(iNoise, ivec2(floor(x)) & NOISE_TEXTURE_BITMASK, 0);
   float xba = T.y - T.x, xca = T.z - T.x;
   float abcd = T.w - xba - T.z;
@@ -172,7 +174,7 @@ void pModPolar(inout vec2 p, float repetitions) {
   p = vec2(cos(a), sin(a)) * r;
 }
 
-float opOnion(in float sdf, in float thickness) {
+float opOnion(float sdf, float thickness) {
   return abs(sdf) - thickness;
 }
 
@@ -215,6 +217,27 @@ float antennaConsole(vec3 p) {
   return r;
 }
 
+float antennaCable(vec3 p) {
+  p.zy *= rot(.05);
+  p.y += cos(p.z/20.)*3.;
+  return cylinder(p, 0.01,27.5);
+}
+
+float antennaDoor(vec3 p) {
+  float bounds = length(p) - 2.;
+  if (bounds > .5)
+    return bounds;
+  p.xz -= vec2(1.,-.05);
+  p.zx *= rot(iAnimAntennaDoor * -2.5);  //Door opening animation
+  p.xz += vec2(1.,-.05);
+  float door = cylinder(p, .99,.05); //the door itself
+  pModPolar(p.xy, 8.);
+  return max(door, -min(
+    cuboid(p-vec3(.5,0,.1), vec3(.02, .1, .1)),  //The monument-style impression
+    cylinder(p-vec3(0,0,.1), .02,.1)             //key-hole in the center
+  ));
+}
+
 // rotation.x controls elevation/altitude, rotation.y controls azimuth
 float antenna(vec3 p, vec2 rotation) {
   const float size = 9.;
@@ -247,13 +270,14 @@ float antenna(vec3 p, vec2 rotation) {
     )
   );
   float console = antennaConsole(p-vec3(3,1.5,2));
+  float door = antennaDoor(p.zyx-vec3(0,1.8,6.5));
   p.y -= size * .25;
   r = min(r, cylinder(p.xzy, size * .05, size * .5));
   p-=vec3(7,-2.85,0);
   p.xy *= rot(-.5);
   r = min(r, cuboid(p, vec3(1,1,.8)));
   return min(
-    r,
+    min(r,door),
     console
   );
 }
@@ -438,6 +462,7 @@ float nonTerrain(vec3 p) {
   oilrigCoords.xz *= rot(PI/2.+0.4);
   float o = oilrig(oilrigCoords);
   float ob = oilrigBridge(oilrigCoords);
+  float aoc = antennaCable(oilrigCoords.zyx-vec3(-2,9.4,32.5));
   //float lever1 = lever(p-vec3(-65,14,-30), sin(iTime)*.5+.5);
 
   return min(
@@ -446,7 +471,10 @@ float nonTerrain(vec3 p) {
         min(a,
           min(
             o,
-            ob
+            min(
+              ob,
+              aoc
+            )
           )
         )
       ),

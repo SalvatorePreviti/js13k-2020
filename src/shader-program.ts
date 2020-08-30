@@ -39,6 +39,7 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     iGOKeyVisible,
     iGOFlashlightVisible,
     iAnimPrisonDoor,
+    iAnimAntennaDoor,
     iFlashlightOn
   } = glNewUniformLocationGetter(program)
 
@@ -77,6 +78,9 @@ export const loadMainShaderProgram = (mainFunction: string) => {
 
     //prison door, open-closed
     gl_uniform1f(iAnimPrisonDoor, ANIMATIONS._prisonDoor._value)
+
+    //antenna door, open-closed
+    gl_uniform1f(iAnimAntennaDoor, ANIMATIONS._antennaDoor._value)
 
     gl_uniform1i(iFlashlightOn, flashlightOn ? 1 : 0)
   }

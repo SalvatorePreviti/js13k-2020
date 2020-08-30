@@ -15,6 +15,13 @@ const ANIMATIONS = {
     _initial: 0,
     _max: 1,
     _running: false
+  },
+  _antennaDoor: {
+    _value: 0,
+    _speed: 0.2,
+    _initial: 0,
+    _max: 1,
+    _running: false
   }
 }
 
