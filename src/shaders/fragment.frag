@@ -330,7 +330,7 @@ float monument(vec3 p) {
     return bounds;
   float r = min(
     cylinder(p.xzy, .2,.5),
-    cylinder(p.xzy+vec3(0,0,clamp(iAnimMonumentDescend,0.,.015)), .05,.52)
+    cylinder(p.xzy+vec3(0,0,clamp(iAnimMonumentDescend,0.,.02)), .05,.53)
   );
   
   p.y += iAnimMonumentDescend * 4.;
