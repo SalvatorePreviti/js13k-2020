@@ -163,19 +163,19 @@ float torus(vec3 p, vec2 t) {
 //=== OPERATIONS ===
 // hg_sdf: http://mercury.sexy/hg_sdf/
 // splits world up with limits
-float pModInterval(inout float p, float size, float start, float stop) {
+void pModInterval(inout float p, float size, float start, float stop) {
   float halfsize = size * 0.5;
   float c = floor((p + halfsize) / size);
   p = mod(p + halfsize, size) - halfsize;
   if (c > stop) {
     p += size * (c - stop);
-    c = stop;
+   //c = stop;
   }
   if (c < start) {
     p += size * (c - start);
-    c = start;
+    //c = start;
   }
-  return c;
+  //return c;
 }
 
 // Repeat around the origin a number of times
