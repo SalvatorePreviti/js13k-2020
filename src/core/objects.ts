@@ -44,3 +44,6 @@ export const newProxyGetter = <R, T extends object>(
   getter: (name: string) => R,
   target: T = {} as any
 ): T & Record<string, R> => new Proxy(target, { get: (_, name) => getter(name as string) }) as any
+
+export const newProxyBinder = <T extends object>(instance: T) =>
+  newProxyGetter((name) => functionBind(instance, instance[name]), instance)

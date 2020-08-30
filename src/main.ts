@@ -11,14 +11,14 @@ import { updateGameObjects } from './objects'
 import { updateText } from './text'
 import { loadMainShader, mainShader } from './shader-program'
 import { updateCollider } from './collider'
-import { buildScreenTexture } from './texture-screen'
+import { buildScreenTextures, bindScreenTexture } from './texture-screen'
 
 let prevTime = 0
 let time = 0
 
-buildScreenTexture()
 buildNoiseTexture()
 buildHeightmapTexture()
+buildScreenTextures()
 loadMainShader()
 
 const animationFrame = debug_trycatch_wrap(
@@ -30,7 +30,7 @@ const animationFrame = debug_trycatch_wrap(
     requestAnimationFrame(animationFrame)
 
     updateCamera(timeDelta)
-    //updateCollider(time, timeDelta)
+    updateCollider(time)
     debug_updateCameraPosition(cameraPos)
 
     updateAnimations(timeDelta)
@@ -38,6 +38,8 @@ const animationFrame = debug_trycatch_wrap(
     updateText(timeDelta)
 
     // Render main scene
+
+    bindScreenTexture(time & 1)
 
     mainShader._use(time, canvasSize.x, canvasSize.y)
 
@@ -58,8 +60,6 @@ if (import.meta.hot) {
     loadMainShader()
     buildHeightmapTexture()
   }
-
-  //setInterval(reloadHeightmap, 300)
 
   import.meta.hot.on('/src/shaders/vertex.vert', reloadMainShader)
   import.meta.hot.on('/src/shaders/fragment.frag', reloadMainShader)
