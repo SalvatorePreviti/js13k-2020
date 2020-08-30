@@ -1,5 +1,5 @@
 import { objectValues } from './core/objects'
-import { GAME_OBJECTS } from './objects'
+import { GAME_OBJECTS, INVENTORY } from './objects'
 import { vec3New } from './math/vec3'
 
 interface Animation {
@@ -41,7 +41,7 @@ const ANIMATIONS = {
     _value: 0,
     _speed: 1,
     _initial: 0,
-    _max: 20,
+    _max: 19,
     _running: 0
   },
   _oilrigWheel: {

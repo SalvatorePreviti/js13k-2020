@@ -80,7 +80,7 @@ const GAME_OBJECTS = {
   _antennaOilrigLever: {
     _location: vec3New(5.7, 14.2, -1.9),
     _visible: true,
-    _lookAtDistance: 1,
+    _lookAtDistance: 1.5,
     _onInteract() {
       this._visible = false
       runAnimation(ANIMATIONS._oilrigRamp)
