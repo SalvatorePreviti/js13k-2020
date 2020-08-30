@@ -4,25 +4,13 @@ import { xoshiro128ss } from './math/rand'
 import {
   GL_TEXTURE1,
   GL_TEXTURE_2D,
-  GL_TEXTURE_WRAP_S,
-  GL_TEXTURE_MAG_FILTER,
-  GL_LINEAR,
-  GL_TEXTURE_MIN_FILTER,
-  GL_REPEAT,
-  GL_TEXTURE_WRAP_T,
   GL_UNPACK_ALIGNMENT,
   GL_RGBA,
   GL_UNSIGNED_BYTE,
   GL_TEXTURE0
 } from './gl/gl-constants'
-import {
-  gl_activeTexture,
-  gl_bindTexture,
-  gl_texParameteri,
-  gl_texImage2D,
-  gl_pixelStorei,
-  gl_createTexture
-} from './gl/gl-context'
+import { gl_activeTexture, gl_bindTexture, gl_texImage2D, gl_pixelStorei, gl_createTexture } from './gl/gl-context'
+import { glSetTextureLinearSampling } from './gl/gl-utils'
 
 export const NOISE_TEXTURE_SIZE = 512
 
@@ -64,12 +52,8 @@ export const buildNoiseTexture = () => {
   gl_texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, NOISE_TEXTURE_SIZE, NOISE_TEXTURE_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
 
   gl_bindTexture(GL_TEXTURE_2D, noiseTexture)
-  gl_texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-  gl_texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-  gl_texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-  gl_texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+  glSetTextureLinearSampling()
 
-  gl_bindTexture(GL_TEXTURE_2D, noiseTexture)
   gl_activeTexture(GL_TEXTURE0)
 
   debug_timeEnd(buildNoiseTexture)

@@ -30,6 +30,7 @@ export const loadMainShaderProgram = (mainFunction: string) => {
   const {
     iHeightmap,
     iNoise,
+    iScreens,
     iResolution,
     iTime,
     iCameraPos,
@@ -38,7 +39,13 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     iCameraMat3,
     iGOKeyVisible,
     iGOFlashlightVisible,
+    iGOAntennaKeyVisible,
     iAnimPrisonDoor,
+    iAnimAntennaDoor,
+    iAnimMonumentDescend,
+    iAnimOilrigRamp,
+    iAnimOilrigWheel,
+    iAnimAntennaRotation,
     iFlashlightOn
   } = glNewUniformLocationGetter(program)
 
@@ -47,6 +54,9 @@ export const loadMainShaderProgram = (mainFunction: string) => {
 
   // Texture 1
   gl_uniform1i(iNoise, 1)
+
+  // Texture 1
+  gl_uniform1i(iScreens, 3)
 
   const _use = (time: number, width: number, height: number) => {
     gl_viewport(0, 0, width, height)
@@ -74,9 +84,24 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     gl_uniform1i(iGOKeyVisible, GAME_OBJECTS._key._visible ? 1 : 0)
     //Torch visibility
     gl_uniform1i(iGOFlashlightVisible, GAME_OBJECTS._flashlight._visible ? 1 : 0)
-
+    //Torch visibility
+    gl_uniform1i(iGOAntennaKeyVisible, GAME_OBJECTS._antennaKey._visible ? 1 : 0)
     //prison door, open-closed
     gl_uniform1f(iAnimPrisonDoor, ANIMATIONS._prisonDoor._value)
+
+    //antenna door, open-closed
+    gl_uniform1f(iAnimAntennaDoor, ANIMATIONS._antennaDoor._value)
+
+    //monument Descend
+    gl_uniform1f(iAnimMonumentDescend, ANIMATIONS._monumentDescend._value)
+
+    //ramp to oil rig
+    gl_uniform1f(iAnimOilrigRamp, ANIMATIONS._oilrigRamp._value)
+
+    //wheel on oil rig
+    gl_uniform1f(iAnimOilrigWheel, ANIMATIONS._oilrigWheel._value)
+    //wheel on oil rig
+    gl_uniform1f(iAnimAntennaRotation, ANIMATIONS._antennaRotation._value)
 
     gl_uniform1i(iFlashlightOn, flashlightOn ? 1 : 0)
   }
