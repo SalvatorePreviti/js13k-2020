@@ -714,7 +714,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   }
 
   color = mix(color, waterColor, waterTransparencyMix) * (COLOR_SUN * lightIntensity);
-  color *= mix(0.38, 1.03, shadow) + specular;
+  color *= mix(0.3, 1.01, shadow) + specular;
 
   return applyFog(color, mdist, dir);
 }
