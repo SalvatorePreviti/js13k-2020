@@ -49,6 +49,16 @@ const ANIMATIONS = {
     _speed: 3,
     _initial: 0,
     _max: 10,
+    _running: 0,
+    _onComplete() {
+      runAnimation(ANIMATIONS._antennaRotation)
+    }
+  },
+  _antennaRotation: {
+    _value: 0,
+    _speed: 0.5,
+    _initial: 0,
+    _max: 1000000000, //never end
     _running: 0
   }
 }
@@ -61,7 +71,7 @@ function updateAnimations(dt: float) {
       continue
     }
     anim._value += anim._speed * dt * anim._running
-    if (anim._value >= anim._max || anim._value <= anim._initial) {
+    if (anim._value > anim._max || anim._value < anim._initial) {
       anim._value = anim._running > 0 ? anim._max : anim._initial
       if (anim._onComplete) {
         anim._onComplete()

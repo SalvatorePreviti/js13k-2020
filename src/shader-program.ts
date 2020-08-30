@@ -44,6 +44,7 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     iAnimMonumentDescend,
     iAnimOilrigRamp,
     iAnimOilrigWheel,
+    iAnimAntennaRotation,
     iFlashlightOn
   } = glNewUniformLocationGetter(program)
 
@@ -95,6 +96,8 @@ export const loadMainShaderProgram = (mainFunction: string) => {
 
     //wheel on oil rig
     gl_uniform1f(iAnimOilrigWheel, ANIMATIONS._oilrigWheel._value)
+    //wheel on oil rig
+    gl_uniform1f(iAnimAntennaRotation, ANIMATIONS._antennaRotation._value)
 
     gl_uniform1i(iFlashlightOn, flashlightOn ? 1 : 0)
   }

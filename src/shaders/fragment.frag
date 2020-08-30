@@ -65,10 +65,12 @@ uniform float iAnimPrisonDoor;
 uniform float iAnimAntennaDoor;
 // Monument Descend
 uniform float iAnimMonumentDescend;
-// Oil Rig Ramp
+// Oil Rig Ramp (and lever in antenna room for 0-1 of it)
 uniform float iAnimOilrigRamp;
-// Oil rig wheel
+//the wheel on the rig
 uniform float iAnimOilrigWheel;
+//antenna rotation
+uniform float iAnimAntennaRotation;
 
 uniform bool iFlashlightOn;
 
@@ -481,7 +483,7 @@ float terrain(vec3 p) {
 
 float nonTerrain(vec3 p) {
   float b = bridge(p - vec3(45, 1.7, 22.4), 10., 2.);
-  float a = antenna(p - vec3(2, 10, 2), vec2(0.5, iTime * clamp(iAnimOilrigWheel,0.,1.) * .5));
+  float a = antenna(p - vec3(2, 10, 2), vec2(0.5, iAnimAntennaRotation));
   float m = monument(p - vec3(47.5, 3.5, 30.5));
   float pr = prison(p.zyx - vec3(11, 1.25, -44));
   float r = ruinedBuildings(p - vec3(100, 10, 300));
