@@ -7,7 +7,7 @@ import { updateCamera, cameraPos } from './camera'
 import { buildHeightmapTexture } from './texture-heightmap'
 import { buildNoiseTexture } from './texture-noise'
 import { updateAnimations } from './state/animations'
-import { updateGameObjects } from './state/objects'
+import { updateGameObjects, GAME_OBJECTS } from './state/objects'
 import { updateText } from './text'
 import { loadMainShader, mainShader } from './shader-program'
 import { updateCollider } from './collider'
@@ -49,7 +49,7 @@ onload = () => {
 
       // Render main scene
 
-      bindScreenTexture(time & 1)
+      bindScreenTexture(GAME_OBJECTS._antennaConsole._floppyInserted ? 2 : time & 1)
 
       mainShader._use(time, pageState._w, pageState._h)
 

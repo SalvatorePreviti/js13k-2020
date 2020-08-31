@@ -41,12 +41,14 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     iGOKeyVisible,
     iGOFlashlightVisible,
     iGOAntennaKeyVisible,
+    iGOFloppyDiskVisible,
     iAnimPrisonDoor,
     iAnimAntennaDoor,
     iAnimMonumentDescend,
     iAnimOilrigRamp,
     iAnimOilrigWheel,
     iAnimAntennaRotation,
+    iAnimElevatorHeight,
     iFlashlightOn
   } = glNewUniformLocationGetter(program)
 
@@ -85,8 +87,10 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     gl_uniform1i(iGOKeyVisible, GAME_OBJECTS._key._visible ? 1 : 0)
     //Torch visibility
     gl_uniform1i(iGOFlashlightVisible, GAME_OBJECTS._flashlight._visible ? 1 : 0)
-    //Torch visibility
+    //Antenna Key visibility
     gl_uniform1i(iGOAntennaKeyVisible, GAME_OBJECTS._antennaKey._visible ? 1 : 0)
+    //Floppy Disk visibility
+    gl_uniform1i(iGOFloppyDiskVisible, GAME_OBJECTS._floppyDisk._visible ? 1 : 0)
     //prison door, open-closed
     gl_uniform1f(iAnimPrisonDoor, ANIMATIONS._prisonDoor._value)
 
@@ -101,8 +105,10 @@ export const loadMainShaderProgram = (mainFunction: string) => {
 
     //wheel on oil rig
     gl_uniform1f(iAnimOilrigWheel, ANIMATIONS._oilrigWheel._value)
-    //wheel on oil rig
+    //antenna rotation
     gl_uniform1f(iAnimAntennaRotation, ANIMATIONS._antennaRotation._value)
+    //elevator height
+    gl_uniform1f(iAnimElevatorHeight, ANIMATIONS._elevatorHeight._value)
 
     gl_uniform1i(iFlashlightOn, GAME_OBJECTS._flashlight._active && !pageState._mainMenu ? 1 : 0)
   }

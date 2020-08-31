@@ -60,6 +60,13 @@ const ANIMATIONS = {
     _initial: 0,
     _max: 1000000000, //never end
     _running: 0
+  },
+  _elevatorHeight: {
+    _value: 1, //top
+    _initial: -19.2,
+    _max: 1,
+    _speed: 4,
+    _running: 0
   }
 }
 

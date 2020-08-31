@@ -60,6 +60,8 @@ uniform bool iGOFlashlightVisible;
 
 // Antenna key
 uniform bool iGOAntennaKeyVisible;
+// Floppy Disk
+uniform bool iGOFloppyDiskVisible;
 
 // Animation uniforms
 // Prison Door 0 - closed, 1 - open
@@ -74,6 +76,8 @@ uniform float iAnimOilrigRamp;
 uniform float iAnimOilrigWheel;
 // antenna rotation
 uniform float iAnimAntennaRotation;
+// elevator height
+uniform float iAnimElevatorHeight;
 
 uniform bool iFlashlightOn;
 
@@ -202,7 +206,35 @@ vec3 invX(vec3 p) {
 vec3 invZ(vec3 p) {
   return vec3(p.xy, -p.z);
 }
+
+
 // === GEOMETRY ===
+float gameObjectFlashlight(vec3 p) {
+  float bounds = length(p) - .3;
+  if (bounds > .3)
+    return bounds;
+  p.xz *= rot(-1.2);
+  p.yz *= rot(-.2);
+  return min(cylinder(p, .025, .1), max(sphere(p - vec3(0, 0, .12), .05), p.z - .12));
+}
+
+float gameObjectKey(vec3 p) {
+  float bounds = length(p) - .3;
+  if (bounds > .3)
+    return bounds;
+  float r = cylinder(p, .01, .06);  // shaft
+  r = min(r, cylinder(p.yzx + vec3(0, .1, 0), .04, .005));  // handle
+  r = min(r, cuboid(p - vec3(0, -.01, .04), vec3(.002, .02, .02)));
+
+  return r;
+}
+
+float gameObjectFloppy(vec3 p) {
+  return min(
+    cuboid(p, vec3(.06,.005,.06)),
+    cuboid(p-vec3(.03,0,0), vec3(.03,.006,.03))
+  );
+}
 
 // s is number of segments (*2 + 1, so 5 = 11 segments)
 float bridge(vec3 p, float s, float bend) {
@@ -328,7 +360,7 @@ float monument(vec3 p) {
 
   p.y += iAnimMonumentDescend * 4.;
   if (iGOAntennaKeyVisible) {
-    r = min(r, sphere(p - vec3(-1.05, 5.05, -1.05), .05));  // use a sphere for the antenna key for now
+    r = min(r, gameObjectKey(p - vec3(-1.05, 5.05, -1.05)));
   }
   vec3 q = p;
   pModPolar(p.xz, 8.);
@@ -420,8 +452,9 @@ float guardTower(vec3 p) {
   if (bounds > 4.) {
     return bounds;
   }
-  vec3 q,z;
+  vec3 q,z,y;
   q = p;
+  y = p;
   pModPolar(q.xz, 6.);
   z = q;
   pModInterval(z.y, 1.5, -3., 7.);
@@ -442,12 +475,21 @@ float guardTower(vec3 p) {
       ),
       -cuboid(p+vec3(0,7,1), vec3(.8,1.2,.8))  //cut doorway out
     ),
-    cylinder(p.xzy-vec3(0,0,clamp(cos(iAnimAntennaRotation)*14.-11.,-19.2, 1.)),1.,11.)  //elevator
+    cylinder(p.xzy-vec3(0,0,iAnimElevatorHeight),1.,11.)  //elevator
   );
+  y -= vec3(.8, 12.7, -.9);
+  pModInterval(y.y, 20.5, -1., 0.);
 
+  float liftButton = min(
+    cylinder(y.xzy, .05, .5),
+    min(
+      cuboid(y-vec3(0, .5, 0), vec3(.05,.1,.1)),
+      sphere(y-vec3(0, .5, 0), .06)
+    )
+  );
   return min(
-    r,
-    cuboid(p+vec3(0,10.3,3), vec3(1.1,2.,3.))
+    min(r, liftButton),
+    cuboid(p+vec3(0,10.3,3), vec3(1.1,2.,3.)) //the platform to the bottom lift section
   );
   // clang-format on
 }
@@ -462,34 +504,6 @@ float screen(vec3 p, vec3 screenPosition, vec2 size, float angle) {
   screenCoords = (size - p.xy) / (size * 2.);
   float screen = cuboid(p, vec3(size.x, size.y, 0.01));
   return screen;
-}
-
-float gameObjectFlashlight(vec3 p) {
-  if (!iGOFlashlightVisible)
-    return MAX_DIST;
-  float bounds = length(p) - .3;
-  if (bounds > .3)
-    return bounds;
-  p.xz *= rot(-1.2);
-  p.yz *= rot(-.2);
-  return min(cylinder(p, .025, .1), max(sphere(p - vec3(0, 0, .12), .05), p.z - .12));
-}
-
-float gameObjectKey(vec3 p) {
-  if (!iGOKeyVisible)
-    return MAX_DIST;
-  float bounds = length(p) - .3;
-  if (bounds > .3)
-    return bounds;
-  float r = cylinder(p, .01, .06);  // shaft
-  r = min(r, cylinder(p.yzx + vec3(0, .1, 0), .04, .005));  // handle
-  r = min(r, cuboid(p - vec3(0, -.01, .04), vec3(.002, .02, .02)));
-
-  return r;
-}
-
-float gameObjects(vec3 p) {
-  return min(gameObjectKey(p.yzx - vec3(2., 7.4, -45.5)), gameObjectFlashlight(p - vec3(-42, 3, 11.2)));
 }
 
 float iterations = 0.;
@@ -512,8 +526,15 @@ float nonTerrain(vec3 p) {
   float ob = oilrigBridge(oilrigCoords);
   float aoc = antennaCable(oilrigCoords.zyx - vec3(-2, 9.4, 32.5));
   float guardTower = guardTower(p - vec3(8.7, 9.3, 37));
+  float gameObjects = min(
+    iGOKeyVisible ? gameObjectKey(p.yzx - vec3(2., 7.4, -45.5)) : MAX_DIST, 
+    min(
+      iGOFlashlightVisible ? gameObjectFlashlight(p - vec3(-42, 3, 11.2)) : MAX_DIST, 
+      iGOFloppyDiskVisible ? gameObjectFloppy(p - vec3(12.15, 22.31, 38.65)) : MAX_DIST
+    )
+  );
 
-  return min(min(min(gameObjects(p), b), min(a, min(o, min(ob, aoc)))), min(min(r, guardTower), min(m, pr)));
+  return min(min(min(gameObjects, b), min(a, min(o, min(ob, aoc)))), min(min(r, guardTower), min(m, pr)));
 }
 
 int material = MATERIAL_SKY;

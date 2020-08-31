@@ -16,7 +16,8 @@ interface GameObject {
 const INVENTORY = {
   _key: false,
   _antennaKey: false,
-  _flashlight: false
+  _flashlight: false,
+  _floppy: false
 }
 
 const GAME_OBJECTS = {
@@ -93,10 +94,19 @@ const GAME_OBJECTS = {
     _location: vec3New(4.8, 14.4, 3.7),
     _visible: true,
     _lookAtDistance: 1.5,
-    _onInteract: () => {},
+    _floppyInserted: false,
+    _onInteract() {
+      if (ANIMATIONS._antennaRotation._running && INVENTORY._floppy) {
+        this._floppyInserted = true
+      }
+    },
     _onLookAt: () =>
-      ANIMATIONS._antennaRotation._running
-        ? 'Damn, I need to find this floppy disk'
+      GAME_OBJECTS._antennaConsole._floppyInserted
+        ? ''
+        : ANIMATIONS._antennaRotation._running
+        ? INVENTORY._floppy
+          ? 'Insert the floppy disk'
+          : 'Damn, I need to find this floppy disk'
         : 'There is no electricity, there must be a generator somewhere in this damn island'
   },
   _monumentButton: {
@@ -150,6 +160,59 @@ const GAME_OBJECTS = {
         : this._checked
         ? 'A locked door, I need a key'
         : 'A door [press E or Space to open]'
+    }
+  },
+  _floppyDisk: {
+    _location: vec3New(12.2, 22.3, 38.7),
+    _lookAtDistance: 2,
+    _visible: true,
+    _onInteract() {
+      this._visible = false
+      INVENTORY._floppy = true
+    },
+    _onLookAt: () => 'A floppy disk'
+  },
+  _bottomLiftButton: {
+    _location: vec3New(9.3, 2, 36.1),
+    _lookAtDistance: 2,
+    _visible: true,
+    _onInteract() {
+      if (!ANIMATIONS._antennaRotation._running) {
+        return
+      }
+      if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._initial) {
+        runAnimation(ANIMATIONS._elevatorHeight)
+      }
+      if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._max) {
+        runAnimation(ANIMATIONS._elevatorHeight, false) //run it backwards
+      }
+    },
+    _onLookAt() {
+      if (!ANIMATIONS._antennaRotation._running) {
+        return 'Elevator is out of order'
+      }
+      if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._initial) {
+        return 'Activate'
+      }
+      if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._max) {
+        return 'Call elevator'
+      }
+      return ''
+    }
+  },
+  _topLiftButton: {
+    _location: vec3New(9.3, 22.5, 36.1),
+    _lookAtDistance: 2,
+    _visible: true,
+    _onInteract: () => GAME_OBJECTS._bottomLiftButton._onInteract(),
+    _onLookAt() {
+      if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._max) {
+        return 'Activate'
+      }
+      if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._initial) {
+        return 'Call elevator'
+      }
+      return ''
     }
   }
 }
