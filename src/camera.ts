@@ -9,9 +9,14 @@ import {
   KEY_RUN
 } from './keyboard'
 
-import { debug_updateCameraPosition, debug_updateCameraDirection, debug_updateCameraEulerAngles } from './debug'
+import {
+  debug_mode,
+  debug_updateCameraPosition,
+  debug_updateCameraDirection,
+  debug_updateCameraEulerAngles
+} from './debug'
 import { canvasElement, pageState } from './page'
-import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD } from './math/scalar'
+import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD, RAD_TO_DEG } from './math/scalar'
 import {
   vec3Temp0,
   vec3Add,
@@ -58,32 +63,14 @@ export const cameraMoveDown = (amount: number) => {
   cameraPos.y += amount
 }
 
-export const updateCamera = (timeDelta: number) => {
-  const speed = (isKeyPressed(KEY_RUN) ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * timeDelta
-
-  if (isKeyPressed(KEY_FORWARD)) {
-    cameraMoveForward(speed)
-  }
-  if (isKeyPressed(KEY_BACKWARD)) {
-    cameraMoveForward(-speed)
-  }
-  if (isKeyPressed(KEY_STRAFE_LEFT)) {
-    cameraStrafe(-speed)
-  }
-  if (isKeyPressed(KEY_STRAFE_RIGHT)) {
-    cameraStrafe(speed)
-  }
-  if (isKeyPressed(KEY_FLY_UP)) {
-    cameraMoveDown(-speed)
-  }
-  if (isKeyPressed(KEY_FLY_DOWN)) {
-    cameraMoveDown(speed)
-  }
-}
-
 const updateCameraDirFromEulerAngles = () => {
   //vec3FromYawAndPitch(cameraDir, cameraEulerAngles)
   const { x: yaw, y: pitch } = cameraEuler
+
+  // if (game is not started we should use) {
+  //   yaw = -170 * DEG_TO_RAD
+  //   pitch = 15 * DEG_TO_RAD
+  // }
 
   const sinYaw = sin(yaw)
   const cosYaw = cos(yaw)
@@ -106,6 +93,33 @@ const updateCameraDirFromEulerAngles = () => {
     -sinPitch,
     cosYaw * cosPitch
   )
+}
+
+export const updateCamera = (timeDelta: number) => {
+  const speed = (isKeyPressed(KEY_RUN) ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * timeDelta
+
+  if (isKeyPressed(KEY_FORWARD)) {
+    cameraMoveForward(speed)
+  }
+  if (isKeyPressed(KEY_BACKWARD)) {
+    cameraMoveForward(-speed)
+  }
+  if (isKeyPressed(KEY_STRAFE_LEFT)) {
+    cameraStrafe(-speed)
+  }
+  if (isKeyPressed(KEY_STRAFE_RIGHT)) {
+    cameraStrafe(speed)
+  }
+  if (debug_mode) {
+    if (isKeyPressed(KEY_FLY_UP)) {
+      cameraPos.y -= speed
+    }
+    if (isKeyPressed(KEY_FLY_DOWN)) {
+      cameraPos.y += speed
+    }
+  }
+
+  updateCameraDirFromEulerAngles()
 
   debug_updateCameraEulerAngles(cameraEuler)
   debug_updateCameraDirection(cameraDir)
@@ -124,6 +138,5 @@ onmousemove = (e) => {
       -87 * DEG_TO_RAD,
       87 * DEG_TO_RAD
     )
-    updateCameraDirFromEulerAngles()
   }
 }

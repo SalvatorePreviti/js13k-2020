@@ -36,7 +36,11 @@ onload = () => {
       debug_beginFrame()
 
       updateCamera(timeDelta)
-      updateCollider(time)
+
+      if (!pageState._mainMenu) {
+        updateCollider(time)
+      }
+
       debug_updateCameraPosition(cameraPos)
 
       updateAnimations(timeDelta)

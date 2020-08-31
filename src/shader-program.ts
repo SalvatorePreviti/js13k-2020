@@ -70,7 +70,7 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     gl_uniform1f(iTime, time)
 
     // Camera position
-    gl_uniform3f(iCameraPos, cameraPos.x, cameraPos.y, cameraPos.z)
+    gl_uniform3f(iCameraPos, cameraPos.x, cameraPos.y, cameraPos.z) // If game is not started we should use gl_uniform3f(iCameraPos, 8, 28, 34)
 
     // Camera direction
     gl_uniform3f(iCameraDir, cameraDir.x, cameraDir.y, cameraDir.z)

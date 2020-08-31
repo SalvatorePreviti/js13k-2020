@@ -1,5 +1,7 @@
 import { GAME_OBJECTS, INVENTORY } from './state/objects'
 import { showMainMenu, pageState } from './page'
+import { objectAssign } from './core/objects'
+import { debug_mode } from './debug'
 
 export const KEY_FORWARD = 1
 
@@ -63,15 +65,19 @@ const _keyMap: Record<string, number> = {
 
   Escape: KEY_MAIN_MENU,
   M: KEY_MAIN_MENU,
-  m: KEY_MAIN_MENU,
+  m: KEY_MAIN_MENU
+}
 
-  f: KEY_FLY_UP,
-  F: KEY_FLY_UP,
-  '+': KEY_FLY_UP,
+if (debug_mode) {
+  objectAssign(_keyMap, {
+    f: KEY_FLY_UP,
+    F: KEY_FLY_UP,
+    '+': KEY_FLY_UP,
 
-  r: KEY_FLY_DOWN,
-  R: KEY_FLY_DOWN,
-  '-': KEY_FLY_DOWN
+    r: KEY_FLY_DOWN,
+    R: KEY_FLY_DOWN,
+    '-': KEY_FLY_DOWN
+  })
 }
 
 const _setKeyPressed = (e: KeyboardEvent, value: boolean) => {
