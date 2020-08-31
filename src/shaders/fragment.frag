@@ -270,6 +270,22 @@ float lever(vec3 p, float leverState) {
   return r;
 }
 
+float antennaRoom(vec3 p) {
+  const float size = 9.;
+  float mainRoom = cylinder(p.xzy - vec3(size / 4., 0, 0), size / 2. - .1, size / 3. - .1);
+  if (mainRoom > 1.) return mainRoom;
+  float r = min(max(opOnion(mainRoom, .1),
+              -min(cylinder(p.zyx - vec3(0, 1.8, 0), 1., 100.),  // hole for the door
+                  cylinder(p - vec3(4.5, 2.3, 0), .4, 100.)  // hole for the windows
+                  )),
+          cylinder(p.xzy - vec3(size / 4., 0, -2.2), size / 2. - .1, size / 3. - .1)  // Floor of the internal room
+          );
+  float console = antennaConsole(p - vec3(3, 1.5, 2));
+  float door = antennaDoor(p.zyx - vec3(0, 1.8, 6.5));
+  float l = lever(invZ(p - vec3(3.7, 2, -4)), clamp(iAnimOilrigRamp, 0., 1.));
+  return min(min(r,console), min(door, l));
+}
+
 // rotation.x controls elevation/altitude, rotation.y controls azimuth
 float antenna(vec3 p, vec2 rotation) {
   const float size = 9.;
@@ -289,23 +305,13 @@ float antenna(vec3 p, vec2 rotation) {
   r = min(r, sphere(q, size / 20.));
   p.y += size * .75;
   r = min(r, cuboid(p, vec3(size / 4., size / 3., size / 2.)));
-  r = min(r,
-      min(max(opOnion(cylinder(p.xzy - vec3(size / 4., 0, 0), size / 2. - .1, size / 3. - .1), .1),
-              -min(cylinder(p.zyx - vec3(0, 1.8, 0), 1., 100.),  // hole for the door
-                  cylinder(p - vec3(4.5, 2.3, 0), .4, 100.)  // hole for the windows
-                  )),
-          cylinder(p.xzy - vec3(size / 4., 0, -2.2), size / 2. - .1, size / 3. - .1)  // Floor of the internal room
-          ));
-  float console = antennaConsole(p - vec3(3, 1.5, 2));
-  float door = antennaDoor(p.zyx - vec3(0, 1.8, 6.5));
-  float l = lever(invZ(p - vec3(3.7, 2, -4)), clamp(iAnimOilrigRamp, 0., 1.));
-
+  r = min(r,antennaRoom(p));
   p.y -= size * .25;
   r = min(r, cylinder(p.xzy, size * .05, size * .5));
   p -= vec3(7, -2.85, 0);
   p.xy *= rot(-.5);
   r = min(r, cuboid(p, vec3(1, 1, .8)));
-  return min(min(r, door), min(console, l));
+  return r;
 }
 
 float ruinedBuildings(vec3 p) {
