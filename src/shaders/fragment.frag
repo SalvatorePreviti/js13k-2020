@@ -76,6 +76,8 @@ uniform float iAnimOilrigRamp;
 uniform float iAnimOilrigWheel;
 // antenna rotation
 uniform float iAnimAntennaRotation;
+// elevator height
+uniform float iAnimElevatorHeight;
 
 uniform bool iFlashlightOn;
 
@@ -450,8 +452,9 @@ float guardTower(vec3 p) {
   if (bounds > 4.) {
     return bounds;
   }
-  vec3 q,z;
+  vec3 q,z,y;
   q = p;
+  y = p;
   pModPolar(q.xz, 6.);
   z = q;
   pModInterval(z.y, 1.5, -3., 7.);
@@ -472,12 +475,21 @@ float guardTower(vec3 p) {
       ),
       -cuboid(p+vec3(0,7,1), vec3(.8,1.2,.8))  //cut doorway out
     ),
-    cylinder(p.xzy-vec3(0,0,clamp(cos(iAnimAntennaRotation)*14.-11.,-19.2, 1.)),1.,11.)  //elevator
+    cylinder(p.xzy-vec3(0,0,iAnimElevatorHeight),1.,11.)  //elevator
   );
+  y -= vec3(.8, 12.7, -.9);
+  pModInterval(y.y, 20.5, -1., 0.);
 
+  float liftButton = min(
+    cylinder(y.xzy, .05, .5),
+    min(
+      cuboid(y-vec3(0, .5, 0), vec3(.05,.1,.1)),
+      sphere(y-vec3(0, .5, 0), .06)
+    )
+  );
   return min(
-    r,
-    cuboid(p+vec3(0,10.3,3), vec3(1.1,2.,3.))
+    min(r, liftButton),
+    cuboid(p+vec3(0,10.3,3), vec3(1.1,2.,3.)) //the platform to the bottom lift section
   );
   // clang-format on
 }

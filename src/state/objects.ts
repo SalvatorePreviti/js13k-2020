@@ -162,6 +162,56 @@ const GAME_OBJECTS = {
       INVENTORY._floppy = true
     },
     _onLookAt: () => 'A floppy disk'
+  },
+  _bottomLiftButton: {
+    _location: vec3New(9.3, 2, 36.1),
+    _lookAtDistance: 2,
+    _visible: true,
+    _onInteract() {
+      if (!ANIMATIONS._antennaRotation._running) {
+        return
+      }
+      if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._initial) {
+        runAnimation(ANIMATIONS._elevatorHeight)
+      }
+      if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._max) {
+        runAnimation(ANIMATIONS._elevatorHeight, false) //run it backwards
+      }
+    },
+    _onLookAt() {
+      if (!ANIMATIONS._antennaRotation._running) {
+        return 'Elevator is out of order'
+      }
+      if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._initial) {
+        return 'Activate'
+      }
+      if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._max) {
+        return 'Call elevator'
+      }
+      return ''
+    }
+  },
+  _topLiftButton: {
+    _location: vec3New(9.3, 22.5, 36.1),
+    _lookAtDistance: 2,
+    _visible: true,
+    _onInteract() {
+      if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._initial) {
+        runAnimation(ANIMATIONS._elevatorHeight) //run it backwards
+      }
+      if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._max) {
+        runAnimation(ANIMATIONS._elevatorHeight, false)
+      }
+    },
+    _onLookAt() {
+      if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._max) {
+        return 'Activate'
+      }
+      if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._initial) {
+        return 'Call elevator'
+      }
+      return ''
+    }
   }
 }
 
