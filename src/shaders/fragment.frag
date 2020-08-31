@@ -415,6 +415,10 @@ float oilrigBridge(vec3 p) {
 }
 
 float guardTower(vec3 p) {
+  float bounds = length(p.xz) - 5.;
+  if (bounds > 1.) {
+    return bounds;
+  }
   vec3 q,z;
   q = p;
   pModPolar(q.xz, 6.);
