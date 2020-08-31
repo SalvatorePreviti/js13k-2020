@@ -1,13 +1,13 @@
-import './css/styles.less'
+import './css/styles.css'
 import { glDrawFullScreenTriangle } from './gl/gl-utils'
-import { canvasSize } from './gl/canvas'
+import { pageState, resumeGame } from './page'
 import { debug_beginFrame, debug_endFrame, debug_trycatch_wrap, debug_log, debug_updateCameraPosition } from './debug'
 
 import { updateCamera, cameraPos } from './camera'
 import { buildHeightmapTexture } from './texture-heightmap'
 import { buildNoiseTexture } from './texture-noise'
-import { updateAnimations } from './animations'
-import { updateGameObjects } from './objects'
+import { updateAnimations } from './state/animations'
+import { updateGameObjects } from './state/objects'
 import { updateText } from './text'
 import { loadMainShader, mainShader } from './shader-program'
 import { updateCollider } from './collider'
@@ -16,43 +16,50 @@ import { buildScreenTextures, bindScreenTexture } from './texture-screen'
 let prevTime = 0
 let time = 0
 
-buildNoiseTexture()
-buildHeightmapTexture()
-buildScreenTextures()
-loadMainShader()
+onload = () => {
+  resumeGame() //showMainMenu()
 
-const animationFrame = debug_trycatch_wrap(
-  (timeMilliseconds: number) => {
-    debug_beginFrame()
+  buildNoiseTexture()
+  buildHeightmapTexture()
+  buildScreenTextures()
+  loadMainShader()
 
-    time = timeMilliseconds / 1000
-    const timeDelta = time - prevTime
-    requestAnimationFrame(animationFrame)
+  const animationFrame = debug_trycatch_wrap(
+    (timeMilliseconds: number) => {
+      requestAnimationFrame(animationFrame)
+      time = timeMilliseconds / 1000
+      const timeDelta = time - prevTime
+      if (timeDelta < 0.07) {
+        //return
+      }
 
-    updateCamera(timeDelta)
-    updateCollider(time)
-    debug_updateCameraPosition(cameraPos)
+      debug_beginFrame()
 
-    updateAnimations(timeDelta)
-    updateGameObjects()
-    updateText(timeDelta)
+      updateCamera(timeDelta)
+      updateCollider(time)
+      debug_updateCameraPosition(cameraPos)
 
-    // Render main scene
+      updateAnimations(timeDelta)
+      updateGameObjects()
+      updateText(timeDelta)
 
-    bindScreenTexture(time & 1)
+      // Render main scene
 
-    mainShader._use(time, canvasSize.x, canvasSize.y)
+      bindScreenTexture(time & 1)
 
-    glDrawFullScreenTriangle()
+      mainShader._use(time, pageState._w, pageState._h)
 
-    prevTime = time
+      glDrawFullScreenTriangle()
 
-    debug_endFrame(time)
-  },
-  { rethrow: false, file: import.meta.url }
-)
+      prevTime = time
 
-requestAnimationFrame(animationFrame)
+      debug_endFrame(time)
+    },
+    { rethrow: false, file: import.meta.url }
+  )
+
+  requestAnimationFrame(animationFrame)
+}
 
 if (import.meta.hot) {
   const reloadMainShader = () => {

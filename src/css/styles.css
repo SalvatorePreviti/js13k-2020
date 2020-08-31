@@ -1,0 +1,97 @@
+* {
+  user-select: none;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #000;
+  color: #fca;
+  text-shadow: 0px 0px 8px #000, -1px -1px 3px #000, 1px 1px 3px #000;
+  font-size: min(3.6vmin, 35px);
+}
+
+body {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  height: 100%;
+}
+
+input {
+  width: 0.6rem;
+  height: 0.6rem;
+}
+
+#M {
+  position: relative;
+  font-family: fantasy;
+  letter-spacing: 0.08rem;
+  text-align: center;
+}
+
+#L {
+  display: none;
+  text-align: center;
+}
+
+.L #L {
+  display: block;
+}
+
+#S,
+#N {
+  position: absolute;
+  top: 0;
+}
+
+#S {
+  width: 2px;
+  height: 2px;
+}
+
+#N {
+  display: none;
+  width: 100%;
+}
+
+#G,
+#R {
+  cursor: pointer;
+}
+
+b {
+  cursor: pointer;
+}
+b:hover {
+  text-decoration: underline;
+}
+
+#T {
+  left: 1rem;
+  bottom: 0;
+  position: absolute;
+}
+
+h1,
+h3 {
+  margin: 0.5em;
+}
+
+.N #C {
+  filter: blur(15px) contrast(300%) brightness(35%);
+}
+
+.N #T {
+  display: none;
+}
+
+.N #N {
+  display: block;
+}
+
+i {
+  opacity: 0.8;
+  font-size: 0.6em;
+}

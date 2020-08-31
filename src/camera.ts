@@ -6,12 +6,11 @@ import {
   KEY_STRAFE_RIGHT,
   KEY_FLY_UP,
   KEY_FLY_DOWN,
-  KEY_RUN,
-  KEY_FLASHLIGHT_TOGGLE
+  KEY_RUN
 } from './keyboard'
 
 import { debug_updateCameraPosition, debug_updateCameraDirection, debug_updateCameraEulerAngles } from './debug'
-import { canvasElement } from './gl/canvas'
+import { canvasElement, pageState } from './page'
 import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD } from './math/scalar'
 import {
   vec3Temp0,
@@ -26,7 +25,6 @@ import {
 } from './math/vec3'
 import { vec2New } from './math/vec2'
 import { typedArraySet } from './core/arrays'
-import { INVENTORY } from './objects'
 
 const CAMERA_SPEED_DEFAULT = 1.5
 
@@ -46,11 +44,6 @@ export const cameraDir: Vec3 = vec3NewValue()
 
 /** Camera rotation matrix */
 export const cameraMat3: Mat3 = new Float32Array(9)
-
-//Is the flashlight on or off
-export let flashlightOn: boolean = false
-
-let flashLightKeyDown: boolean = false
 
 export const cameraMoveForward = (amount: number) => {
   cameraPos.x += amount * cameraDir.x
@@ -85,15 +78,6 @@ export const updateCamera = (timeDelta: number) => {
   }
   if (isKeyPressed(KEY_FLY_DOWN)) {
     cameraMoveDown(speed)
-  }
-
-  if (isKeyPressed(KEY_FLASHLIGHT_TOGGLE) && INVENTORY._flashlight) {
-    if (!flashLightKeyDown) {
-      flashlightOn = !flashlightOn
-    }
-    flashLightKeyDown = true
-  } else {
-    flashLightKeyDown = false
   }
 }
 
@@ -131,16 +115,15 @@ updateCameraDirFromEulerAngles()
 
 debug_updateCameraPosition(cameraPos)
 
-canvasElement.addEventListener('mousedown', (e) => {
-  if (e.button === 0) {
-    canvasElement.requestPointerLock()
-  }
-})
-
-document.addEventListener('mousemove', (e) => {
+onmousemove = (e) => {
   if (document.pointerLockElement === canvasElement) {
     cameraEuler.x = wrapAngleInRadians(cameraEuler.x - e.movementX * MOUSE_ROTATION_SENSITIVITY_X)
-    cameraEuler.y = clamp(cameraEuler.y + e.movementY * MOUSE_ROTATION_SENSITIVITY_Y, -87 * DEG_TO_RAD, 87 * DEG_TO_RAD)
+
+    cameraEuler.y = clamp(
+      cameraEuler.y + e.movementY * MOUSE_ROTATION_SENSITIVITY_Y * (pageState._invertY ? -1 : 1),
+      -87 * DEG_TO_RAD,
+      87 * DEG_TO_RAD
+    )
     updateCameraDirFromEulerAngles()
   }
-})
+}

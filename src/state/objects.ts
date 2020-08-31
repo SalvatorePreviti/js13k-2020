@@ -1,9 +1,9 @@
-import { vec3New, vec3Distance, vec3Direction, vec3Temp0, vec3Dot } from './math/vec3'
+import { vec3New, vec3Distance, vec3Direction, vec3Temp0, vec3Dot } from '../math/vec3'
 import { runAnimation, ANIMATIONS } from './animations'
-import { cameraPos, cameraDir } from './camera'
-import { setText } from './text'
-import { isKeyPressed, KEY_ACTION } from './keyboard'
-import { objectValues } from './core/objects'
+import { cameraPos, cameraDir } from '../camera'
+import { setText } from '../text'
+import { isKeyPressed, KEY_ACTION } from '../keyboard'
+import { objectValues } from '../core/objects'
 
 interface GameObject {
   _location: Vec3
@@ -34,6 +34,7 @@ const GAME_OBJECTS = {
   _flashlight: {
     _location: vec3New(-42, 3, 11.2),
     _visible: true,
+    _active: false,
     _lookAtDistance: 1.5,
     _onInteract() {
       this._visible = false

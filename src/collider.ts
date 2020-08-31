@@ -97,7 +97,6 @@ export const updateCollider = (time: number) => {
 
   cameraPos.x += ddx
   cameraPos.z += ddz
-
   cameraPos.y += ddy
 
   // Unbind the frame buffer
