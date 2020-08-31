@@ -16,7 +16,8 @@ interface GameObject {
 const INVENTORY = {
   _key: false,
   _antennaKey: false,
-  _flashlight: false
+  _flashlight: false,
+  _floppy: false
 }
 
 const GAME_OBJECTS = {
@@ -151,6 +152,16 @@ const GAME_OBJECTS = {
         ? 'A locked door, I need a key'
         : 'A door [press E or Space to open]'
     }
+  },
+  _floppyDisk: {
+    _location: vec3New(12.2, 22.3, 38.7),
+    _lookAtDistance: 2,
+    _visible: true,
+    _onInteract() {
+      this._visible = false
+      INVENTORY._floppy = true
+    },
+    _onLookAt: () => 'A floppy disk'
   }
 }
 
