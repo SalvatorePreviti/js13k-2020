@@ -1,9 +1,9 @@
 import './css/styles.less'
-import { glDrawFullScreenTriangle } from './gl-utils'
-import { canvasSize } from './canvas'
-import { debug_beginFrame, debug_endFrame, debug_trycatch_wrap, debug_log } from './debug'
+import { glDrawFullScreenTriangle } from './gl/gl-utils'
+import { canvasSize } from './gl/canvas'
+import { debug_beginFrame, debug_endFrame, debug_trycatch_wrap, debug_log, debug_updateCameraPosition } from './debug'
 
-import { updateCamera } from './camera'
+import { updateCamera, cameraPos } from './camera'
 import { buildHeightmapTexture } from './texture-heightmap'
 import { buildNoiseTexture } from './texture-noise'
 import { updateAnimations } from './animations'
@@ -11,6 +11,7 @@ import { updateGameObjects } from './objects'
 import { updateText } from './text'
 import { loadMainShader, mainShader } from './shader-program'
 import { updateCollider } from './collider'
+import { buildScreenTextures, bindScreenTexture } from './texture-screen'
 import { play } from './music'
 
 let prevTime = 0
@@ -18,6 +19,7 @@ let time = 0
 
 buildNoiseTexture()
 buildHeightmapTexture()
+buildScreenTextures()
 loadMainShader()
 
 const animationFrame = debug_trycatch_wrap(
@@ -29,15 +31,16 @@ const animationFrame = debug_trycatch_wrap(
     requestAnimationFrame(animationFrame)
 
     updateCamera(timeDelta)
+    updateCollider(time)
+    debug_updateCameraPosition(cameraPos)
+
     updateAnimations(timeDelta)
     updateGameObjects()
     updateText(timeDelta)
 
-    // Collider
-
-    updateCollider(time)
-
     // Render main scene
+
+    bindScreenTexture(time & 1)
 
     mainShader._use(time, canvasSize.x, canvasSize.y)
 
@@ -59,20 +62,9 @@ if (import.meta.hot) {
   const reloadMainShader = () => {
     debug_log('reloading main shader')
     loadMainShader()
+    buildHeightmapTexture()
   }
 
-  const reloadHeightmap = () => {
-    debug_log('reloading heightmap')
-    buildHeightmapTexture(prevTime)
-  }
-
-  //setInterval(reloadHeightmap, 300)
-
-  import.meta.hot.on('/src/shaders/vertex.vert', () => {
-    reloadHeightmap()
-    reloadMainShader()
-  })
-
+  import.meta.hot.on('/src/shaders/vertex.vert', reloadMainShader)
   import.meta.hot.on('/src/shaders/fragment.frag', reloadMainShader)
-  import.meta.hot.on('/src/shaders/heightmap.frag', reloadHeightmap)
 }

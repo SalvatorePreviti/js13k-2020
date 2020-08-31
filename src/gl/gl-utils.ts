@@ -1,16 +1,16 @@
-import { debug_checkShaderProgramLinkStatus, debug_reportClear, debug_checkShaderCompileStatus } from './debug'
+import { debug_checkShaderProgramLinkStatus, debug_reportClear, debug_checkShaderCompileStatus } from '../debug'
 import {
   GL_TRIANGLES,
   GL_VERTEX_SHADER,
   GL_FRAGMENT_SHADER,
   GL_TEXTURE_2D,
-  GL_CLAMP_TO_EDGE,
   GL_LINEAR,
   GL_TEXTURE_MAG_FILTER,
   GL_TEXTURE_MIN_FILTER,
   GL_TEXTURE_WRAP_T,
-  GL_TEXTURE_WRAP_S
-} from './core/gl-constants'
+  GL_TEXTURE_WRAP_S,
+  GL_REPEAT
+} from './gl-constants'
 import {
   gl_drawArrays,
   gl_createShader,
@@ -24,9 +24,9 @@ import {
   gl_texParameteri,
   gl_context,
   gl_getUniformLocation
-} from './gl_context'
+} from './gl-context'
 
-import { newProxyGetter } from './core/objects'
+import { newProxyGetter } from '../core/objects'
 
 export const glDrawFullScreenTriangle = () => {
   gl_drawArrays(GL_TRIANGLES, 0, 3)
@@ -81,11 +81,11 @@ export const loadShaderProgram = (vertexSourceCode: string, fragmentSourceCode: 
   return result
 }
 
-export const glSetTextureLinearSampling = (target = GL_TEXTURE_2D) => {
-  gl_texParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-  gl_texParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-  gl_texParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-  gl_texParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+export const glSetTextureLinearSampling = (wrap: number = GL_REPEAT) => {
+  gl_texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap)
+  gl_texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap)
+  gl_texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+  gl_texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 }
 
 export const glNewUniformLocationGetter = (program: WebGLProgram) =>

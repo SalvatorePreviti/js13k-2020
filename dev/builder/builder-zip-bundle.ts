@@ -91,7 +91,7 @@ export async function builderZipBundle(input: ZipFileEntry[]) {
       100
     )(prettyFileSize(zippedBuffer.length))}`
   )
-  console.log()
+  console.log(chalk.cyan(`   maximum is 13k, 13312 bytes, ${13312 - zippedBuffer.length} bytes left\n`))
 
   return zippedBuffer
 }

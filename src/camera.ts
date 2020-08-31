@@ -6,11 +6,12 @@ import {
   KEY_STRAFE_RIGHT,
   KEY_FLY_UP,
   KEY_FLY_DOWN,
-  KEY_RUN
+  KEY_RUN,
+  KEY_FLASHLIGHT_TOGGLE
 } from './keyboard'
 
 import { debug_updateCameraPosition, debug_updateCameraDirection, debug_updateCameraEulerAngles } from './debug'
-import { canvasElement } from './canvas'
+import { canvasElement } from './gl/canvas'
 import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD } from './math/scalar'
 import {
   vec3Temp0,
@@ -24,8 +25,10 @@ import {
   vec3Set
 } from './math/vec3'
 import { vec2New } from './math/vec2'
+import { typedArraySet } from './core/arrays'
+import { INVENTORY } from './objects'
 
-const CAMERA_SPEED_DEFAULT = 1.4
+const CAMERA_SPEED_DEFAULT = 1.5
 
 const CAMERA_SPEED_RUN = 40
 
@@ -33,7 +36,7 @@ const MOUSE_ROTATION_SENSITIVITY_X = 0.001
 const MOUSE_ROTATION_SENSITIVITY_Y = MOUSE_ROTATION_SENSITIVITY_X
 
 /** Camera position */
-export const cameraPos: Vec3 = vec3New(-2, 2, 0)
+export const cameraPos: Vec3 = vec3New(-44, 4, 11)
 
 /** Camera Yaw (x) and Pitch (y) angles, in radians. */
 export const cameraEuler: Vec2 = vec2New(70 * DEG_TO_RAD, 0 * DEG_TO_RAD)
@@ -43,6 +46,11 @@ export const cameraDir: Vec3 = vec3NewValue()
 
 /** Camera rotation matrix */
 export const cameraMat3: Mat3 = new Float32Array(9)
+
+//Is the flashlight on or off
+export let flashlightOn: boolean = false
+
+let flashLightKeyDown: boolean = false
 
 export const cameraMoveForward = (amount: number) => {
   cameraPos.x += amount * cameraDir.x
@@ -79,7 +87,14 @@ export const updateCamera = (timeDelta: number) => {
     cameraMoveDown(speed)
   }
 
-  debug_updateCameraPosition(cameraPos)
+  if (isKeyPressed(KEY_FLASHLIGHT_TOGGLE) && INVENTORY._flashlight) {
+    if (!flashLightKeyDown) {
+      flashlightOn = !flashlightOn
+    }
+    flashLightKeyDown = true
+  } else {
+    flashLightKeyDown = false
+  }
 }
 
 const updateCameraDirFromEulerAngles = () => {
@@ -91,18 +106,22 @@ const updateCameraDirFromEulerAngles = () => {
   const sinPitch = sin(pitch)
   const cosPitch = cos(pitch)
 
-  vec3Normalize(vec3Set(cameraDir, sinYaw, -sinPitch, cosYaw))
+  vec3Normalize(vec3Set(cameraDir, sinYaw * cosPitch, -sinPitch, cosYaw * cosPitch))
 
   // Update rotation matrix
 
-  cameraMat3[0] = cosYaw
-  cameraMat3[2] = -sinYaw
-  cameraMat3[3] = sinYaw * sinPitch
-  cameraMat3[4] = cosPitch
-  cameraMat3[5] = cosYaw * sinPitch
-  cameraMat3[6] = sinYaw * cosPitch
-  cameraMat3[7] = -sinPitch
-  cameraMat3[8] = cosYaw * cosPitch
+  typedArraySet(
+    cameraMat3,
+    cosYaw,
+    0,
+    -sinYaw,
+    sinYaw * sinPitch,
+    cosPitch,
+    cosYaw * sinPitch,
+    sinYaw * cosPitch,
+    -sinPitch,
+    cosYaw * cosPitch
+  )
 
   debug_updateCameraEulerAngles(cameraEuler)
   debug_updateCameraDirection(cameraDir)

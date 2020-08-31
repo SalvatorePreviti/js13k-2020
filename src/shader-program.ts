@@ -1,4 +1,4 @@
-import { loadShaderProgram, glNewUniformLocationGetter } from './gl-utils'
+import { loadShaderProgram, glNewUniformLocationGetter } from './gl/gl-utils'
 
 import { code as vertexShaderCode } from './shaders/vertex.vert'
 import { code as fragmentShaderCode } from './shaders/fragment.frag'
@@ -12,23 +12,25 @@ import {
   gl_uniform2f,
   gl_uniformMatrix3fv,
   gl_viewport
-} from './gl_context'
-import { cameraPos, cameraDir, cameraEuler, cameraMat3 } from './camera'
+} from './gl/gl-context'
+import { cameraPos, cameraDir, cameraEuler, cameraMat3, flashlightOn } from './camera'
+
 import { GAME_OBJECTS } from './objects'
 import { ANIMATIONS } from './animations'
 
-const _loadMainShaderProgram = (mainFunction: string) => {
-  debug_time(`${_loadMainShaderProgram.name} ${mainFunction}`)
+export const loadMainShaderProgram = (mainFunction: string) => {
+  debug_time(`${loadMainShaderProgram.name} ${mainFunction}`)
 
   const program = loadShaderProgram(
     vertexShaderCode,
-    fragmentShaderCode.replace('\n', `\n#define ${mainFunction} main\n${debug_mode ? '#line 2 0\n' : ''}`),
+    fragmentShaderCode.replace('\n', `\n#define main_${mainFunction} main\n${debug_mode ? '#line 2 0\n' : ''}`),
     mainFunction
   )
 
   const {
     iHeightmap,
     iNoise,
+    iScreens,
     iResolution,
     iTime,
     iCameraPos,
@@ -36,7 +38,15 @@ const _loadMainShaderProgram = (mainFunction: string) => {
     iCameraEuler,
     iCameraMat3,
     iGOKeyVisible,
-    iAnimPrisonDoor
+    iGOFlashlightVisible,
+    iGOAntennaKeyVisible,
+    iAnimPrisonDoor,
+    iAnimAntennaDoor,
+    iAnimMonumentDescend,
+    iAnimOilrigRamp,
+    iAnimOilrigWheel,
+    iAnimAntennaRotation,
+    iFlashlightOn
   } = glNewUniformLocationGetter(program)
 
   // Texture 0
@@ -44,6 +54,9 @@ const _loadMainShaderProgram = (mainFunction: string) => {
 
   // Texture 1
   gl_uniform1i(iNoise, 1)
+
+  // Texture 1
+  gl_uniform1i(iScreens, 3)
 
   const _use = (time: number, width: number, height: number) => {
     gl_viewport(0, 0, width, height)
@@ -69,9 +82,28 @@ const _loadMainShaderProgram = (mainFunction: string) => {
 
     //Key visibility
     gl_uniform1i(iGOKeyVisible, GAME_OBJECTS._key._visible ? 1 : 0)
-
+    //Torch visibility
+    gl_uniform1i(iGOFlashlightVisible, GAME_OBJECTS._flashlight._visible ? 1 : 0)
+    //Torch visibility
+    gl_uniform1i(iGOAntennaKeyVisible, GAME_OBJECTS._antennaKey._visible ? 1 : 0)
     //prison door, open-closed
     gl_uniform1f(iAnimPrisonDoor, ANIMATIONS._prisonDoor._value)
+
+    //antenna door, open-closed
+    gl_uniform1f(iAnimAntennaDoor, ANIMATIONS._antennaDoor._value)
+
+    //monument Descend
+    gl_uniform1f(iAnimMonumentDescend, ANIMATIONS._monumentDescend._value)
+
+    //ramp to oil rig
+    gl_uniform1f(iAnimOilrigRamp, ANIMATIONS._oilrigRamp._value)
+
+    //wheel on oil rig
+    gl_uniform1f(iAnimOilrigWheel, ANIMATIONS._oilrigWheel._value)
+    //wheel on oil rig
+    gl_uniform1f(iAnimAntennaRotation, ANIMATIONS._antennaRotation._value)
+
+    gl_uniform1i(iFlashlightOn, flashlightOn ? 1 : 0)
   }
 
   const result = {
@@ -79,11 +111,11 @@ const _loadMainShaderProgram = (mainFunction: string) => {
     _use
   }
 
-  debug_timeEnd(`${_loadMainShaderProgram.name} ${mainFunction}`)
+  debug_timeEnd(`${loadMainShaderProgram.name} ${mainFunction}`)
   return result
 }
 
-export type MainShaderProgram = ReturnType<typeof _loadMainShaderProgram>
+export type MainShaderProgram = ReturnType<typeof loadMainShaderProgram>
 
 export let mainShader: MainShaderProgram
 
@@ -98,7 +130,6 @@ export const loadMainShader = () => {
       gl_deleteProgram(collisionShader._program)
     }
   })
-
-  mainShader = _loadMainShaderProgram('main_')
-  collisionShader = _loadMainShaderProgram('main_coll')
+  mainShader = loadMainShaderProgram('')
+  collisionShader = loadMainShaderProgram('c')
 }

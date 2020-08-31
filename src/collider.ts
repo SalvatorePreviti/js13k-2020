@@ -1,4 +1,4 @@
-import { glDrawFullScreenTriangle } from './gl-utils'
+import { glDrawFullScreenTriangle } from './gl/gl-utils'
 import {
   GL_UNSIGNED_BYTE,
   GL_RGBA,
@@ -6,7 +6,7 @@ import {
   GL_FRAMEBUFFER,
   GL_COLOR_ATTACHMENT0,
   GL_TEXTURE2
-} from './core/gl-constants'
+} from './gl/gl-constants'
 import {
   gl_createTexture,
   gl_bindTexture,
@@ -16,11 +16,13 @@ import {
   gl_createFramebuffer,
   gl_readPixels,
   gl_activeTexture
-} from './gl_context'
+} from './gl/gl-context'
 import { collisionShader } from './shader-program'
 import { debug_collisionBufferCanvasPrepare } from './debug'
+import { PI, cos, sin, unpackFloatBytes3, abs } from './math/scalar'
+import { cameraPos } from './camera'
 
-export const COLLIDER_SIZE = 128
+const COLLIDER_SIZE = 128
 
 const _colliderTexture: WebGLTexture = gl_createTexture()
 const _colliderFrameBuffer = gl_createFramebuffer()
@@ -28,6 +30,13 @@ const _colliderFrameBuffer = gl_createFramebuffer()
 const colliderBuffer = new Uint8Array(COLLIDER_SIZE * COLLIDER_SIZE * 4)
 
 debug_collisionBufferCanvasPrepare(colliderBuffer, COLLIDER_SIZE, COLLIDER_SIZE)
+
+const readDist = (x: number, y: number): number => {
+  const bufIdx = y * COLLIDER_SIZE * 4 + x * 4
+  return unpackFloatBytes3(colliderBuffer[bufIdx + 1], colliderBuffer[bufIdx + 2], colliderBuffer[bufIdx + 3])
+}
+
+const getAngleFromIdx = (x: number): number => -((PI * (x - 64)) / 64) - PI / 2
 
 export const updateCollider = (time: number) => {
   // Create and bind the framebuffer
@@ -53,8 +62,43 @@ export const updateCollider = (time: number) => {
 
   gl_readPixels(0, 0, COLLIDER_SIZE, COLLIDER_SIZE, GL_RGBA, GL_UNSIGNED_BYTE, colliderBuffer)
 
-  // TODO: read colliderBuffer byte array somehow to do collision detection.
-  // colliderBuffer is an RGBA byte buffer, RGBARGBARGBARGBA ...
+  // Process data
+
+  //Ground Collision:
+  let totalY = 0
+  for (let x = 0; x < 128; x++) {
+    totalY += readDist(x, 0)
+  }
+  const ddy = totalY / 128 - 0.2 //Take the average distance from the ground and subtract the value used in the shader
+
+  let ddx = 0
+  let ddz = 0
+  for (let y = 32; y < 96; ++y) {
+    for (let x1 = 0; x1 < 64; ++x1) {
+      const x2 = x1 + 64
+
+      const dist1 = readDist(x1, y)
+      const dist2 = readDist(x2, y)
+
+      const angle1 = getAngleFromIdx(x1)
+      const angle2 = getAngleFromIdx(x2)
+
+      const dx = cos(angle1) * dist1 + cos(angle2) * dist2
+      const dz = sin(angle1) * dist1 + sin(angle2) * dist2
+
+      if (abs(dx) > abs(ddx)) {
+        ddx = dx
+      }
+      if (abs(dz) > abs(ddz)) {
+        ddz = dz
+      }
+    }
+  }
+
+  cameraPos.x += ddx
+  cameraPos.z += ddz
+
+  cameraPos.y += ddy
 
   // Unbind the frame buffer
 

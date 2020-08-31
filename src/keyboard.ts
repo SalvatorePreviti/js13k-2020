@@ -10,6 +10,8 @@ export const KEY_RUN = 5
 
 export const KEY_ACTION = 6
 
+export const KEY_FLASHLIGHT_TOGGLE = 7
+
 export const KEY_FLY_UP = 10
 
 export const KEY_FLY_DOWN = 11
@@ -41,6 +43,10 @@ const _keyMap: Record<string, number> = {
   e: KEY_ACTION,
   E: KEY_ACTION,
   ' ': KEY_ACTION,
+
+  //probably this should switch to F key when we remove up/down movement
+  q: KEY_FLASHLIGHT_TOGGLE,
+  Q: KEY_FLASHLIGHT_TOGGLE,
 
   f: KEY_FLY_UP,
   F: KEY_FLY_UP,
