@@ -65,7 +65,7 @@ const ANIMATIONS = {
     _value: 1, //top
     _initial: -19.2,
     _max: 1,
-    _speed: 2,
+    _speed: 4,
     _running: 0
   }
 }
