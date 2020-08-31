@@ -94,10 +94,19 @@ const GAME_OBJECTS = {
     _location: vec3New(4.8, 14.4, 3.7),
     _visible: true,
     _lookAtDistance: 1.5,
-    _onInteract: () => {},
+    _floppyInserted: false,
+    _onInteract() {
+      if (ANIMATIONS._antennaRotation._running && INVENTORY._floppy) {
+        this._floppyInserted = true
+      }
+    },
     _onLookAt: () =>
-      ANIMATIONS._antennaRotation._running
-        ? 'Damn, I need to find this floppy disk'
+      GAME_OBJECTS._antennaConsole._floppyInserted
+        ? ''
+        : ANIMATIONS._antennaRotation._running
+        ? INVENTORY._floppy
+          ? 'Insert the floppy disk'
+          : 'Damn, I need to find this floppy disk'
         : 'There is no electricity, there must be a generator somewhere in this damn island'
   },
   _monumentButton: {
@@ -195,14 +204,7 @@ const GAME_OBJECTS = {
     _location: vec3New(9.3, 22.5, 36.1),
     _lookAtDistance: 2,
     _visible: true,
-    _onInteract() {
-      if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._initial) {
-        runAnimation(ANIMATIONS._elevatorHeight) //run it backwards
-      }
-      if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._max) {
-        runAnimation(ANIMATIONS._elevatorHeight, false)
-      }
-    },
+    _onInteract: () => GAME_OBJECTS._bottomLiftButton._onInteract(),
     _onLookAt() {
       if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._max) {
         return 'Activate'
