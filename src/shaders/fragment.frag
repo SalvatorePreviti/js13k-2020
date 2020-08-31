@@ -274,7 +274,7 @@ float lever(vec3 p, float leverState) {
 float antenna(vec3 p, vec2 rotation) {
   const float size = 9.;
   float bounds = length(p) - size * 2.;
-  if (bounds > 15.)
+  if (bounds > 5.)
     return bounds;
   p.y -= size;
 
@@ -416,7 +416,7 @@ float oilrigBridge(vec3 p) {
 
 float guardTower(vec3 p) {
   float bounds = length(p.xz) - 5.;
-  if (bounds > 1.) {
+  if (bounds > 4.) {
     return bounds;
   }
   vec3 q,z;
