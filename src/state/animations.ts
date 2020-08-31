@@ -1,6 +1,6 @@
-import { objectValues } from './core/objects'
-import { GAME_OBJECTS, INVENTORY } from './objects'
-import { vec3New } from './math/vec3'
+import { objectValues } from '../core/objects'
+import { GAME_OBJECTS } from './objects'
+import { vec3New } from '../math/vec3'
 
 interface Animation {
   _value: float

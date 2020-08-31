@@ -12,9 +12,9 @@ import {
 import { gl_activeTexture, gl_bindTexture, gl_texImage2D, gl_pixelStorei, gl_createTexture } from './gl/gl-context'
 import { glSetTextureLinearSampling } from './gl/gl-utils'
 
-export const NOISE_TEXTURE_SIZE = 512
+const NOISE_TEXTURE_SIZE = 512
 
-export const noiseTexture: WebGLTexture = gl_createTexture()
+const noiseTexture: WebGLTexture = gl_createTexture()
 
 export const buildNoiseTexture = () => {
   debug_time(buildNoiseTexture)

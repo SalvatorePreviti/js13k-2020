@@ -415,6 +415,7 @@ float oilrigBridge(vec3 p) {
 }
 
 float guardTower(vec3 p) {
+  // clang-format off
   float bounds = length(p.xz) - 5.;
   if (bounds > 4.) {
     return bounds;
@@ -448,8 +449,8 @@ float guardTower(vec3 p) {
     r,
     cuboid(p+vec3(0,10.3,3), vec3(1.1,2.,3.))
   );
+  // clang-format on
 }
-
 
 vec2 screenCoords;
 float screen(vec3 p, vec3 screenPosition, vec2 size, float angle) {
@@ -796,19 +797,11 @@ void main_() {
   vec2 screen = fragCoord / (iResolution * .5) - 1.;
 
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
-  vec3 c = iCameraPos;
-  // c.y = unpackFloat(texture(iHeightmap, c.xz / TERRAIN_SIZE.xz)) * TERRAIN_SIZE.y - 1.;
-  vec3 pixelColour = clamp(intersectWithWorld(c, ray), 0., 1.);
 
-  // pixelColour = pow( pixelColour, vec3(1./2.2) );
-  oColor = vec4(pixelColour, 1.0);
+  oColor = vec4(intersectWithWorld(iCameraPos, ray), 1);
 
-  // float hh = unpackFloat(texture(iHeightmap, screen * .5 + .5));
-
-  // oColor = vec4(vec3(n), 1.0);
-  // if (screen.y < 0.) { // for debugging the collision shader
-  //  main_coll();
-  //}
+  // vec3 pixelColour = clamp(intersectWithWorld(iCameraPos, ray), 0., 1.);
+  // oColor = vec4(pixelColour, 1);
 
   // oColor.x = iterationsR;
   // oColor.y = iterationsR;

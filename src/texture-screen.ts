@@ -10,6 +10,7 @@ import {
   GL_CLAMP_TO_EDGE
 } from './gl/gl-constants'
 import { glSetTextureLinearSampling } from './gl/gl-utils'
+import { body, createElement } from './page'
 
 export const SCREEN_TEXTURE_SIZE = 512
 
@@ -29,12 +30,12 @@ export const bindScreenTexture = (index: number) => {
 export const buildScreenTextures = () => {
   debug_time(buildScreenTextures)
 
-  const canvas = document.createElement('canvas')
+  const canvas = createElement('canvas')
   canvas.id = 'S'
   canvas.width = SCREEN_TEXTURE_SIZE
   canvas.height = SCREEN_TEXTURE_SIZE
 
-  document.body.appendChild(canvas)
+  body.appendChild(canvas)
 
   const context = canvas.getContext('2d')
   const { strokeRect, fillText, fillRect, getImageData } = newProxyBinder(context)
