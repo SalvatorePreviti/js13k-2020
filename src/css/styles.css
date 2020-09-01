@@ -12,45 +12,44 @@ body {
   font-size: min(3.6vmin, 35px);
 }
 
-body {
-  align-items: center;
-  display: flex;
-  justify-content: center;
-  height: 100%;
-}
-
 input {
   width: 0.6rem;
   height: 0.6rem;
 }
 
+/* body and main div canvas */
+body,
 #M {
+  height: 100%;
+  align-items: center;
+  display: flex;
+  justify-content: center;
   position: relative;
   font-family: papyrus, fantasy;
-  letter-spacing: 0.08rem;
   text-align: center;
 }
 
-#L {
-  display: none;
-  text-align: center;
+/* 2D canvas */
+#D {
+  position: relative;
+  height: 100%;
+  background: #002;
 }
 
-.L #L {
-  display: block;
-}
-
-#S,
+/* 3D canvas and main menu */
+#C,
 #N {
   position: absolute;
   top: 0;
 }
 
-#S {
-  width: 2px;
-  height: 2px;
+/* Main menu and Text on screen */
+#N,
+#T {
+  letter-spacing: 0.02rem;
 }
 
+/* Main menu */
 #N {
   display: none;
   width: 100%;
@@ -58,11 +57,14 @@ input {
   backdrop-filter: blur(15px) contrast(300%) brightness(35%);
 }
 
-#G,
-#R {
-  cursor: pointer;
+/* target only firefox */
+@-moz-document url-prefix() {
+  .N #C {
+    filter: blur(15px) contrast(200%) brightness(50%);
+  }
 }
 
+/* New game and Resume game buttons */
 b {
   cursor: pointer;
 }
@@ -70,6 +72,7 @@ b:hover {
   text-decoration: underline;
 }
 
+/* Text on sreen */
 #T {
   left: 1rem;
   bottom: 0;
@@ -81,14 +84,8 @@ h3 {
   margin: 0.5em;
 }
 
-/* target only firefox */
-@-moz-document url-prefix() {
-  .N #C {
-    filter: blur(15px) contrast(200%) brightness(50%);
-  }
-}
-
-.N #T {
+.N #T,
+.N #D {
   display: none;
 }
 

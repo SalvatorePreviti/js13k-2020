@@ -12,7 +12,7 @@ import {
   gl_uniform2f,
   gl_uniformMatrix3fv,
   gl_viewport
-} from './gl/gl-context'
+} from './gl/gl'
 import { cameraPos, cameraDir, cameraEuler, cameraMat3 } from './camera'
 
 import { GAME_OBJECTS } from './state/objects'

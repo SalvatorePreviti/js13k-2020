@@ -6,7 +6,7 @@ import {
   gl_getProgramInfoLog,
   gl_getShaderParameter,
   gl_getShaderInfoLog
-} from '../gl/gl-context'
+} from '../gl/gl'
 
 const MAX_ITEMS_HARD_LIMIT = 200
 const MAX_ITEMS_SOFT_LIMIT = 150

@@ -22,11 +22,11 @@ import {
   gl_useProgram,
   gl_deleteShader,
   gl_texParameteri,
-  gl_context,
   gl_getUniformLocation
-} from './gl-context'
+} from './gl'
 
 import { newProxyGetter } from '../core/objects'
+import { gl_context } from '../page'
 
 export const glDrawFullScreenTriangle = () => {
   gl_drawArrays(GL_TRIANGLES, 0, 3)

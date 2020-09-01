@@ -16,7 +16,7 @@ import {
   gl_createFramebuffer,
   gl_readPixels,
   gl_activeTexture
-} from './gl/gl-context'
+} from './gl/gl'
 import { collisionShader } from './shader-program'
 import { debug_collisionBufferCanvasPrepare } from './debug'
 import { PI, cos, sin, unpackFloatBytes3, abs } from './math/scalar'

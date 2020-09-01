@@ -1,25 +1,6 @@
-import { canvasElement } from '../page'
+import { gl_context } from '../page'
 
 import { newProxyBinder } from '../core/objects'
-
-export const gl_context = canvasElement.getContext('webgl2', {
-  /** Boolean that indicates if the canvas contains an alpha buffer. */
-  alpha: false,
-  /** Boolean that hints the user agent to reduce the latency by desynchronizing the canvas paint cycle from the event loop */
-  desynchronized: true,
-  /** Boolean that indicates whether or not to perform anti-aliasing. */
-  antialias: false,
-  /** Boolean that indicates that the drawing buffer has a depth buffer of at least 16 bits. */
-  depth: false,
-  /** Boolean that indicates if a context will be created if the system performance is low or if no hardware GPU is available. */
-  failIfMajorPerformanceCaveat: false,
-  /** A hint to the user agent indicating what configuration of GPU is suitable for the WebGL context. */
-  powerPreference: 'high-performance',
-  /** If the value is true the buffers will not be cleared and will preserve their values until cleared or overwritten. */
-  preserveDrawingBuffer: false,
-  /** Boolean that indicates that the drawing buffer has a stencil buffer of at least 8 bits. */
-  stencil: false
-})
 
 const _functions = newProxyBinder(gl_context)
 
@@ -692,39 +673,3 @@ export const gl_viewport = _functions.viewport
 
 /** Returns immediately, but waits on the GL server until the given WebGLSync object is signaled. */
 export const gl_waitSync = _functions.waitSync
-
-export type GLUniformFunction =
-  | typeof gl_uniform1f
-  | typeof gl_uniform1fv
-  | typeof gl_uniform1i
-  | typeof gl_uniform1iv
-  | typeof gl_uniform1ui
-  | typeof gl_uniform1uiv
-  | typeof gl_uniform2f
-  | typeof gl_uniform2fv
-  | typeof gl_uniform2i
-  | typeof gl_uniform2iv
-  | typeof gl_uniform2ui
-  | typeof gl_uniform2uiv
-  | typeof gl_uniform3f
-  | typeof gl_uniform3fv
-  | typeof gl_uniform3i
-  | typeof gl_uniform3iv
-  | typeof gl_uniform3ui
-  | typeof gl_uniform3uiv
-  | typeof gl_uniform4f
-  | typeof gl_uniform4fv
-  | typeof gl_uniform4i
-  | typeof gl_uniform4iv
-  | typeof gl_uniform4ui
-  | typeof gl_uniform4uiv
-  | typeof gl_uniformBlockBinding
-  | typeof gl_uniformMatrix2fv
-  | typeof gl_uniformMatrix2x3fv
-  | typeof gl_uniformMatrix2x4fv
-  | typeof gl_uniformMatrix3fv
-  | typeof gl_uniformMatrix3x2fv
-  | typeof gl_uniformMatrix3x4fv
-  | typeof gl_uniformMatrix4fv
-  | typeof gl_uniformMatrix4x2fv
-  | typeof gl_uniformMatrix4x3fv

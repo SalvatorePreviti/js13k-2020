@@ -9,7 +9,7 @@ import {
   GL_UNSIGNED_BYTE,
   GL_TEXTURE0
 } from './gl/gl-constants'
-import { gl_activeTexture, gl_bindTexture, gl_texImage2D, gl_pixelStorei, gl_createTexture } from './gl/gl-context'
+import { gl_activeTexture, gl_bindTexture, gl_texImage2D, gl_pixelStorei, gl_createTexture } from './gl/gl'
 import { glSetTextureLinearSampling } from './gl/gl-utils'
 
 const NOISE_TEXTURE_SIZE = 512

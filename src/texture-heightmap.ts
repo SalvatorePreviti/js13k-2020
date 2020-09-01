@@ -18,7 +18,7 @@ import {
   gl_bindFramebuffer,
   gl_framebufferTexture2D,
   gl_createFramebuffer
-} from './gl/gl-context'
+} from './gl/gl'
 import { loadMainShaderProgram } from './shader-program'
 
 export const HEIGHTMAP_TETURE_SIZE = 2048

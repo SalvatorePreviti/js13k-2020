@@ -1,5 +1,5 @@
 import { debug_time, debug_timeEnd } from './debug'
-import { gl_createTexture, gl_bindTexture, gl_texImage2D, gl_pixelStorei, gl_activeTexture } from './gl/gl-context'
+import { gl_createTexture, gl_bindTexture, gl_texImage2D, gl_pixelStorei, gl_activeTexture } from './gl/gl'
 import { newProxyBinder } from './core/objects'
 import {
   GL_TEXTURE3,
@@ -10,7 +10,7 @@ import {
   GL_CLAMP_TO_EDGE
 } from './gl/gl-constants'
 import { glSetTextureLinearSampling } from './gl/gl-utils'
-import { body, createElement } from './page'
+import { context2D } from './page'
 
 export const SCREEN_TEXTURE_SIZE = 512
 
@@ -30,88 +30,84 @@ export const bindScreenTexture = (index: number) => {
 export const buildScreenTextures = () => {
   debug_time(buildScreenTextures)
 
-  const canvas = createElement('canvas')
-  canvas.id = 'S'
-  canvas.width = SCREEN_TEXTURE_SIZE
-  canvas.height = SCREEN_TEXTURE_SIZE
-
-  body.appendChild(canvas)
-
-  const context = canvas.getContext('2d')
-  const { strokeRect, fillText, fillRect, getImageData } = newProxyBinder(context)
+  const { strokeRect, fillText, fillRect, getImageData } = newProxyBinder(context2D)
   const setFontSize = (size: number) => {
-    context.font = `${size}px monospace`
+    context2D.font = `${size}px monospace`
   }
   const setFillColor = (color: string) => {
-    context.fillStyle = `#${color}`
+    context2D.fillStyle = `#${color}`
   }
 
-  const captureScreenTexture = (index: number) => {
-    bindScreenTexture(index)
-    const imageData = getImageData(0, 0, SCREEN_TEXTURE_SIZE, SCREEN_TEXTURE_SIZE)
-    gl_pixelStorei(GL_UNPACK_ALIGNMENT, 1)
-    gl_texImage2D(
-      GL_TEXTURE_2D,
-      0,
-      GL_RGBA,
-      SCREEN_TEXTURE_SIZE,
-      SCREEN_TEXTURE_SIZE,
-      0,
-      GL_RGBA,
-      GL_UNSIGNED_BYTE,
-      imageData
-    )
+  const captureScreenTexture = (index: number, capture: boolean) => {
+    if (capture) {
+      bindScreenTexture(index)
+      const imageData = getImageData(0, 0, SCREEN_TEXTURE_SIZE, SCREEN_TEXTURE_SIZE)
+      gl_pixelStorei(GL_UNPACK_ALIGNMENT, 1)
+      gl_texImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RGBA,
+        SCREEN_TEXTURE_SIZE,
+        SCREEN_TEXTURE_SIZE,
+        0,
+        GL_RGBA,
+        GL_UNSIGNED_BYTE,
+        imageData
+      )
 
-    glSetTextureLinearSampling(GL_CLAMP_TO_EDGE)
+      glSetTextureLinearSampling(GL_CLAMP_TO_EDGE)
+    }
   }
 
-  context.lineWidth = 5
-  context.scale(1, 1.3)
+  const renderScreens = (capture: boolean) => {
+    context2D.scale(1, capture ? 1.3 : 0.7)
+    context2D.lineWidth = 5
+    setFillColor('000015')
+    fillRect(0, 0, SCREEN_TEXTURE_SIZE, SCREEN_TEXTURE_SIZE)
 
-  setFillColor('000015')
-  fillRect(0, 0, SCREEN_TEXTURE_SIZE, SCREEN_TEXTURE_SIZE)
+    setFontSize(17)
 
-  setFontSize(17)
+    setFillColor('aee')
+    fillText('Memory Core: 131072K', 10, 100)
+    fillText('Launching xx142-b2.exe', 10, 124)
+    fillText('Antenna self test', 10, 146)
+    fillText('Activating radio', 10, 170)
 
-  setFillColor('aee')
-  fillText('Memory Core: 131072K', 10, 100)
-  fillText('Launching xx142-b2.exe', 10, 124)
-  fillText('Antenna self test', 10, 146)
-  fillText('Activating radio', 10, 170)
+    setFillColor('8f8')
+    fillText('OK', 245, 100)
+    fillText('OK', 245, 124)
+    fillText('OK', 245, 146)
 
-  setFillColor('8f8')
-  fillText('OK', 245, 100)
-  fillText('OK', 245, 124)
-  fillText('OK', 245, 146)
+    setFillColor('f66')
+    fillText('FAIL', 245, 170)
 
-  setFillColor('f66')
-  fillText('FAIL', 245, 170)
+    fillText('Insert floppy disk and press E to continue', 42, 280)
 
-  fillText('Insert floppy disk and press E to continue', 42, 280)
+    setFontSize(20)
+    fillText('💾 ERROR 404 - data disk not found', 48, 250)
 
-  setFontSize(20)
-  fillText('💾 ERROR 404 - data disk not found', 48, 250)
+    setFillColor('4f8aff')
+    fillText('⬣ JS13K Modular Bios v.13', 10, 30)
 
-  setFillColor('4f8aff')
-  fillText('⬣ JS13K Modular Bios v.13', 10, 30)
+    captureScreenTexture(0, capture)
 
-  captureScreenTexture(0)
+    context2D.strokeStyle = '#f00'
+    strokeRect(20, 220, 472, 80)
 
-  context.strokeStyle = '#f00'
-  strokeRect(20, 220, 472, 80)
+    captureScreenTexture(1, capture)
 
-  captureScreenTexture(1)
+    context2D.strokeStyle = '#bb0'
+    setFillColor('000')
+    fillRect(20, 220, 472, 80)
+    strokeRect(20, 220, 472, 80)
+    setFillColor('bb0')
+    fillText('💾 Loading data disk...', 130, 265)
 
-  context.strokeStyle = '#bb0'
-  setFillColor('000')
-  fillRect(20, 220, 472, 80)
-  strokeRect(20, 220, 472, 80)
-  setFillColor('bb0')
-  fillText('Loading data disk...', 150, 265)
+    captureScreenTexture(2, capture)
+  }
 
-  captureScreenTexture(2)
-
-  canvas.remove()
+  renderScreens(true)
+  renderScreens(false)
 
   debug_timeEnd(buildScreenTextures)
 }

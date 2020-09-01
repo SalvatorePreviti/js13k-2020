@@ -1,6 +1,6 @@
 import './css/styles.css'
 import { glDrawFullScreenTriangle } from './gl/gl-utils'
-import { pageState, resumeGame } from './page'
+import { pageState, resumeGame, showMainMenu } from './page'
 import { debug_beginFrame, debug_endFrame, debug_trycatch_wrap, debug_log, debug_updateCameraPosition } from './debug'
 
 import { updateCamera, cameraPos } from './camera'
@@ -16,13 +16,14 @@ import { buildScreenTextures, bindScreenTexture } from './texture-screen'
 let prevTime = 0
 let time = 0
 
-onload = () => {
-  resumeGame() //showMainMenu()
+buildScreenTextures()
 
+onload = () => {
   buildNoiseTexture()
   buildHeightmapTexture()
-  buildScreenTextures()
   loadMainShader()
+
+  showMainMenu()
 
   const animationFrame = debug_trycatch_wrap(
     (timeMilliseconds: number) => {
