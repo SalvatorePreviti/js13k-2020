@@ -237,3 +237,5 @@ export const unpackFloatBytes3 = (r: number, g: number, b: number): number => {
 export const unpackFloatBytes2 = (r: number, g: number): number => {
   return r / 255 + g / 65025
 }
+
+export const randomNatural = (limit: number): number => floor(random() * limit)
