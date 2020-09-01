@@ -26,7 +26,7 @@ input {
 
 #M {
   position: relative;
-  font-family: fantasy;
+  font-family: papyrus, fantasy;
   letter-spacing: 0.08rem;
   text-align: center;
 }
@@ -54,6 +54,8 @@ input {
 #N {
   display: none;
   width: 100%;
+  height: 100%;
+  backdrop-filter: blur(15px) contrast(300%) brightness(35%);
 }
 
 #G,
@@ -79,8 +81,11 @@ h3 {
   margin: 0.5em;
 }
 
-.N #C {
-  filter: blur(15px) contrast(300%) brightness(35%);
+/* target only firefox */
+@-moz-document url-prefix() {
+  .N #C {
+    filter: blur(15px) contrast(200%) brightness(50%);
+  }
 }
 
 .N #T {
