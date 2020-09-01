@@ -2,6 +2,8 @@ import { GAME_OBJECTS, INVENTORY } from './state/objects'
 import { showMainMenu, pageState } from './page'
 import { objectAssign } from './core/objects'
 import { debug_mode } from './debug'
+import { minigameMoveBoat } from './context2D'
+import { minigameState } from './state/minigame'
 
 export const KEY_FORWARD = 1
 
@@ -23,7 +25,7 @@ export const KEY_FLY_UP = 10
 
 export const KEY_FLY_DOWN = 11
 
-let _pressedKeys: boolean[] = []
+const _pressedKeys: boolean[] = []
 
 /** Returns true if the given gey is pressed */
 export const isKeyPressed = (keyId: number) => !!_pressedKeys[keyId]
@@ -33,7 +35,20 @@ const _keyFunctions: Record<number, () => void> = {
     GAME_OBJECTS._flashlight._active = INVENTORY._flashlight && !GAME_OBJECTS._flashlight._active
   },
 
-  [KEY_MAIN_MENU]: showMainMenu
+  [KEY_MAIN_MENU]: showMainMenu,
+
+  [KEY_FORWARD]() {
+    minigameMoveBoat(0, -1)
+  },
+  [KEY_BACKWARD]() {
+    minigameMoveBoat(0, 1)
+  },
+  [KEY_STRAFE_LEFT]() {
+    minigameMoveBoat(-1, 0)
+  },
+  [KEY_STRAFE_RIGHT]() {
+    minigameMoveBoat(1, 0)
+  }
 }
 
 const _keyMap: Record<string, number> = {
@@ -82,13 +97,16 @@ if (debug_mode) {
 
 const _setKeyPressed = (e: KeyboardEvent, value: boolean) => {
   if (!e.keyCode || e.metaKey || !document.activeElement || pageState._mainMenu) {
-    _pressedKeys = [] // Clear pressed status to prevent key sticking when alt+tabbing or showing the menu
+    _pressedKeys.length = 0 // Clear pressed status to prevent key sticking when alt+tabbing or showing the menu
   } else {
+    console.log(e)
     const keyId = _keyMap[e.key] || 0
-    if (!_pressedKeys[keyId] && _keyFunctions[keyId]) {
+    if (!e.repeat) {
+      _pressedKeys[keyId] = value && !minigameState._active
+    }
+    if (value && _keyFunctions[keyId]) {
       _keyFunctions[keyId]()
     }
-    _pressedKeys[keyId] = value
   }
 }
 

@@ -11,6 +11,11 @@ export const canvas2DElement = getElementById('D') as HTMLCanvasElement
 
 export const gameTextElement = getElementById('T')
 
+const bodyClassList = body.classList
+
+export const bodyClassListSet = (name: string, value?: boolean) =>
+  value ? bodyClassList.add(name) : bodyClassList.remove(name)
+
 /** Total horizontal and vertical padding to apply to the main element */
 const MAIN_ELEMENT_PADDING = 30
 
@@ -74,7 +79,7 @@ highQualityCheckbox.onchange = () => {
 
 export const showMainMenu = () => {
   pageState._mainMenu = true
-  body.className = 'N'
+  bodyClassListSet('N', true)
   exitPointerLock()
 }
 
@@ -83,7 +88,7 @@ const canvasRequestPointerLock = (e?: MouseEvent) =>
 
 export const resumeGame = () => {
   pageState._mainMenu = false
-  body.className = ''
+  bodyClassListSet('N')
 }
 
 const startOrResumeClick = () => {
@@ -95,6 +100,7 @@ getElementById('R').onclick = startOrResumeClick
 getElementById('G').onclick = startOrResumeClick
 
 canvasElement.onmousedown = canvasRequestPointerLock
+canvas2DElement.onmousedown = canvasRequestPointerLock
 
 export const gl_context = canvasElement.getContext('webgl2', {
   /** Boolean that indicates if the canvas contains an alpha buffer. */

@@ -1,3 +1,8 @@
+/*
+ .N is active while main menu is active
+ .P is ative while playing the 3d game
+*/
+
 * {
   user-select: none;
 }
@@ -72,6 +77,12 @@ b:hover {
   text-decoration: underline;
 }
 
+/* Copyright at the bottom of the menu */
+i {
+  opacity: 0.8;
+  font-size: 0.6em;
+}
+
 /* Text on sreen */
 #T {
   left: 1rem;
@@ -84,16 +95,15 @@ h3 {
   margin: 0.5em;
 }
 
-.N #T,
-.N #D {
+.N #T, /* During main menu, hide text. */
+.N #D, /* During main menu, hide minigame. */
+.P #D  /* During game play, hide minigame. */ {
   display: none;
 }
 
-.N #N {
+/* During main menu, show main menu and 3d canvas */
+.N #N,
+.N #C {
   display: block;
-}
-
-i {
-  opacity: 0.8;
-  font-size: 0.6em;
+  visibility: visible;
 }

@@ -30,6 +30,7 @@ import {
 } from './math/vec3'
 import { vec2New } from './math/vec2'
 import { typedArraySet } from './core/arrays'
+import { minigameState } from './state/minigame'
 
 const CAMERA_SPEED_DEFAULT = 1.5
 
@@ -96,6 +97,7 @@ const updateCameraDirFromEulerAngles = () => {
 }
 
 export const updateCamera = (timeDelta: number) => {
+  console.log('UPDATE CAMERA')
   const speed = (isKeyPressed(KEY_RUN) ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * timeDelta
 
   if (isKeyPressed(KEY_FORWARD)) {
@@ -130,7 +132,7 @@ updateCameraDirFromEulerAngles()
 debug_updateCameraPosition(cameraPos)
 
 onmousemove = (e) => {
-  if (document.pointerLockElement === canvasElement) {
+  if (document.pointerLockElement === canvasElement && !minigameState._active) {
     cameraEuler.x = wrapAngleInRadians(cameraEuler.x - e.movementX * MOUSE_ROTATION_SENSITIVITY_X)
 
     cameraEuler.y = clamp(

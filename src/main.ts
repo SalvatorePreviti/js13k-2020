@@ -1,6 +1,6 @@
 import './css/styles.css'
 import { glDrawFullScreenTriangle } from './gl/gl-utils'
-import { pageState, resumeGame, showMainMenu } from './page'
+import { pageState, showMainMenu } from './page'
 import { debug_beginFrame, debug_endFrame, debug_trycatch_wrap, debug_log, debug_updateCameraPosition } from './debug'
 
 import { updateCamera, cameraPos } from './camera'
@@ -8,15 +8,18 @@ import { buildHeightmapTexture } from './texture-heightmap'
 import { buildNoiseTexture } from './texture-noise'
 import { updateAnimations } from './state/animations'
 import { updateGameObjects, GAME_OBJECTS } from './state/objects'
-import { updateText } from './text'
+import { updateText } from './state/text'
 import { loadMainShader, mainShader } from './shader-program'
 import { updateCollider } from './collider'
-import { buildScreenTextures, bindScreenTexture } from './texture-screen'
+import { loadingScreens, bindScreenTexture, minigameRedraw, minigameUpdate } from './context2D'
+import { minigameState } from './state/minigame'
+import { gl_clear } from './gl/gl'
+import { GL_COLOR_CLEAR_VALUE, GL_COLOR_BUFFER_BIT } from './gl/gl-constants'
 
 let prevTime = 0
 let time = 0
 
-buildScreenTextures()
+loadingScreens()
 
 onload = () => {
   buildNoiseTexture()
@@ -25,20 +28,29 @@ onload = () => {
 
   showMainMenu()
 
+  minigameUpdate()
+
   const animationFrame = debug_trycatch_wrap(
     (timeMilliseconds: number) => {
       requestAnimationFrame(animationFrame)
       time = timeMilliseconds / 1000
       const timeDelta = time - prevTime
-      if (timeDelta < 0.07) {
-        //return
-      }
-
       debug_beginFrame()
 
-      updateCamera(timeDelta)
+      if (timeDelta < 0.1 && pageState._mainMenu) {
+        debug_endFrame(time)
+        return // Slow frame rate during menu
+      }
 
       if (!pageState._mainMenu) {
+        if (minigameState._active) {
+          // Just clear the screen if the minigame is active
+          gl_clear(GL_COLOR_BUFFER_BIT)
+          debug_endFrame(time)
+          return
+        }
+
+        updateCamera(timeDelta)
         updateCollider(time)
       }
 
