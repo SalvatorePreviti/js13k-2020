@@ -84,7 +84,7 @@ h3 {
 /* target only firefox */
 @-moz-document url-prefix() {
   .N #C {
-    filter: blur(15px) contrast(300%) brightness(35%);
+    filter: blur(15px) contrast(200%) brightness(50%);
   }
 }
 
