@@ -11,17 +11,16 @@ import { updateGameObjects, GAME_OBJECTS } from './state/objects'
 import { updateText } from './state/text'
 import { loadMainShader, mainShader } from './shader-program'
 import { updateCollider } from './collider'
-import { loadingScreens, bindScreenTexture, minigameRedraw, minigameUpdate } from './context2D'
+import { loadingScreens, bindScreenTexture, minigameUpdate } from './context2D'
 import { minigameState } from './state/minigame'
 import { gl_clear } from './gl/gl'
-import { GL_COLOR_CLEAR_VALUE, GL_COLOR_BUFFER_BIT } from './gl/gl-constants'
+import { GL_COLOR_BUFFER_BIT } from './gl/gl-constants'
 
 let prevTime = 0
 let time = 0
 
-loadingScreens()
-
-onload = () => {
+setTimeout(() => {
+  loadingScreens()
   buildNoiseTexture()
   buildHeightmapTexture()
   loadMainShader()
@@ -76,7 +75,7 @@ onload = () => {
   )
 
   requestAnimationFrame(animationFrame)
-}
+}, 250)
 
 if (import.meta.hot) {
   const reloadMainShader = () => {

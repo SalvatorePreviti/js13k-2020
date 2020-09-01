@@ -99,8 +99,9 @@ const startOrResumeClick = () => {
 getElementById('R').onclick = startOrResumeClick
 getElementById('G').onclick = startOrResumeClick
 
-canvasElement.onmousedown = canvasRequestPointerLock
-canvas2DElement.onmousedown = canvasRequestPointerLock
+for (const element of [canvasElement, gameTextElement, canvas2DElement]) {
+  element.onmousedown = canvasRequestPointerLock
+}
 
 export const gl_context = canvasElement.getContext('webgl2', {
   /** Boolean that indicates if the canvas contains an alpha buffer. */

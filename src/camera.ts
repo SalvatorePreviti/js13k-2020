@@ -97,7 +97,6 @@ const updateCameraDirFromEulerAngles = () => {
 }
 
 export const updateCamera = (timeDelta: number) => {
-  console.log('UPDATE CAMERA')
   const speed = (isKeyPressed(KEY_RUN) ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * timeDelta
 
   if (isKeyPressed(KEY_FORWARD)) {

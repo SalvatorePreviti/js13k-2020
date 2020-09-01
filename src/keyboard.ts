@@ -99,7 +99,6 @@ const _setKeyPressed = (e: KeyboardEvent, value: boolean) => {
   if (!e.keyCode || e.metaKey || !document.activeElement || pageState._mainMenu) {
     _pressedKeys.length = 0 // Clear pressed status to prevent key sticking when alt+tabbing or showing the menu
   } else {
-    console.log(e)
     const keyId = _keyMap[e.key] || 0
     if (!e.repeat) {
       _pressedKeys[keyId] = value && !minigameState._active

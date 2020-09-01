@@ -1,4 +1,5 @@
 /*
+ .L is active while loading
  .N is active while main menu is active
  .P is ative while playing the 3d game
 */
@@ -38,14 +39,12 @@ body,
 #D {
   position: relative;
   height: 100%;
-  background: #002;
 }
 
 /* 3D canvas and main menu */
 #C,
 #N {
   position: absolute;
-  top: 0;
 }
 
 /* Main menu and Text on screen */
@@ -85,14 +84,14 @@ i {
 
 /* Text on sreen */
 #T {
-  left: 1rem;
+  padding: 2px;
   bottom: 0;
   position: absolute;
 }
 
 h1,
 h3 {
-  margin: 0.5em;
+  margin: 0.2em;
 }
 
 .N #T, /* During main menu, hide text. */
@@ -105,5 +104,4 @@ h3 {
 .N #N,
 .N #C {
   display: block;
-  visibility: visible;
 }

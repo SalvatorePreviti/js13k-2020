@@ -14,8 +14,6 @@ import { context2D, bodyClassListSet } from './page'
 import { minigameState } from './state/minigame'
 import { wrapNatural, randomNatural } from './math/scalar'
 
-export const SCREEN_TEXTURE_SIZE = 512
-
 const screenTextures: WebGLTexture[] = [gl_createTexture(), gl_createTexture(), gl_createTexture()]
 let lastBoundTexture = -1
 
@@ -36,94 +34,82 @@ const setFontSize = (size: number) => {
 const setFillColor = (color: string = '000015') => {
   context2D.fillStyle = `#${color}`
 }
+const clearScreen = (color?: string) => {
+  setFillColor(color)
+  fillRect(0, 0, 512, 512)
+}
 
 const setStrokeStyle = (style: string) => (context2D.strokeStyle = style)
 
 export const loadingScreens = () => {
   debug_time(loadingScreens)
 
-  const captureScreenTexture = (index: number, capture: boolean) => {
-    if (capture) {
-      bindScreenTexture(index)
-      const imageData = getImageData(0, 0, SCREEN_TEXTURE_SIZE, SCREEN_TEXTURE_SIZE)
-      gl_pixelStorei(GL_UNPACK_ALIGNMENT, 1)
-      gl_texImage2D(
-        GL_TEXTURE_2D,
-        0,
-        GL_RGBA,
-        SCREEN_TEXTURE_SIZE,
-        SCREEN_TEXTURE_SIZE,
-        0,
-        GL_RGBA,
-        GL_UNSIGNED_BYTE,
-        imageData
-      )
+  const captureScreenTexture = (index: number) => {
+    bindScreenTexture(index)
+    const imageData = getImageData(0, 0, 512, 512)
+    gl_pixelStorei(GL_UNPACK_ALIGNMENT, 1)
+    gl_texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData)
 
-      glSetTextureLinearSampling(GL_CLAMP_TO_EDGE)
-    }
+    glSetTextureLinearSampling(GL_CLAMP_TO_EDGE)
   }
 
-  const renderScreens = (capture: boolean) => {
-    context2D.setTransform(1, 0, 0, 1, 0, 0)
-    context2D.lineWidth = 5
-    setFillColor()
-    fillRect(0, 0, SCREEN_TEXTURE_SIZE, SCREEN_TEXTURE_SIZE)
+  context2D.scale(1, 1.3)
+  context2D.lineWidth = 5
+  clearScreen()
 
-    setFontSize(17)
+  setFontSize(17)
 
-    setFillColor('aee')
-    fillText('Memory Core: 131072K', 10, 100)
-    fillText('Launching xx142-b2.exe', 10, 124)
-    fillText('Antenna self test', 10, 146)
-    fillText('Activating radio', 10, 170)
+  setFillColor('aee')
+  fillText('Memory Core: 131072K', 10, 100)
+  fillText('Launching xx142-b2.exe', 10, 124)
+  fillText('Antenna self test', 10, 146)
+  fillText('Activating radio', 10, 170)
 
-    setFillColor('8f8')
-    fillText('OK', 245, 100)
-    fillText('OK', 245, 124)
-    fillText('OK', 245, 146)
+  setFillColor('8f8')
+  fillText('OK', 245, 100)
+  fillText('OK', 245, 124)
+  fillText('OK', 245, 146)
 
-    setFillColor('f66')
-    fillText('FAIL', 245, 170)
+  setFillColor('f66')
+  fillText('FAIL', 245, 170)
 
-    fillText('Insert floppy disk and press E to continue', 42, 280)
+  fillText('Insert floppy disk and press E to continue', 42, 280)
 
-    setFontSize(20)
-    fillText('💾 ERROR 404 - data disk not found', 48, 250)
+  setFontSize(20)
+  fillText('💾 ERROR 404 - data disk not found', 48, 250)
 
-    setFillColor('4f8aff')
-    fillText('⬣ JS13K Modular Bios v.13', 10, 30)
+  setFillColor('4f8aff')
+  fillText('⬣ JS13K Modular Bios v.13', 10, 30)
 
-    captureScreenTexture(0, capture)
+  captureScreenTexture(0)
 
-    setStrokeStyle('#f00')
-    strokeRect(20, 220, 472, 80)
+  setStrokeStyle('#f00')
+  strokeRect(20, 220, 472, 80)
 
-    captureScreenTexture(1, capture)
+  captureScreenTexture(1)
 
-    setStrokeStyle('#bb0')
-    setFillColor()
-    fillRect(20, 220, 472, 80)
-    strokeRect(20, 220, 472, 80)
-    setFillColor('bb0')
-    fillText('💾 Loading data disk...', 130, 265)
+  setStrokeStyle('#bb0')
+  setFillColor()
+  fillRect(20, 220, 472, 80)
+  strokeRect(20, 220, 472, 80)
+  setFillColor('bb0')
+  fillText('💾 Loading data disk...', 130, 265)
 
-    captureScreenTexture(2, capture)
-  }
+  captureScreenTexture(2)
 
-  renderScreens(true)
-  renderScreens(false)
+  clearScreen('000')
+  context2D.resetTransform()
 
   debug_timeEnd(loadingScreens)
 }
 
 const minigameEmojiMap = ['', '⛵', '🏝️', '🐋']
 
-export const minigameRedraw = () => {
+const minigameRedraw = () => {
   context2D.textAlign = 'center'
   context2D.textBaseline = 'middle'
   setFontSize(39)
-  setFillColor()
-  fillRect(0, 0, 512, 512)
+  clearScreen('000')
   setFillColor('006994')
   for (let i = 0; i < 100; ++i) {
     const x = i % 10
