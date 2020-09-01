@@ -81,6 +81,13 @@ h3 {
   margin: 0.5em;
 }
 
+/* target only firefox */
+@-moz-document url-prefix() {
+  .N #C {
+    filter: blur(15px) contrast(300%) brightness(35%);
+  }
+}
+
 .N #T {
   display: none;
 }
