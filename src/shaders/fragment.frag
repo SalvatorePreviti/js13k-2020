@@ -278,12 +278,12 @@ float antennaConsole(vec3 p) {
     return bounds;
   vec3 q = p;
   q.xy *= rot(-.25);
-  float r = cuboid(q + vec3(.2, .25, 0), vec3(.25, .5, .5));
+  float r = cuboid(q + vec3(.2, .25, 0), vec3(.25, .5, .5)) - 0.01;
   q -= vec3(-.13, .25, 0);
   pModInterval(q.z, .04, -10., 10.);
   pModInterval(q.x, .03, -5., 5.);
-  r = min(r, cuboid(q, vec3(.01)));
-  r = min(r, cuboid(p - vec3(-.45, .2, 0), vec3(.2, .8, .5)));
+  r = min(r, cuboid(q, vec3(.01)) - .005);
+  r = min(r, cuboid(p - vec3(-.45, .2, 0), vec3(.2, .8, .5)) - 0.01);
   return r;
 }
 
@@ -581,7 +581,7 @@ int material = MATERIAL_SKY;
 float distanceToNearestSurface(vec3 p) {
   float t = terrain(p);
   float n = nonTerrain(p);
-  float s = screen(p, vec3(4.75, 14.42, 4), vec2(.45, .29), PI / 2.);
+  float s = screen(p, vec3(4.76, 14.42, 4), vec2(.45, .29), PI / 2.);
   if (t < min(s, n)) {
     material = MATERIAL_TERRAIN;
     return t;
