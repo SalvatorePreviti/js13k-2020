@@ -10,7 +10,7 @@ import { updateAnimations } from './state/animations'
 import { updateGameObjects, GAME_OBJECTS } from './state/objects'
 import { updateText } from './text'
 import { loadMainShader, mainShader, prerenderedShader } from './shader-program'
-import { updateCollider } from './collider'
+import { updateCollider, initCollider } from './collider'
 import { buildScreenTextures, bindScreenTexture } from './texture-screen'
 import { initPrerenderedTexture, renderToPrerenderedTexture, PRERENDERED_TEXTURE_SIZE } from './texture-prerendered'
 
@@ -24,6 +24,7 @@ setTimeout(() => {
   buildHeightmapTexture()
   buildScreenTextures()
   initPrerenderedTexture()
+  initCollider()
   loadMainShader()
 
   const animationFrame = debug_trycatch_wrap(

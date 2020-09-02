@@ -1,6 +1,6 @@
 import './_debug.less'
 import debugInfoHtmlString from './_debug.html'
-import { max, RAD_TO_DEG, unpackFloatBytes3 } from '../math/scalar'
+import { max, RAD_TO_DEG, unpackFloatBytes4 } from '../math/scalar'
 
 function appendDebugInfoHtmlToBody() {
   const tempDiv = document.createElement('div')
@@ -83,7 +83,8 @@ export function debug_collisionBufferCanvasDraw() {
       debugCollisionBufferCanvasImageBuf[i] = debugCollisionSourceBuffer[i]
 
       const dist =
-        unpackFloatBytes3(
+        unpackFloatBytes4(
+          debugCollisionSourceBuffer[i],
           debugCollisionSourceBuffer[i + 1],
           debugCollisionSourceBuffer[i + 2],
           debugCollisionSourceBuffer[i + 3]

@@ -19,13 +19,13 @@ import {
 } from './gl/gl-context'
 import { collisionShader } from './shader-program'
 import { debug_collisionBufferCanvasPrepare } from './debug'
-import { PI, cos, sin, unpackFloatBytes3, abs } from './math/scalar'
+import { PI, cos, sin, abs, unpackFloatBytes4 } from './math/scalar'
 import { cameraPos } from './camera'
 
 const COLLIDER_SIZE = 128
 
-const _colliderTexture: WebGLTexture = gl_createTexture()
-const _colliderFrameBuffer = gl_createFramebuffer()
+const colliderTexture: WebGLTexture = gl_createTexture()
+const colliderFrameBuffer = gl_createFramebuffer()
 
 const colliderBuffer = new Uint8Array(COLLIDER_SIZE * COLLIDER_SIZE * 4)
 
@@ -33,15 +33,30 @@ debug_collisionBufferCanvasPrepare(colliderBuffer, COLLIDER_SIZE, COLLIDER_SIZE)
 
 const readDist = (x: number, y: number): number => {
   const bufIdx = y * COLLIDER_SIZE * 4 + x * 4
-  return unpackFloatBytes3(colliderBuffer[bufIdx + 1], colliderBuffer[bufIdx + 2], colliderBuffer[bufIdx + 3])
+  return unpackFloatBytes4(
+    colliderBuffer[bufIdx],
+    colliderBuffer[bufIdx + 1],
+    colliderBuffer[bufIdx + 2],
+    colliderBuffer[bufIdx + 3]
+  )
 }
 
 const getAngleFromIdx = (x: number): number => -((PI * (x - 64)) / 64) - PI / 2
 
+export const initCollider = () => {
+  gl_activeTexture(GL_TEXTURE2)
+  gl_bindTexture(GL_TEXTURE_2D, colliderTexture)
+  gl_texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, COLLIDER_SIZE, COLLIDER_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, null)
+  gl_bindFramebuffer(GL_FRAMEBUFFER, colliderFrameBuffer)
+  gl_framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colliderTexture, 0)
+}
+
 export const updateCollider = (time: number) => {
   // Create and bind the framebuffer
 
-  gl_bindFramebuffer(GL_FRAMEBUFFER, _colliderFrameBuffer)
+  gl_activeTexture(GL_TEXTURE2)
+
+  gl_bindFramebuffer(GL_FRAMEBUFFER, colliderFrameBuffer)
 
   // Load the shader
 
@@ -49,12 +64,7 @@ export const updateCollider = (time: number) => {
 
   // Render
 
-  gl_activeTexture(GL_TEXTURE2)
-  gl_bindTexture(GL_TEXTURE_2D, _colliderTexture)
-  gl_texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, COLLIDER_SIZE, COLLIDER_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, null)
-  gl_framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _colliderTexture, 0)
-
-  gl_bindTexture(GL_TEXTURE_2D, _colliderTexture)
+  gl_bindTexture(GL_TEXTURE_2D, colliderTexture)
 
   glDrawFullScreenTriangle()
 

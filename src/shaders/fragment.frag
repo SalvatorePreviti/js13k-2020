@@ -617,6 +617,7 @@ float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
   float result = MAX_DIST;
   float prevNear = min_epsilon;
   float stepLen = min_epsilon;
+  float omega = 1.2;
   epsilon = min_epsilon;
 
   iterationsR = 0.;
@@ -629,6 +630,9 @@ float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
     if (nearest < 0.) {
       dist -= prevNear;
       nearest = prevNear / 1.5;
+      if (prevNear < 0.) {
+        discard;
+      }
     }
 
     dist += nearest;
@@ -678,16 +682,9 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
   return res;
 }
 
-/*vec4 tex3D( in vec3 pos, in vec3 normal, sampler2D sampler )
-{
-        return 	texture( sampler, pos.yz )*abs(normal.x)+
-                        texture( sampler, pos.xz )*abs(normal.y)+
-                        texture( sampler, pos.xy )*abs(normal.z);
-}*/
-
 float rayTraceWater(vec3 p, vec3 dir) {
   float t = (WaterLevel - p.y) / dir.y;
-  return t >= 0. ? min(t, MAX_DIST) : MAX_DIST;
+  return min(t >= 0. ? t : MAX_DIST, MAX_DIST);
 }
 
 vec3 waterFBM(vec2 p) {
@@ -704,8 +701,8 @@ vec3 waterFBM(vec2 p) {
     flow *= -.75;
     vec3 v = noiseDxy(p + sin(p.yx * .5 + iTime) * .5);
     f += v * a;
-    p += v.yz * 0.43;
-    p *= 2.0;
+    p += v.yz * .43;
+    p *= 2.;
     tot += a;
     a *= ps;
   }
@@ -752,20 +749,11 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat, int subMat) {
 }
 
 vec3 intersectWithWorld(vec3 p, vec3 dir) {
-  /*float min_dist =
-      unpackFloat(texelFetch(iPrerendered, ivec2(fragCoord * PRERENDERED_TEXTURE_SIZE / iResolution), 0)) * MAX_DIST -
-      .1 * MAX_DIST / PRERENDERED_TEXTURE_SIZE;*/
-
   vec4 packed = texelFetch(iPrerendered, ivec2(fragCoord * PRERENDERED_TEXTURE_SIZE / iResolution + 0.5), 0);
-
   float unpacked = uintBitsToFloat(
       (uint(packed.x * 255.) << 24 | uint(packed.y * 255.) << 16 | uint(packed.z * 255.) << 8 | uint(packed.z * 255.)));
 
-  // unpacked -= 0.1;
-
-  // unpacked = MIN_DIST;
-
-  float dist = rayMarch(p, dir, 0.001, unpacked);
+  float dist = unpacked < MAX_DIST ? rayMarch(p, dir, 0.001, unpacked) : MAX_DIST;
   float wdist = rayTraceWater(p, dir);
   float lightIntensity;
 
@@ -837,22 +825,10 @@ void main_c() {
   vec2 pos = fragCoord / iResolution;
 
   vec3 ray = normalize(vec3(0., 0., 1.));
-
-  ray.xz = ray.xz * rot(pos.x * 2. * PI + PI);
+  ray.xz *= rot(pos.x * 2. * PI + PI);
 
   vec3 cylinderPos = vec3(iCameraPos.x, iCameraPos.y + screen.y - .8, iCameraPos.z);
-
-  // cylinderPos.xz *= rot(pos.x * 2. * PI + iCameraEuler.x + PI);
-
-  vec3 hit = cylinderPos + ray * MIN_DIST;
-
-  float dist = distanceToNearestSurface(hit);
-
-  oColor.x = dist < .2 ? 1. : 0.;
-  oColor.y = abs(dist);
-
-  oColor.x = dist < .2 ? 1. : 0.;
-  oColor.yzw = packFloat(.2 - dist).xyz;
+  oColor = packFloat(.2 - distanceToNearestSurface(cylinderPos + ray * MIN_DIST));
 }
 
 /**********************************************************************/
@@ -864,16 +840,14 @@ void main_p() {
 
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
 
-  float min_epsilon = 3. / PRERENDERED_TEXTURE_SIZE;
+  float min_epsilon = 2. / PRERENDERED_TEXTURE_SIZE;
 
   vec3 p = iCameraPos;
   float dist = rayMarch(p, ray, min_epsilon, MIN_DIST);
   // float wdist = rayTraceWater(p, ray);
   // float mdist = min(dist, wdist) ;
 
-  float epsilon = max(min_epsilon, dist * min_epsilon / 1.5);
-
-  uint packed = floatBitsToUint(dist - epsilon);
+  uint packed = floatBitsToUint(dist - epsilon * .5);
 
   oColor = vec4(float((packed >> 24) & 0xffu) / 255., float((packed >> 16) & 0xffu) / 255.,
       float((packed >> 8) & 0xffu) / 255., float(packed & 0xffu) / 255.);
@@ -907,7 +881,7 @@ void main_() {
   // vec3 pixelColour = clamp(intersectWithWorld(iCameraPos, ray), 0., 1.);
   // oColor = vec4(pixelColour, 1);
 
-  oColor.x = iterationsR;
+  // oColor.x = iterationsR;
   // oColor.y = iterationsR;
   // oColor.z = iterationsR;
 }
