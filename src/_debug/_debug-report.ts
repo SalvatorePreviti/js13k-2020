@@ -1,4 +1,4 @@
-import { DebugReportInfo } from '../debug'
+import type { DebugReportInfo } from '../debug'
 import { GL_COMPILE_STATUS, GL_LINK_STATUS, GL_VALIDATE_STATUS } from '../gl/gl-constants'
 import {
   gl_validateProgram,
@@ -94,7 +94,7 @@ class ReportItem {
   public readonly kind: 'error' | 'warn' | 'info'
   public readonly context: string
   public readonly title: string
-  public readonly message: string
+  public message: string
   public readonly file: string
 
   public repeatCount: number = 1
@@ -188,8 +188,9 @@ export function debug_report(
   if (!message) {
     return
   }
+  const input = message
   if (message instanceof Error) {
-    message = message.stack || message.toString()
+    message = message.stack || `${message}`
   }
 
   let context = ''
@@ -206,17 +207,17 @@ export function debug_report(
   }
 
   const newItem = new ReportItem(kind, context, message, file, title)
-  if (_reportItemsList.add(newItem) !== newItem) {
+  if (_reportItemsList.add(newItem) === newItem) {
     switch (kind) {
       case 'error':
-        console.error(message)
+        console.error(input)
         break
       case 'warn':
       case 'warning':
-        console.warn(message)
+        console.warn(input)
         break
       case 'info':
-        console.info(message)
+        console.info(input)
         break
     }
   }
@@ -365,3 +366,5 @@ export function debug_checkShaderProgramLinkStatus(
     }
   }
 }
+
+throw new Error('xxx')
