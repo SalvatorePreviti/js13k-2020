@@ -288,7 +288,7 @@ float antennaConsole(vec3 p) {
 }
 
 float antennaCable(vec3 p) {
-  p.zy *= rot(.05);
+  p.zy *= rot(.06);
   p.y += cos(p.z / 20.) * 3.;
   return cylinder(p, 0.01, 27.5);
 }
@@ -341,9 +341,9 @@ float antenna(vec3 p, vec2 rotation) {
   dish = min(dish,cylinder(q.xzy + vec3(0, 0, size * .5), .1, size * .5));
   dish = min(dish, sphere(q, .3));
   p.y += size * .75;
-  float structure = cuboid(p, vec3(size / 4., size / 3., size / 2.));
+  float structure = cuboid(p, vec3(size / 4., size / 2.5, size / 2.));
   structure = min(structure,
-      min(max(opOnion(cylinder(p.xzy - vec3(size / 4., 0, 0), size / 2. - .1, size / 3. - .1), .1),
+      min(max(opOnion(cylinder(p.xzy - vec3(size / 4., 0, 0), size / 2. - .1, size / 2.5 - .1), .1),
               -min(cylinder(p.zyx - vec3(0, 1.8, 0), 1., 100.),  // hole for the door
                   cylinder(p - vec3(4.5, 2.3, 0), .4, 100.)  // hole for the windows
                   )),
@@ -558,7 +558,7 @@ float nonTerrain(vec3 p) {
   oilrigCoords.xz *= rot(PI / 2. + 0.4);
   float o = oilrig(oilrigCoords);
   float ob = oilrigBridge(oilrigCoords);
-  float aoc = antennaCable(oilrigCoords.zyx - vec3(-2, 9.4, 32.5));
+  float aoc = antennaCable(oilrigCoords.zyx - vec3(-2, 9.7, 32.5));
   float guardTower = guardTower(p - vec3(8.7, 9.3, 37));
   float structures = min(
     min(min(b,a),min(m,pr)),min(min(r,o),min(ob,guardTower))
