@@ -335,13 +335,13 @@ float antenna(vec3 p, vec2 rotation) {
   q.xz *= rot(rotation.y);
   q.xy *= rot(rotation.x);
   q.y -= size;
-  float dish = max(opOnion(sphere(q, size), size / 50.),
+  float dish = max(opOnion(sphere(q, size), .01),
       q.y + size / 2.  // cut the sphere part-way up
   );
-  float structure = cylinder(q.xzy + vec3(0, 0, size * .5), size * .02, size * .5);
-  structure = min(structure, sphere(q, size / 20.));
+  dish = min(dish,cylinder(q.xzy + vec3(0, 0, size * .5), .1, size * .5));
+  dish = min(dish, sphere(q, .3));
   p.y += size * .75;
-  structure = min(structure, cuboid(p, vec3(size / 4., size / 3., size / 2.)));
+  float structure = cuboid(p, vec3(size / 4., size / 3., size / 2.));
   structure = min(structure,
       min(max(opOnion(cylinder(p.xzy - vec3(size / 4., 0, 0), size / 2. - .1, size / 3. - .1), .1),
               -min(cylinder(p.zyx - vec3(0, 1.8, 0), 1., 100.),  // hole for the door
@@ -379,8 +379,8 @@ float ruinedBuildings(vec3 p) {
 }
 
 float monument(vec3 p) {
-  float bounds = length(p.xz) - 3.;
-  if (bounds > 1.)
+  float bounds = length(p.xz) - 2.;
+  if (bounds > 3.)
     return bounds;
   float button = cylinder(p.xzy + vec3(0, 0, clamp(iAnimMonumentDescend, 0., .02)), .05, .53);
   updateSubMaterial(SUBMATERIAL_METAL, button);
@@ -438,26 +438,26 @@ float oilrig(vec3 p) {
   e = p;
   o = p;
   q.xz = abs(q.xz);  // mirror in x & z
-  float r = cylinder(q.xzy - vec3(5, 5, 0), .5, 7.7);  // main platform cylinders
+  float metal = cylinder(q.xzy - vec3(5, 5, 0), .5, 7.7);  // main platform cylinders
   l = q;
   q.y = abs(w.y - 4.08);  // mirror y at y=4;
-  r = min(r, cylinder(q.zyx - vec3(5.3, 3.5, 0), .05, 5.3));  // guard rails
-  r = min(r,
+  metal = min(metal, cylinder(q.zyx - vec3(5.3, 3.5, 0), .05, 5.3));  // guard rails
+  metal = min(metal,
       max(cylinder(q.xyz - vec3(5.3, 3.5, 0), .05, 5.3),  // guard rails
           -cuboid(p - vec3(5, .7, 4), vec3(.7))  // cut a hole in the guard rails where the bridge will connect
           ));
   w.y = abs(w.y - 3.5);  // mirror y at y=3.5
-  r = min(r, cuboid(w - vec3(0, 3.5, 0), vec3(6, .2, 6)) - .05);  // platforms (mirrored around y=3.5)
-  r = max(r, -cuboid(p - vec3(2, 7, 2), vec3(1.5)));  // hole in upper platform
+  float platforms = cuboid(w - vec3(0, 3.5, 0), vec3(6, .2, 6)) - .05;  // platforms (mirrored around y=3.5)
+  platforms = max(platforms, -cuboid(p - vec3(2, 7, 2), vec3(1.5)));  // hole in upper platform
   e.z = abs(e.z + 2.);  // mirror around z=2
-  r = min(r, cylinder(e.xzy - vec3(-6, 1.1, 8.7), 1., 1.75));  // tanks
-  r = min(r, cylinder(e.xzy - vec3(-6.5, 1.1, 0), .2, 8.));  // pipes from tanks to sea
+  metal = min(metal, cylinder(e.xzy - vec3(-6, 1.1, 8.7), 1., 1.75));  // tanks
+  metal = min(metal, cylinder(e.xzy - vec3(-6.5, 1.1, 0), .2, 8.));  // pipes from tanks to sea
   o.y = abs(o.y - 7.6);
-  r = min(r, cylinder(o.zyx - vec3(-3, .2, 0), .1, 5.));  // pipes from console to tank
+  metal = min(metal, cylinder(o.zyx - vec3(-3, .2, 0), .1, 5.));  // pipes from console to tank
   // r = min(r, cylinder(o-vec3(-6,.2,-2),.1,1.));    //pipes between tanks
   u = p - vec3(5, 7.6, -2);
   u.xy *= rot(.3);  // rotate the console towards player
-  r = min(r, cuboid(u, vec3(.5, .6, 1.5)));  // console
+  metal = min(metal, cuboid(u, vec3(.5, .6, 1.5)) - 0.05);  // console
   t = u - vec3(0, .8, 0);
   // rotate wheel around xz based on animation uniform:
   t.xz *= rot(iAnimOilrigWheel);
@@ -465,12 +465,12 @@ float oilrig(vec3 p) {
   wheel = min(wheel, cylinder(t.xzy + vec3(0, 0, .5), .02, .5));  // center-column of spokes
   pModPolar(t.xz, 5.);
   wheel = min(wheel, cylinder(t.zyx - vec3(0, 0, .25), .01, .25));  // spokes
-  updateSubMaterial(SUBMATERIAL_RED, wheel);
-  r = min(r,wheel);
   p -= vec3(2, 3.53, -.05);
   p.zy *= rot(-PI / 4.);
-  r = min(r, cuboid(p, vec3(1, 5.1, .1)) - .05);  // ramp from lower platform to upper
-  return r;
+  platforms = min(platforms, cuboid(p, vec3(1, 5.1, .1)) - .05);  // ramp from lower platform to upper
+  updateSubMaterial(SUBMATERIAL_METAL, metal);
+  updateSubMaterial(SUBMATERIAL_RED, wheel);
+  return min(platforms, min(metal, wheel));
 }
 
 float oilrigBridge(vec3 p) {
@@ -752,7 +752,7 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat, int subMat) {
       break;
     case MATERIAL_BUILDINGS:
       if (subMat == SUBMATERIAL_CONCRETE)
-        color += 0.2*(texture(iNoise, hit.xy).x*normal.z+texture(iNoise, hit.yz).x*normal.x+texture(iNoise, hit.xz).x*normal.y - 0.5);
+        color += 0.1*(texture(iNoise, hit.xy*.5).x*normal.z+texture(iNoise, hit.yz*.5).x*normal.x+texture(iNoise, hit.xz*.5).x*normal.y - 0.5);
       if (subMat == SUBMATERIAL_METAL)
         color = vec3(1); //extra bright
       if (subMat == SUBMATERIAL_RED)
