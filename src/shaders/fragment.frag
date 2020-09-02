@@ -265,9 +265,9 @@ float bridge(vec3 p, float s, float bend) {
   p.y += cos(p.z * bend / s);
   p.x = abs(p.x);
   float boards = cuboid(p - vec3(.2, 0, 0), vec3(.1, .03, s * .55));
-  float ropes = cylinder(p - vec3(.5, 1., 0), .01, s * .55);
+  float ropes = cylinder(p - vec3(.5, 1., 0), .02, s * .55);
   pModInterval(p.z, .55, -s, s);
-  ropes = min(ropes, cylinder(p.xzy - vec3(.5, 0, .5), .01, .5));
+  ropes = min(ropes, cylinder(p.xzy - vec3(.5, 0, .5), .02, .5));
   boards = min(boards, cuboid(p, vec3(.5, .05, .2)));
   return min(boards, ropes);
 }
