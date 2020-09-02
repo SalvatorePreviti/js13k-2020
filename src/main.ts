@@ -16,7 +16,7 @@ import { buildScreenTextures, bindScreenTexture } from './texture-screen'
 let prevTime = 0
 let time = 0
 
-onload = () => {
+setTimeout(() => {
   resumeGame() //showMainMenu()
 
   buildNoiseTexture()
@@ -63,7 +63,7 @@ onload = () => {
   )
 
   requestAnimationFrame(animationFrame)
-}
+}, 100)
 
 if (import.meta.hot) {
   const reloadMainShader = () => {

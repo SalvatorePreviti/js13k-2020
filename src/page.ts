@@ -3,7 +3,7 @@ import { newProxyBinder, objectAssign } from './core/objects'
 
 export const { body } = document
 
-export const { getElementById, createElement, getElementsByTagName, exitPointerLock } = newProxyBinder(document)
+export const { getElementById, getElementsByTagName, exitPointerLock } = newProxyBinder(document)
 
 export const canvasElement = getElementById('C') as HTMLCanvasElement
 
@@ -43,6 +43,8 @@ const handleResize = () => {
   const whStyles = { width: cw, height: ch }
   objectAssign(mainElement.style, whStyles)
   objectAssign(canvasElement.style, whStyles)
+
+  mainElement.style.fontSize = `${(ch / 23) | 0}px`
 
   let { clientWidth: w, clientHeight: h } = mainElement
   const highQuality = pageState._highQuality

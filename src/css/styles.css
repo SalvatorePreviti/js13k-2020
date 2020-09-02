@@ -6,49 +6,40 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: #000;
-  color: #fca;
-  text-shadow: 0px 0px 8px #000, -1px -1px 3px #000, 1px 1px 3px #000;
-  font-size: min(3.6vmin, 35px);
 }
 
-body {
+body,
+#M {
   align-items: center;
   display: flex;
   justify-content: center;
   height: 100%;
-}
-
-input {
-  width: 0.6rem;
-  height: 0.6rem;
+  text-shadow: 0px 0px 8px #000, -1px -1px 3px #000, 1px 1px 3px #000;
+  background: #000;
+  color: #fca;
+  text-align: center;
+  font-family: papyrus, fantasy;
 }
 
 #M {
   position: relative;
-  font-family: papyrus, fantasy;
-  letter-spacing: 0.08rem;
-  text-align: center;
+  letter-spacing: 0.01em;
 }
 
-#L {
-  display: none;
-  text-align: center;
+input {
+  width: 1.1em;
+  height: 1.1em;
 }
 
-.L #L {
-  display: block;
-}
-
-#S,
-#N {
+#N,
+#D {
   position: absolute;
   top: 0;
 }
 
-#S {
-  width: 2px;
-  height: 2px;
+/* 2D canvas */
+#D {
+  height: 9px;
 }
 
 #N {
@@ -71,14 +62,14 @@ b:hover {
 }
 
 #T {
-  left: 1rem;
+  padding: 2px;
   bottom: 0;
   position: absolute;
 }
 
 h1,
 h3 {
-  margin: 0.5em;
+  margin: 0.2em;
 }
 
 /* target only firefox */
