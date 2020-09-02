@@ -9,9 +9,10 @@ import { buildNoiseTexture } from './texture-noise'
 import { updateAnimations } from './state/animations'
 import { updateGameObjects, GAME_OBJECTS } from './state/objects'
 import { updateText } from './text'
-import { loadMainShader, mainShader } from './shader-program'
+import { loadMainShader, mainShader, prerenderedShader } from './shader-program'
 import { updateCollider } from './collider'
 import { buildScreenTextures, bindScreenTexture } from './texture-screen'
+import { initPrerenderedTexture, renderToPrerenderedTexture } from './texture-prerendered'
 
 let prevTime = 0
 let time = 0
@@ -22,6 +23,7 @@ setTimeout(() => {
   buildNoiseTexture()
   buildHeightmapTexture()
   buildScreenTextures()
+  initPrerenderedTexture()
   loadMainShader()
 
   const animationFrame = debug_trycatch_wrap(
@@ -46,6 +48,11 @@ setTimeout(() => {
       updateAnimations(timeDelta)
       updateGameObjects()
       updateText(timeDelta)
+
+      // Prerender
+
+      prerenderedShader._use(time, pageState._w, pageState._h)
+      renderToPrerenderedTexture()
 
       // Render main scene
 

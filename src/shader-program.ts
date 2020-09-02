@@ -128,6 +128,8 @@ export let mainShader: MainShaderProgram
 
 export let collisionShader: MainShaderProgram
 
+export let prerenderedShader: MainShaderProgram
+
 export const loadMainShader = () => {
   debug_exec(() => {
     if (mainShader) {
@@ -136,7 +138,11 @@ export const loadMainShader = () => {
     if (collisionShader) {
       gl_deleteProgram(collisionShader._program)
     }
+    if (prerenderedShader) {
+      gl_deleteProgram(prerenderedShader._program)
+    }
   })
   mainShader = loadMainShaderProgram('')
   collisionShader = loadMainShaderProgram('c')
+  prerenderedShader = loadMainShaderProgram('h')
 }

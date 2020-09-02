@@ -205,7 +205,21 @@ export function debug_report(
     }
   }
 
-  _reportItemsList.add(new ReportItem(kind, context, message, file, title))
+  const newItem = new ReportItem(kind, context, message, file, title)
+  if (_reportItemsList.add(newItem) !== newItem) {
+    switch (kind) {
+      case 'error':
+        console.error(message)
+        break
+      case 'warn':
+      case 'warning':
+        console.warn(message)
+        break
+      case 'info':
+        console.info(message)
+        break
+    }
+  }
 }
 
 /** Clears the previous error report on screen */

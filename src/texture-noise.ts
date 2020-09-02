@@ -3,7 +3,7 @@ import { wrapNatural } from './math/scalar'
 import { xoshiro128ss } from './math/rand'
 import { GL_TEXTURE_2D, GL_UNPACK_ALIGNMENT, GL_RGBA, GL_UNSIGNED_BYTE, GL_TEXTURE0 } from './gl/gl-constants'
 import { gl_activeTexture, gl_bindTexture, gl_texImage2D, gl_pixelStorei, gl_createTexture } from './gl/gl-context'
-import { glSetTextureLinearSampling } from './gl/gl-utils'
+import { glSetTextureSampling } from './gl/gl-utils'
 
 const NOISE_TEXTURE_SIZE = 512
 
@@ -45,7 +45,7 @@ export const buildNoiseTexture = () => {
   gl_texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, NOISE_TEXTURE_SIZE, NOISE_TEXTURE_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
 
   gl_bindTexture(GL_TEXTURE_2D, noiseTexture)
-  glSetTextureLinearSampling()
+  glSetTextureSampling()
 
   debug_timeEnd(buildNoiseTexture)
 }
