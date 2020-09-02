@@ -105,7 +105,7 @@ const vec3 TERRAIN_SIZE = vec3(120., 19., 80.);
 const float TERRAIN_OFFSET = 3.;
 
 // maximums
-const int MAX_ITERATIONS = 50;
+const int MAX_ITERATIONS = 100;
 const float MIN_DIST = 0.15;
 const float MAX_DIST = 500.;
 
@@ -823,7 +823,7 @@ void main_p() {
 
   float epsilon = max(min_epsilon, dist * min_epsilon / 1.5);
 
-  uint packed = floatBitsToUint(dist - MIN_DIST);
+  uint packed = floatBitsToUint(dist - epsilon);
 
   oColor = vec4(float((packed >> 24) & 0xffu) / 255., float((packed >> 16) & 0xffu) / 255.,
       float((packed >> 8) & 0xffu) / 255., float(packed & 0xffu) / 255.);
