@@ -105,7 +105,7 @@ const vec3 TERRAIN_SIZE = vec3(120., 19., 80.);
 const float TERRAIN_OFFSET = 3.;
 
 // maximums
-const int MAX_ITERATIONS = 50;
+const int MAX_ITERATIONS = 100;
 const float MIN_DIST = 0.15;
 const float MAX_DIST = 500.;
 
@@ -580,7 +580,7 @@ float iterationsR;
 float rayMarch(vec3 p, vec3 dir, float min_epsilon, float max_epsilon, float dist) {
   float omega = MAX_OMEGA;
 
-  float prevNear = MAX_DIST;
+  float prevNear = min_epsilon;
 
   float MIN_EPSILON = min_epsilon;
   float MAX_EPSILON = max_epsilon;
@@ -588,45 +588,32 @@ float rayMarch(vec3 p, vec3 dir, float min_epsilon, float max_epsilon, float dis
   float stepLen = MIN_EPSILON;
   float epsilon = MIN_EPSILON;
 
-  float funcSign = 1.;
-
   float result = MAX_DIST;
 
   iterationsR = 0.;
 
   for (int i = 0;; i++) {
-    if (i >= MAX_ITERATIONS) {
-      return dist;  // Too many iterations, bail out with current result.
-    }
-
     vec3 hit = p + dir * dist;
 
-    float nearest = funcSign * distanceToNearestSurface(hit);
+    float nearest = distanceToNearestSurface(hit);
 
     if (nearest < 0.) {
-      if (i == 0) {
-        funcSign = -1.;
-        nearest = -nearest;
-      } else {
-        dist -= prevNear / 1.5;
-        continue;
-      }
+      dist -= prevNear;
+      nearest = prevNear / 1.5;
     }
 
     dist += nearest;
-
-    if (nearest <= MIN_EPSILON) {
-      return dist;  // Step too small, bail out with the current result.
-    }
 
     if (dist >= MAX_DIST) {
       break;
     }
 
-    // float distR = nextDist / MAX_DIST;
-    // float epsAdjust = distR * max(distR * distR + iterationsR * 8., 1.);
+    float distR = dist / MAX_DIST;
+    float epsAdjust = distR * max(distR * distR + iterationsR * 8., 1.);
 
-    epsilon = MIN_EPSILON;  // mix(MIN_EPSILON, MAX_EPSILON, epsAdjust);
+    // epsilon = mix(MIN_EPSILON, MAX_EPSILON, epsAdjust);
+
+    epsilon = max(MIN_EPSILON, dist * MIN_EPSILON / 1.5);
 
     float hitUnderwater = hit.y + TERRAIN_OFFSET * .5;
     if (hitUnderwater < -0.01) {
@@ -634,10 +621,10 @@ float rayMarch(vec3 p, vec3 dir, float min_epsilon, float max_epsilon, float dis
         break;  // Nothing to render underwater
       }
       epsilon -= hitUnderwater;  // Decrease resolution under water
+    }
 
-      if (nearest < epsilon) {
-        return dist;  // Step too small, bail out with the current result.
-      }
+    if (nearest <= epsilon || i >= MAX_ITERATIONS) {
+      return dist;
     }
 
     prevNear = nearest;
@@ -728,16 +715,17 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
       unpackFloat(texelFetch(iPrerendered, ivec2(fragCoord * PRERENDERED_TEXTURE_SIZE / iResolution), 0)) * MAX_DIST -
       .1 * MAX_DIST / PRERENDERED_TEXTURE_SIZE;*/
 
-  vec4 packed = texelFetch(iPrerendered, ivec2(fragCoord * PRERENDERED_TEXTURE_SIZE / iResolution), 0);
+  vec4 packed = texelFetch(
+      iPrerendered, ivec2(fragCoord * PRERENDERED_TEXTURE_SIZE / iResolution + .5 / PRERENDERED_TEXTURE_SIZE), 0);
 
   float unpacked = uintBitsToFloat(
       (uint(packed.x * 255.) << 24 | uint(packed.y * 255.) << 16 | uint(packed.z * 255.) << 8 | uint(packed.z * 255.)));
 
   // unpacked -= 0.1;
 
-  unpacked = MIN_DIST;
+  // unpacked = MIN_DIST;
 
-  float dist = rayMarch(p, dir, 1. / iResolution.x, 3. / iResolution.x, unpacked);
+  float dist = rayMarch(p, dir, 1. / iResolution.y, 3. / iResolution.x, unpacked);
   float wdist = rayTraceWater(p, dir);
   float lightIntensity;
 
@@ -830,12 +818,12 @@ void main_c() {
 void main_p() {
   WaterLevel = sin(iTime * 2. + 3.) * .2;
 
-  vec2 screen = fragCoord / (iResolution * .5) - 1.;
+  vec2 screen = (fragCoord - 0.5) / (iResolution * .5) - 1.;
 
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
 
   vec3 p = iCameraPos;
-  float dist = rayMarch(p, ray, 6. / PRERENDERED_TEXTURE_SIZE, 8. / PRERENDERED_TEXTURE_SIZE, MIN_DIST);
+  float dist = rayMarch(p, ray, 2. / PRERENDERED_TEXTURE_SIZE, 100. / PRERENDERED_TEXTURE_SIZE, MIN_DIST);
   // float wdist = rayTraceWater(p, ray);
   // float mdist = min(dist, wdist) ;
 
