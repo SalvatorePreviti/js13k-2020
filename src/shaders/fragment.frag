@@ -649,6 +649,13 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
   return res;
 }
 
+/*vec4 tex3D( in vec3 pos, in vec3 normal, sampler2D sampler )
+{
+	return 	texture( sampler, pos.yz )*abs(normal.x)+ 
+			texture( sampler, pos.xz )*abs(normal.y)+ 
+			texture( sampler, pos.xy )*abs(normal.z);
+}*/
+
 float rayTraceWater(vec3 p, vec3 dir) {
   float t = (WaterLevel - p.y) / dir.y;
   return t >= 0. ? min(t, MAX_DIST) : MAX_DIST;
@@ -700,6 +707,9 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat) {
                   clamp01(hit.y * .5 - 1.)) +
           textureLod(iNoise, hit.xz * 0.15, 0.).x * 0.1 + textureLod(iNoise, hit.xz * 0.01, 0.).x * 0.1;
       ;
+      break;
+    default:
+      color += 0.2*(texture(iNoise, hit.xy).x*normal.z+texture(iNoise, hit.yz).x*normal.x+texture(iNoise, hit.xz).x*normal.y - 0.5);
       break;
   }
   return color;
