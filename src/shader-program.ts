@@ -53,12 +53,12 @@ export const loadMainShaderProgram = (mainFunction: string) => {
   } = glNewUniformLocationGetter(program)
 
   // Texture 0
-  gl_uniform1i(iHeightmap, 0)
+  gl_uniform1i(iNoise, 0)
 
   // Texture 1
-  gl_uniform1i(iNoise, 1)
+  gl_uniform1i(iHeightmap, 1)
 
-  // Texture 1
+  // Texture 2
   gl_uniform1i(iScreens, 3)
 
   const _use = (time: number, width: number, height: number) => {

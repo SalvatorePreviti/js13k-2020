@@ -1,14 +1,7 @@
 import { debug_time, debug_timeEnd } from './debug'
 import { wrapNatural } from './math/scalar'
 import { xoshiro128ss } from './math/rand'
-import {
-  GL_TEXTURE1,
-  GL_TEXTURE_2D,
-  GL_UNPACK_ALIGNMENT,
-  GL_RGBA,
-  GL_UNSIGNED_BYTE,
-  GL_TEXTURE0
-} from './gl/gl-constants'
+import { GL_TEXTURE_2D, GL_UNPACK_ALIGNMENT, GL_RGBA, GL_UNSIGNED_BYTE, GL_TEXTURE0 } from './gl/gl-constants'
 import { gl_activeTexture, gl_bindTexture, gl_texImage2D, gl_pixelStorei, gl_createTexture } from './gl/gl-context'
 import { glSetTextureLinearSampling } from './gl/gl-utils'
 
@@ -19,7 +12,7 @@ const noiseTexture: WebGLTexture = gl_createTexture()
 export const buildNoiseTexture = () => {
   debug_time(buildNoiseTexture)
 
-  gl_activeTexture(GL_TEXTURE1)
+  gl_activeTexture(GL_TEXTURE0)
   gl_bindTexture(GL_TEXTURE_2D, noiseTexture)
 
   const nextRandom = xoshiro128ss(345, 737)
@@ -53,8 +46,6 @@ export const buildNoiseTexture = () => {
 
   gl_bindTexture(GL_TEXTURE_2D, noiseTexture)
   glSetTextureLinearSampling()
-
-  gl_activeTexture(GL_TEXTURE0)
 
   debug_timeEnd(buildNoiseTexture)
 }
