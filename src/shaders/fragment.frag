@@ -814,7 +814,7 @@ void main_p() {
 
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
 
-  float min_epsilon = 4. / PRERENDERED_TEXTURE_SIZE;
+  float min_epsilon = 3. / PRERENDERED_TEXTURE_SIZE;
 
   vec3 p = iCameraPos;
   float dist = rayMarch(p, ray, min_epsilon, min_epsilon, MIN_DIST);
