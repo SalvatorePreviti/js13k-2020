@@ -366,5 +366,3 @@ export function debug_checkShaderProgramLinkStatus(
     }
   }
 }
-
-throw new Error('xxx')
