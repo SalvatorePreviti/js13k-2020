@@ -70,7 +70,5 @@ export const buildHeightmapTexture = () => {
   gl_deleteProgram(program._program)
   gl_deleteFramebuffer(fb)
 
-  gl_bindTexture(GL_TEXTURE_2D, heightmapTexture)
-
   debug_timeEnd(buildHeightmapTexture)
 }

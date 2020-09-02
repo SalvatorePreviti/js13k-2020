@@ -12,7 +12,7 @@ import { updateText } from './text'
 import { loadMainShader, mainShader, prerenderedShader } from './shader-program'
 import { updateCollider } from './collider'
 import { buildScreenTextures, bindScreenTexture } from './texture-screen'
-import { initPrerenderedTexture, renderToPrerenderedTexture } from './texture-prerendered'
+import { initPrerenderedTexture, renderToPrerenderedTexture, PRERENDERED_TEXTURE_SIZE } from './texture-prerendered'
 
 let prevTime = 0
 let time = 0
@@ -51,7 +51,7 @@ setTimeout(() => {
 
       // Prerender
 
-      prerenderedShader._use(time, pageState._w, pageState._h)
+      prerenderedShader._use(time, PRERENDERED_TEXTURE_SIZE, PRERENDERED_TEXTURE_SIZE)
       renderToPrerenderedTexture()
 
       // Render main scene

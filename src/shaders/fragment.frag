@@ -11,6 +11,8 @@ const float PI = 3.14159265359;
 // Size in pixels of the noise texture
 const float NOISE_TEXTURE_SIZE = 512.;
 
+const float PRERENDERED_TEXTURE_SIZE = 256.;
+
 const int NOISE_TEXTURE_BITMASK = 0x1ff;
 
 // Aspect ratio is fixed to 1.5 by design
@@ -43,11 +45,14 @@ uniform vec2 iCameraEuler;
 // Camera rotation matrix
 uniform mat3 iCameraMat3;
 
+// Noise texture
+uniform sampler2D iNoise;
+
 // Heightmap texture
 uniform sampler2D iHeightmap;
 
-// Noise texture
-uniform sampler2D iNoise;
+// Prerendered texture
+uniform sampler2D iPrerendered;
 
 // Screens texture
 uniform sampler2D iScreens;
@@ -100,7 +105,7 @@ const vec3 TERRAIN_SIZE = vec3(120., 19., 80.);
 const float TERRAIN_OFFSET = 3.;
 
 // maximums
-const int MAX_ITERATIONS = 100;
+const int MAX_ITERATIONS = 50;
 const float MIN_DIST = 0.15;
 const float MAX_DIST = 500.;
 
@@ -207,7 +212,6 @@ vec3 invZ(vec3 p) {
   return vec3(p.xy, -p.z);
 }
 
-
 // === GEOMETRY ===
 float gameObjectFlashlight(vec3 p) {
   float bounds = length(p) - .3;
@@ -230,10 +234,7 @@ float gameObjectKey(vec3 p) {
 }
 
 float gameObjectFloppy(vec3 p) {
-  return min(
-    cuboid(p, vec3(.06,.005,.06)),
-    cuboid(p-vec3(.03,0,0), vec3(.03,.006,.03))
-  );
+  return min(cuboid(p, vec3(.06, .005, .06)), cuboid(p - vec3(.03, 0, 0), vec3(.03, .006, .03)));
 }
 
 // s is number of segments (*2 + 1, so 5 = 11 segments)
@@ -526,13 +527,9 @@ float nonTerrain(vec3 p) {
   float ob = oilrigBridge(oilrigCoords);
   float aoc = antennaCable(oilrigCoords.zyx - vec3(-2, 9.4, 32.5));
   float guardTower = guardTower(p - vec3(8.7, 9.3, 37));
-  float gameObjects = min(
-    iGOKeyVisible ? gameObjectKey(p.yzx - vec3(2., 7.4, -45.5)) : MAX_DIST, 
-    min(
-      iGOFlashlightVisible ? gameObjectFlashlight(p - vec3(-42, 3, 11.2)) : MAX_DIST, 
-      iGOFloppyDiskVisible ? gameObjectFloppy(p - vec3(12.15, 22.31, 38.65)) : MAX_DIST
-    )
-  );
+  float gameObjects = min(iGOKeyVisible ? gameObjectKey(p.yzx - vec3(2., 7.4, -45.5)) : MAX_DIST,
+      min(iGOFlashlightVisible ? gameObjectFlashlight(p - vec3(-42, 3, 11.2)) : MAX_DIST,
+          iGOFloppyDiskVisible ? gameObjectFloppy(p - vec3(12.15, 22.31, 38.65)) : MAX_DIST));
 
   return min(min(min(gameObjects, b), min(a, min(o, min(ob, aoc)))), min(min(r, guardTower), min(m, pr)));
 }
@@ -580,14 +577,13 @@ float computeLambert(vec3 n, vec3 ld) {
 const float MAX_OMEGA = 1.2;
 float iterationsR;
 
-float rayMarch(vec3 p, vec3 dir) {
+float rayMarch(vec3 p, vec3 dir, float min_epsilon, float max_epsilon, float dist) {
   float omega = MAX_OMEGA;
 
-  float dist = MIN_DIST;
   float prevNear = MAX_DIST;
 
-  float MIN_EPSILON = 1. / iResolution.x;
-  float MAX_EPSILON = MIN_EPSILON * 3.;
+  float MIN_EPSILON = min_epsilon;
+  float MAX_EPSILON = max_epsilon;
 
   float stepLen = MIN_EPSILON;
   float epsilon = MIN_EPSILON;
@@ -720,7 +716,11 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat) {
 }
 
 vec3 intersectWithWorld(vec3 p, vec3 dir) {
-  float dist = rayMarch(p, dir);
+  float min_dist =
+      unpackFloat(texelFetch(iPrerendered, ivec2(fragCoord * PRERENDERED_TEXTURE_SIZE / iResolution), 0)) * MAX_DIST -
+      .1 * MAX_DIST / PRERENDERED_TEXTURE_SIZE;
+
+  float dist = rayMarch(p, dir, 1. / iResolution.x, 3. / iResolution.x, min_dist);
   float wdist = rayTraceWater(p, dir);
   float lightIntensity;
 
@@ -807,6 +807,25 @@ void main_c() {
 }
 
 /**********************************************************************/
+/* prerender shader
+/**********************************************************************/
+
+void main_p() {
+  WaterLevel = sin(iTime * 2. + 3.) * .2;
+
+  vec2 screen = fragCoord / (iResolution * .5) - 1.;
+
+  vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
+
+  vec3 p = iCameraPos;
+  float dist = rayMarch(p, ray, 4. / PRERENDERED_TEXTURE_SIZE, 8. / PRERENDERED_TEXTURE_SIZE, MIN_DIST);
+  // float wdist = rayTraceWater(p, ray);
+  // float mdist = min(dist, wdist) ;
+
+  oColor = packFloat(dist / MAX_DIST);
+}
+
+/**********************************************************************/
 /* main shader
 /**********************************************************************/
 
@@ -820,6 +839,9 @@ void main_() {
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
 
   oColor = vec4(intersectWithWorld(iCameraPos, ray), 1);
+
+  // oColor.x = (unpackFloat(texelFetch(iPrerendered, ivec2(fragCoord * PRERENDERED_TEXTURE_SIZE / iResolution), 0)))
+  // * 4.;
 
   // vec3 pixelColour = clamp(intersectWithWorld(iCameraPos, ray), 0., 1.);
   // oColor = vec4(pixelColour, 1);

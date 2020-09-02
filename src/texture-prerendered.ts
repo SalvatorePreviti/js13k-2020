@@ -21,9 +21,11 @@ import {
   gl_activeTexture
 } from './gl/gl-context'
 
-export const PRERENDERED_TEXTURE_SIZE = 512
+export const PRERENDERED_TEXTURE_SIZE = 256
 
 export const prerenderedTexture: WebGLTexture = gl_createTexture()
+
+const prerenderedFrameBuffer: WebGLFramebuffer = gl_createFramebuffer()
 
 export const initPrerenderedTexture = () => {
   debug_time(initPrerenderedTexture)
@@ -44,10 +46,7 @@ export const initPrerenderedTexture = () => {
 
   glSetTextureSampling(GL_CLAMP_TO_EDGE, GL_NEAREST)
 
-  // Create and bind the framebuffer
-
-  const fb = gl_createFramebuffer()
-  gl_bindFramebuffer(GL_FRAMEBUFFER, fb)
+  gl_bindFramebuffer(GL_FRAMEBUFFER, prerenderedFrameBuffer)
 
   // attach the texture as the first color attachment
   gl_framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, prerenderedTexture, 0)
@@ -58,7 +57,9 @@ export const initPrerenderedTexture = () => {
 }
 
 export const renderToPrerenderedTexture = () => {
-  gl_bindFramebuffer(GL_FRAMEBUFFER, prerenderedTexture)
+  gl_activeTexture(GL_TEXTURE2)
+  gl_bindTexture(GL_TEXTURE_2D, prerenderedTexture)
+  gl_bindFramebuffer(GL_FRAMEBUFFER, prerenderedFrameBuffer)
   glDrawFullScreenTriangle()
   gl_bindFramebuffer(GL_FRAMEBUFFER, null)
 }
