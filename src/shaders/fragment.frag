@@ -105,7 +105,7 @@ const vec3 TERRAIN_SIZE = vec3(120., 19., 80.);
 const float TERRAIN_OFFSET = 3.;
 
 // maximums
-const int MAX_ITERATIONS = 100;
+const int MAX_ITERATIONS = 50;
 const float MIN_DIST = 0.15;
 const float MAX_DIST = 500.;
 
@@ -608,12 +608,7 @@ float rayMarch(vec3 p, vec3 dir, float min_epsilon, float max_epsilon, float dis
       break;
     }
 
-    float distR = dist / MAX_DIST;
-    float epsAdjust = distR * max(distR * distR + iterationsR * 8., 1.);
-
-    // epsilon = mix(MIN_EPSILON, MAX_EPSILON, epsAdjust);
-
-    epsilon = max(MIN_EPSILON, dist * MIN_EPSILON / 1.5);
+    epsilon = max(MIN_EPSILON, dist * MIN_EPSILON);
 
     float hitUnderwater = hit.y + TERRAIN_OFFSET * .5;
     if (hitUnderwater < -0.01) {
@@ -715,8 +710,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
       unpackFloat(texelFetch(iPrerendered, ivec2(fragCoord * PRERENDERED_TEXTURE_SIZE / iResolution), 0)) * MAX_DIST -
       .1 * MAX_DIST / PRERENDERED_TEXTURE_SIZE;*/
 
-  vec4 packed = texelFetch(
-      iPrerendered, ivec2(fragCoord * PRERENDERED_TEXTURE_SIZE / iResolution + .5 / PRERENDERED_TEXTURE_SIZE), 0);
+  vec4 packed = texelFetch(iPrerendered, ivec2(fragCoord * PRERENDERED_TEXTURE_SIZE / iResolution + 0.5), 0);
 
   float unpacked = uintBitsToFloat(
       (uint(packed.x * 255.) << 24 | uint(packed.y * 255.) << 16 | uint(packed.z * 255.) << 8 | uint(packed.z * 255.)));
@@ -816,16 +810,18 @@ void main_c() {
 /**********************************************************************/
 
 void main_p() {
-  WaterLevel = sin(iTime * 2. + 3.) * .2;
-
-  vec2 screen = (fragCoord - 0.5) / (iResolution * .5) - 1.;
+  vec2 screen = (fragCoord - .5) / (iResolution * .5) - 1.;
 
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
 
+  float min_epsilon = 4. / PRERENDERED_TEXTURE_SIZE;
+
   vec3 p = iCameraPos;
-  float dist = rayMarch(p, ray, 2. / PRERENDERED_TEXTURE_SIZE, 100. / PRERENDERED_TEXTURE_SIZE, MIN_DIST);
+  float dist = rayMarch(p, ray, min_epsilon, min_epsilon, MIN_DIST);
   // float wdist = rayTraceWater(p, ray);
   // float mdist = min(dist, wdist) ;
+
+  float epsilon = max(min_epsilon, dist * min_epsilon / 1.5);
 
   uint packed = floatBitsToUint(dist - MIN_DIST);
 
@@ -861,7 +857,7 @@ void main_() {
   // vec3 pixelColour = clamp(intersectWithWorld(iCameraPos, ray), 0., 1.);
   // oColor = vec4(pixelColour, 1);
 
-  oColor.x = iterationsR;
+  // oColor.x = iterationsR;
   // oColor.y = iterationsR;
   // oColor.z = iterationsR;
 }
