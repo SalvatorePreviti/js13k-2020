@@ -6,11 +6,10 @@ precision highp float;
 #define MATERIAL_BUILDINGS 2
 #define MATERIAL_SCREEN 3
 
-//Sub materials of MATERIAL_BUILDINGS
+// Sub materials of MATERIAL_BUILDINGS
 #define SUBMATERIAL_CONCRETE 0
 #define SUBMATERIAL_METAL 1
 #define SUBMATERIAL_RED 2
-
 
 const float PI = 3.14159265359;
 
@@ -100,7 +99,7 @@ out vec4 oColor;
 // Current level of water
 float WaterLevel;
 
-//Keep the current epsilon global
+// Keep the current epsilon global
 float epsilon;
 
 //=== COLORS ===
@@ -160,7 +159,7 @@ vec3 noiseDxy(vec2 x) {
 int subMaterial = SUBMATERIAL_CONCRETE;
 float subMaterialDistance = MAX_DIST;
 
-//Updates the subMaterialDistance and subMaterial if the distance is lower
+// Updates the subMaterialDistance and subMaterial if the distance is lower
 void updateSubMaterial(int sm, float dist) {
   if (dist < epsilon && dist != subMaterialDistance) {
     subMaterial = sm;
@@ -339,7 +338,7 @@ float antenna(vec3 p, vec2 rotation) {
   float dish = max(opOnion(dishSphere, .01),
       q.y + size / 2.  // cut the sphere part-way up
   );
-  dish = min(dish,cylinder(q.xzy + vec3(0, 0, size * .5), .1, size * .5));
+  dish = min(dish, cylinder(q.xzy + vec3(0, 0, size * .5), .1, size * .5));
   dish = min(dish, sphere(q, .3));
   p.y += size * .75;
   float structure = cuboid(p, vec3(size / 4., size / 2.5, size / 2.));
@@ -355,18 +354,14 @@ float antenna(vec3 p, vec2 rotation) {
   float oilrigLever = lever(invZ(p - vec3(3.7, 2, -4)), clamp(iAnimOilrigRamp, 0., 1.));
 
   p.y -= size * .25;
-  structure = max(
-    min(structure, cylinder(p.xzy, size * .05, size * .53)),
-    -dishSphere
-  );
+  structure = max(min(structure, cylinder(p.xzy, size * .05, size * .53)), -dishSphere);
   p -= vec3(7, -2.85, 0);
   p.xy *= rot(-.5);
-  structure = min(structure, cuboid(p, vec3(1, 1, .8))-.01);
+  structure = min(structure, cuboid(p, vec3(1, 1, .8)) - .01);
   float metalThings = min(dish, min(door, console));
   updateSubMaterial(SUBMATERIAL_RED, oilrigLever);
   updateSubMaterial(SUBMATERIAL_METAL, metalThings);
 
-  
   return min(min(console, structure), min(metalThings, oilrigLever));
 }
 
@@ -388,13 +383,13 @@ float monument(vec3 p) {
     return bounds;
   float button = cylinder(p.xzy + vec3(0, 0, clamp(iAnimMonumentDescend, 0., .02)), .05, .53);
   updateSubMaterial(SUBMATERIAL_METAL, button);
-  float r = min(cylinder(p.xzy, .2, .5), button); //the button mount and the button
+  float r = min(cylinder(p.xzy, .2, .5), button);  // the button mount and the button
 
   p.y += iAnimMonumentDescend * 4.;
   if (iGOAntennaKeyVisible) {
     float key = gameObjectKey(p - vec3(-1.05, 5.05, -1.05));
     updateSubMaterial(SUBMATERIAL_RED, key);
-    r = min(r,key);
+    r = min(r, key);
   }
   vec3 q = p;
   pModPolar(p.xz, 8.);
@@ -409,8 +404,8 @@ float prison(vec3 p) {
     return bounds;
   p.y -= 2.;
   float structure = max(min(opOnion(cuboid(p, vec3(4, 1.6, 2)), 0.23),  // The main box
-                    cuboid(p - vec3(-3, -1, -1.3), vec3(0.3, .5, .5))  // corner box (key hides behind it)
-                    ),
+                            cuboid(p - vec3(-3, -1, -1.3), vec3(0.3, .5, .5))  // corner box (key hides behind it)
+                            ),
       -min(  // Cut holes for:
           cylinder(p - vec3(0, .5, 0), .8, 100.),  // the windows
           cuboid(p - vec3(4, -.37, 1), vec3(2, 1, .53))  // the door
@@ -564,13 +559,10 @@ float nonTerrain(vec3 p) {
   float ob = oilrigBridge(oilrigCoords);
   float aoc = antennaCable(oilrigCoords.zyx - vec3(-2, 9.7, 32.5));
   float guardTower = guardTower(p - vec3(8.7, 9.3, 37));
-  float structures = min(
-    min(min(b,a),min(m,pr)),min(min(r,o),min(ob,guardTower))
-  );
+  float structures = min(min(min(b, a), min(m, pr)), min(min(r, o), min(ob, guardTower)));
   float gameObjects = min(iGOKeyVisible ? gameObjectKey(p.yzx - vec3(2., 7.4, -45.5)) : MAX_DIST,
       min(iGOFlashlightVisible ? gameObjectFlashlight(p - vec3(-42, 3, 11.2)) : MAX_DIST,
           iGOFloppyDiskVisible ? gameObjectFloppy(p - vec3(12.15, 22.31, 38.65)) : MAX_DIST));
-
 
   updateSubMaterial(SUBMATERIAL_METAL, aoc);
   updateSubMaterial(SUBMATERIAL_RED, gameObjects);
@@ -580,7 +572,6 @@ float nonTerrain(vec3 p) {
 }
 
 int material = MATERIAL_SKY;
-
 
 float distanceToNearestSurface(vec3 p) {
   float t = terrain(p);
@@ -620,21 +611,13 @@ float computeLambert(vec3 n, vec3 ld) {
   return clamp01(dot(normalize(ld), n));
 }
 
-const float MAX_OMEGA = 1.2;
 float iterationsR;
 
-float rayMarch(vec3 p, vec3 dir, float min_epsilon, float max_epsilon, float dist) {
-  float omega = MAX_OMEGA;
-
-  float prevNear = min_epsilon;
-
-  float MIN_EPSILON = min_epsilon;
-  float MAX_EPSILON = max_epsilon;
-
-  float stepLen = MIN_EPSILON;
-  epsilon = MIN_EPSILON;
-
+float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
   float result = MAX_DIST;
+  float prevNear = min_epsilon;
+  float stepLen = min_epsilon;
+  epsilon = min_epsilon;
 
   iterationsR = 0.;
 
@@ -654,7 +637,7 @@ float rayMarch(vec3 p, vec3 dir, float min_epsilon, float max_epsilon, float dis
       break;
     }
 
-    epsilon = max(MIN_EPSILON, dist * MIN_EPSILON);
+    epsilon = dist * min_epsilon;
 
     float hitUnderwater = hit.y + TERRAIN_OFFSET * .5;
     if (hitUnderwater < -0.01) {
@@ -697,9 +680,9 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
 
 /*vec4 tex3D( in vec3 pos, in vec3 normal, sampler2D sampler )
 {
-	return 	texture( sampler, pos.yz )*abs(normal.x)+ 
-			texture( sampler, pos.xz )*abs(normal.y)+ 
-			texture( sampler, pos.xy )*abs(normal.z);
+        return 	texture( sampler, pos.yz )*abs(normal.x)+
+                        texture( sampler, pos.xz )*abs(normal.y)+
+                        texture( sampler, pos.xy )*abs(normal.z);
 }*/
 
 float rayTraceWater(vec3 p, vec3 dir) {
@@ -756,13 +739,14 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat, int subMat) {
       break;
     case MATERIAL_BUILDINGS:
       if (subMat == SUBMATERIAL_CONCRETE)
-        color += 0.1*(texture(iNoise, hit.xy*.5).x*normal.z+texture(iNoise, hit.yz*.5).x*normal.x+texture(iNoise, hit.xz*.5).x*normal.y - 0.5);
+        color += 0.1 *
+            (texture(iNoise, hit.xy * .5).x * normal.z + texture(iNoise, hit.yz * .5).x * normal.x +
+                texture(iNoise, hit.xz * .5).x * normal.y - 0.5);
       if (subMat == SUBMATERIAL_METAL)
-        color = vec3(1); //extra bright
+        color = vec3(1);  // extra bright
       if (subMat == SUBMATERIAL_RED)
-        color = vec3(1,0,0);
-    default:
-      break;
+        color = vec3(1, 0, 0);
+    default: break;
   }
   return color;
 }
@@ -781,7 +765,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
 
   // unpacked = MIN_DIST;
 
-  float dist = rayMarch(p, dir, 0.001,0.001, unpacked);
+  float dist = rayMarch(p, dir, 0.001, unpacked);
   float wdist = rayTraceWater(p, dir);
   float lightIntensity;
 
@@ -803,9 +787,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
     int subMat = subMaterial;
     switch (mat) {
       case MATERIAL_TERRAIN: normal = computeTerrainNormal(hit); break;
-      default:
-        normal = computeNonTerrainNormal(hit); 
-      break;
+      default: normal = computeNonTerrainNormal(hit); break;
     }
     color = getColorAt(hit, normal, mat, subMat);
     if (material == MATERIAL_BUILDINGS && (subMaterial == SUBMATERIAL_METAL || subMaterial == SUBMATERIAL_RED)) {
@@ -885,7 +867,7 @@ void main_p() {
   float min_epsilon = 3. / PRERENDERED_TEXTURE_SIZE;
 
   vec3 p = iCameraPos;
-  float dist = rayMarch(p, ray, min_epsilon, min_epsilon, MIN_DIST);
+  float dist = rayMarch(p, ray, min_epsilon, MIN_DIST);
   // float wdist = rayTraceWater(p, ray);
   // float mdist = min(dist, wdist) ;
 
@@ -925,7 +907,7 @@ void main_() {
   // vec3 pixelColour = clamp(intersectWithWorld(iCameraPos, ray), 0., 1.);
   // oColor = vec4(pixelColour, 1);
 
-  // oColor.x = iterationsR;
+  oColor.x = iterationsR;
   // oColor.y = iterationsR;
   // oColor.z = iterationsR;
 }
