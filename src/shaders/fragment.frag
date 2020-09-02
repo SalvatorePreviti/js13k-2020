@@ -335,7 +335,8 @@ float antenna(vec3 p, vec2 rotation) {
   q.xz *= rot(rotation.y);
   q.xy *= rot(rotation.x);
   q.y -= size;
-  float dish = max(opOnion(sphere(q, size), .01),
+  float dishSphere = sphere(q, size);
+  float dish = max(opOnion(dishSphere, .01),
       q.y + size / 2.  // cut the sphere part-way up
   );
   dish = min(dish,cylinder(q.xzy + vec3(0, 0, size * .5), .1, size * .5));
@@ -354,10 +355,13 @@ float antenna(vec3 p, vec2 rotation) {
   float oilrigLever = lever(invZ(p - vec3(3.7, 2, -4)), clamp(iAnimOilrigRamp, 0., 1.));
 
   p.y -= size * .25;
-  structure = min(structure, cylinder(p.xzy, size * .05, size * .5));
+  structure = max(
+    min(structure, cylinder(p.xzy, size * .05, size * .53)),
+    -dishSphere
+  );
   p -= vec3(7, -2.85, 0);
   p.xy *= rot(-.5);
-  structure = min(structure, cuboid(p, vec3(1, 1, .8)));
+  structure = min(structure, cuboid(p, vec3(1, 1, .8))-.01);
   float metalThings = min(dish, min(door, console));
   updateSubMaterial(SUBMATERIAL_RED, oilrigLever);
   updateSubMaterial(SUBMATERIAL_METAL, metalThings);
