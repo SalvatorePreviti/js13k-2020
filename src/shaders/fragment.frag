@@ -162,7 +162,7 @@ float subMaterialDistance = MAX_DIST;
 
 //Updates the subMaterialDistance and subMaterial if the distance is lower
 void updateSubMaterial(int sm, float dist) {
-  if (dist<subMaterialDistance || (dist < epsilon && dist != subMaterialDistance)) {
+  if (dist < epsilon && dist != subMaterialDistance) {
     subMaterial = sm;
     subMaterialDistance = dist;
   }
