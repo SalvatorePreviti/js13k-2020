@@ -38,7 +38,7 @@ setTimeout(() => {
 
       debug_beginFrame()
 
-      updateCamera(timeDelta)
+      updateCamera(timeDelta, time)
 
       if (!pageState._mainMenu) {
         updateCollider(time)
