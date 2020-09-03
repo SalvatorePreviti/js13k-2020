@@ -19,7 +19,7 @@ import {
 } from './gl/gl-context'
 import { collisionShader } from './shader-program'
 import { debug_collisionBufferCanvasPrepare } from './debug'
-import { PI, cos, sin, abs, unpackFloatBytes4 } from './math/scalar'
+import { PI, cos, sin, abs, unpackFloatBytes4, max } from './math/scalar'
 import { cameraPos } from './camera'
 
 const COLLIDER_SIZE = 128
@@ -77,7 +77,12 @@ export const updateCollider = (time: number) => {
   //Ground Collision:
   let totalY = 0
   for (let x = 0; x < 128; x++) {
-    totalY += readDist(x, 0)
+    let maxY = -100
+    for (let y = 0; y < 32; y++) {
+      const dist = readDist(x, y)
+      maxY = max(dist, maxY)
+    }
+    totalY += maxY
   }
   const ddy = totalY / 128 - 0.2 //Take the average distance from the ground and subtract the value used in the shader
 

@@ -437,13 +437,13 @@ float oilrig(vec3 p) {
   e = p;
   o = p;
   q.xz = abs(q.xz);  // mirror in x & z
-  float metal = cylinder(q.xzy - vec3(5, 5, 0), .5, 7.7);  // main platform cylinders
+  float metal = cylinder(q.xzy - vec3(5, 5, 0), .5, 8.3);  // main platform cylinders
   l = q;
-  q.y = abs(w.y - 4.08);  // mirror y at y=4;
+  q.y = abs(w.y - 4.58);  // mirror y at y=4;
   metal = min(metal, cylinder(q.zyx - vec3(5.3, 3.5, 0), .05, 5.3));  // guard rails
   metal = min(metal,
       max(cylinder(q.xyz - vec3(5.3, 3.5, 0), .05, 5.3),  // guard rails
-          -cuboid(p - vec3(5, .7, 4), vec3(.7))  // cut a hole in the guard rails where the bridge will connect
+          -cuboid(p - vec3(5, .7, 4), vec3(.8))  // cut a hole in the guard rails where the bridge will connect
           ));
   w.y = abs(w.y - 3.5);  // mirror y at y=3.5
   float platforms = cuboid(w - vec3(0, 3.5, 0), vec3(6, .2, 6)) - .05;  // platforms (mirrored around y=3.5)
