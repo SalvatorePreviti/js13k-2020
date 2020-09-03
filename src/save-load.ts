@@ -26,10 +26,10 @@ const deserialize = (savedState) => {
 }
 
 const SAVE_GAME = () => {
-  localStorage.setItem('ISLAND404_SAVE', serialize())
+  localStorage.setItem('ISLAND404', serialize())
 }
 const LOAD_GAME = () => {
-  deserialize(localStorage.getItem('ISLAND404_SAVE'))
+  deserialize(localStorage.getItem('ISLAND404'))
 }
 
 export { SAVE_GAME, LOAD_GAME }
