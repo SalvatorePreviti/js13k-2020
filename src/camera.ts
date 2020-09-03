@@ -30,6 +30,7 @@ import {
 } from './math/vec3'
 import { vec2New } from './math/vec2'
 import { typedArraySet } from './core/arrays'
+import { RUMBLING } from './state/animations'
 
 const CAMERA_SPEED_DEFAULT = 1.5
 
@@ -63,9 +64,13 @@ export const cameraMoveDown = (amount: number) => {
   cameraPos.y += amount
 }
 
-const updateCameraDirFromEulerAngles = () => {
+const updateCameraDirFromEulerAngles = (time: number) => {
   //vec3FromYawAndPitch(cameraDir, cameraEulerAngles)
-  const { x: yaw, y: pitch } = cameraEuler
+  let { x: yaw, y: pitch } = cameraEuler
+  if (RUMBLING) {
+    yaw += sin(time * 100) * 0.01
+    pitch += sin(time * 200) * 0.01
+  }
 
   // if (game is not started we should use) {
   //   yaw = -170 * DEG_TO_RAD
@@ -95,7 +100,7 @@ const updateCameraDirFromEulerAngles = () => {
   )
 }
 
-export const updateCamera = (timeDelta: number) => {
+export const updateCamera = (timeDelta: number, time: number) => {
   const speed = (isKeyPressed(KEY_RUN) ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * timeDelta
 
   if (isKeyPressed(KEY_FORWARD)) {
@@ -119,7 +124,7 @@ export const updateCamera = (timeDelta: number) => {
     }
   }
 
-  updateCameraDirFromEulerAngles()
+  updateCameraDirFromEulerAngles(time)
 
   debug_updateCameraEulerAngles(cameraEuler)
   debug_updateCameraDirection(cameraDir)
