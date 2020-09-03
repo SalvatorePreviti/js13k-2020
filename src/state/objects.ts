@@ -2,7 +2,6 @@ import { vec3New, vec3Distance, vec3Direction, vec3Temp0, vec3Dot } from '../mat
 import { runAnimation, ANIMATIONS } from './animations'
 import { cameraPos, cameraDir } from '../camera'
 import { setText } from '../text'
-import { isKeyPressed, KEY_ACTION } from '../keyboard'
 import { objectValues } from '../core/objects'
 
 interface GameObject {
@@ -236,11 +235,11 @@ const getVisibleObject = (): GameObject => {
   return undefined
 }
 
-const updateGameObjects = () => {
+const updateGameObjects = (actionKeyPressed) => {
   const visibleObject = getVisibleObject()
   if (visibleObject) {
     setText(visibleObject._onLookAt() || '')
-    if (isKeyPressed(KEY_ACTION)) {
+    if (actionKeyPressed) {
       visibleObject._onInteract()
     }
   } else {

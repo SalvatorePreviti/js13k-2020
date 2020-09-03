@@ -13,6 +13,7 @@ import { loadMainShader, mainShader, prerenderedShader } from './shader-program'
 import { updateCollider, initCollider } from './collider'
 import { buildScreenTextures, bindScreenTexture } from './texture-screen'
 import { initPrerenderedTexture, renderToPrerenderedTexture, PRERENDERED_TEXTURE_SIZE } from './texture-prerendered'
+import { isKeyPressed, KEY_ACTION } from './keyboard'
 
 let prevTime = 0
 let time = 0
@@ -47,7 +48,7 @@ setTimeout(() => {
       debug_updateCameraPosition(cameraPos)
 
       updateAnimations(timeDelta)
-      updateGameObjects()
+      updateGameObjects(isKeyPressed(KEY_ACTION))
       updateText(timeDelta)
 
       // Prerender

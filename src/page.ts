@@ -1,5 +1,6 @@
 import { min, round } from './math/scalar'
 import { newProxyBinder, objectAssign } from './core/objects'
+import { SAVE_GAME, LOAD_GAME } from './save-load'
 
 export const { body } = document
 
@@ -92,6 +93,7 @@ const startOrResumeClick = () => {
 }
 
 getElementById('R').onclick = startOrResumeClick
-getElementById('G').onclick = startOrResumeClick
+getElementById('S').onclick = SAVE_GAME
+getElementById('L').onclick = LOAD_GAME
 
 canvasElement.onmousedown = canvasRequestPointerLock
