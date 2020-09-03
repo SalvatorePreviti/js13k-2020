@@ -448,6 +448,7 @@ float oilrig(vec3 p) {
   w.y = abs(w.y - 3.5);  // mirror y at y=3.5
   float platforms = cuboid(w - vec3(0, 3.5, 0), vec3(6, .2, 6)) - .05;  // platforms (mirrored around y=3.5)
   platforms = max(platforms, -cuboid(p - vec3(2, 7, 2), vec3(1.5)));  // hole in upper platform
+  platforms = max(platforms, -cuboid(p - vec3(5.7, 0, 4), vec3(.52))); //hole in lower platform for the bridge
   e.z = abs(e.z + 2.);  // mirror around z=2
   metal = min(metal, cylinder(e.xzy - vec3(-6, 1.1, 8.7), 1., 1.75));  // tanks
   metal = min(metal, cylinder(e.xzy - vec3(-6.5, 1.1, 0), .2, 8.));  // pipes from tanks to sea
@@ -474,9 +475,9 @@ float oilrig(vec3 p) {
 
 float oilrigBridge(vec3 p) {
   vec3 q = p.zyx - vec3(4, -1, 17);
-  q.zy *= rot(-.2);
-  q.z -= 19. - iAnimOilrigRamp;  // 0: sticking out of sand slightly, 20 - connected with the oil rig
-  return min(bridge(q, 20., 0.), cylinder(q.xzy + vec3(0, 10.5, 6), 0.15, 5.));
+  q.zy *= rot(-.19);
+  q.z -= 19. - iAnimOilrigRamp;  // 0: sticking out of sand slightly, 19 - connected with the oil rig
+  return min(bridge(q, 21., 0.), cylinder(q.xzy + vec3(0, 10.5, 6), 0.15, 5.));
 }
 
 float guardTower(vec3 p) {
