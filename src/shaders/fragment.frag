@@ -448,7 +448,7 @@ float oilrig(vec3 p) {
   w.y = abs(w.y - 3.5);  // mirror y at y=3.5
   float platforms = cuboid(w - vec3(0, 3.5, 0), vec3(6, .2, 6)) - .05;  // platforms (mirrored around y=3.5)
   platforms = max(platforms, -cuboid(p - vec3(2, 7, 2), vec3(1.5)));  // hole in upper platform
-  platforms = max(platforms, -cuboid(p - vec3(5.7, 0, 4), vec3(.52))); //hole in lower platform for the bridge
+  platforms = max(platforms, -cuboid(p - vec3(5.7, 0, 4), vec3(.52)));  // hole in lower platform for the bridge
   e.z = abs(e.z + 2.);  // mirror around z=2
   metal = min(metal, cylinder(e.xzy - vec3(-6, 1.1, 8.7), 1., 1.75));  // tanks
   metal = min(metal, cylinder(e.xzy - vec3(-6.5, 1.1, 0), .2, 8.));  // pipes from tanks to sea
@@ -849,9 +849,9 @@ void main_p() {
   float min_epsilon = 1.2 / PRERENDERED_TEXTURE_SIZE;
 
   vec3 p = iCameraPos;
-  float dist = rayMarch(p, ray, min_epsilon, MIN_DIST) - epsilon;
+  float dist = rayMarch(p, ray, min_epsilon, MIN_DIST);
 
-  uint packed = floatBitsToUint(dist);
+  uint packed = floatBitsToUint(dist >= MAX_DIST ? MAX_DIST : dist - epsilon);
   oColor = vec4(float((packed >> 24) & 0xffu) / 255., float((packed >> 16) & 0xffu) / 255.,
       float((packed >> 8) & 0xffu) / 255., float(packed & 0xffu) / 255.);
 }
