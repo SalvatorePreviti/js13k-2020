@@ -9,7 +9,7 @@ import {
   GL_UNPACK_ALIGNMENT,
   GL_CLAMP_TO_EDGE
 } from './gl/gl-constants'
-import { glSetTextureLinearSampling } from './gl/gl-utils'
+import { glSetTextureSampling } from './gl/gl-utils'
 import { body, getElementById } from './page'
 
 export const SCREEN_TEXTURE_SIZE = 512
@@ -59,7 +59,7 @@ export const buildScreenTextures = () => {
       imageData
     )
 
-    glSetTextureLinearSampling(GL_CLAMP_TO_EDGE)
+    glSetTextureSampling(GL_CLAMP_TO_EDGE)
   }
 
   context.lineWidth = 5

@@ -29,8 +29,9 @@ export const loadMainShaderProgram = (mainFunction: string) => {
   )
 
   const {
-    iHeightmap,
     iNoise,
+    iHeightmap,
+    iPrerendered,
     iScreens,
     iResolution,
     iTime,
@@ -59,6 +60,9 @@ export const loadMainShaderProgram = (mainFunction: string) => {
   gl_uniform1i(iHeightmap, 1)
 
   // Texture 2
+  gl_uniform1i(iPrerendered, 2)
+
+  // Texture 3
   gl_uniform1i(iScreens, 3)
 
   const _use = (time: number, width: number, height: number) => {
@@ -128,6 +132,8 @@ export let mainShader: MainShaderProgram
 
 export let collisionShader: MainShaderProgram
 
+export let prerenderedShader: MainShaderProgram
+
 export const loadMainShader = () => {
   debug_exec(() => {
     if (mainShader) {
@@ -136,7 +142,11 @@ export const loadMainShader = () => {
     if (collisionShader) {
       gl_deleteProgram(collisionShader._program)
     }
+    if (prerenderedShader) {
+      gl_deleteProgram(prerenderedShader._program)
+    }
   })
   mainShader = loadMainShaderProgram('')
   collisionShader = loadMainShaderProgram('c')
+  prerenderedShader = loadMainShaderProgram('p')
 }
