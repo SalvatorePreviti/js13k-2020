@@ -617,10 +617,6 @@ float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
   float result = MAX_DIST;
   float prevNear = min_epsilon;
   float stepLen = min_epsilon;
-  float omega = 1.2;
-  epsilon = min_epsilon;
-
-  iterationsR = 0.;
 
   for (int i = 0;; i++) {
     vec3 hit = p + dir * dist;
@@ -629,19 +625,15 @@ float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
 
     if (nearest < 0.) {
       dist -= prevNear;
-      nearest = prevNear / 1.5;
-      if (prevNear < 0.) {
-        discard;
-      }
+      nearest = prevNear / 2.;
     }
 
     dist += nearest;
-
-    if (dist >= MAX_DIST) {
-      break;
-    }
-
     epsilon = dist * min_epsilon;
+
+    if (dist >= MAX_DIST || hit.y > 80.) {
+      break;  // Nothing to render after MAX_DIST or higher than 80 meters.
+    }
 
     float hitUnderwater = hit.y + TERRAIN_OFFSET * .5;
     if (hitUnderwater < -0.01) {
@@ -663,20 +655,33 @@ float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
   return MAX_DIST;
 }
 
+float shadowR = 0.;
+
 #define SHADOW_ITERATIONS 50
 float getShadow(vec3 p, float camDistance, vec3 n) {
-  if (camDistance >= MAX_DIST / 2.) {
-    // Skip objects too far
-    return 1.;
+  if (abs(p.x) >= TERRAIN_SIZE.x * 3. || abs(p.z) >= TERRAIN_SIZE.z * 3. || p.y < WaterLevel - 0.01) {
+    return 1.;  // Skip objects outsite the island and skip underwater
   }
+
   float res = 1.;
   float dist = clamp(camDistance * 0.005, 0.01, .1);  // start further out from the surface if the camera is far away
   p = p + n * dist;  // Jump out of the surface by the normal * that dist
+
   for (int i = 0; dist < 100. && i < SHADOW_ITERATIONS; i++) {
     float nearest = nonTerrain(p + SUNLIGHT_DIRECTION * dist);
-    if (nearest < clamp(float(i) / float(SHADOW_ITERATIONS * 8), 0.001, .1))
+
+    shadowR += 1. / float(SHADOW_ITERATIONS);
+
+    if (nearest < clamp(float(i) / float(SHADOW_ITERATIONS * 8), 0.001, .1)) {
       return 0.;
+    }
+
     res = min(res, 32. * nearest / dist);  // soft shadows
+
+    if (res < 0.01) {
+      break;  // Quite dark already.
+    }
+
     dist += nearest;
   }
   return res;
@@ -749,7 +754,7 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat, int subMat) {
 }
 
 vec3 intersectWithWorld(vec3 p, vec3 dir) {
-  vec4 packed = texelFetch(iPrerendered, ivec2(fragCoord * PRERENDERED_TEXTURE_SIZE / iResolution + 0.5), 0);
+  vec4 packed = texelFetch(iPrerendered, ivec2(fragCoord * PRERENDERED_TEXTURE_SIZE / iResolution), 0);
   float unpacked = uintBitsToFloat(
       (uint(packed.x * 255.) << 24 | uint(packed.y * 255.) << 16 | uint(packed.z * 255.) << 8 | uint(packed.z * 255.)));
 
@@ -836,19 +841,16 @@ void main_c() {
 /**********************************************************************/
 
 void main_p() {
-  vec2 screen = (fragCoord - .5) / (iResolution * .5) - 1.;
+  vec2 screen = fragCoord / (iResolution * .5) - 1.;
 
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
 
-  float min_epsilon = 2. / PRERENDERED_TEXTURE_SIZE;
+  float min_epsilon = 1.2 / PRERENDERED_TEXTURE_SIZE;
 
   vec3 p = iCameraPos;
-  float dist = rayMarch(p, ray, min_epsilon, MIN_DIST);
-  // float wdist = rayTraceWater(p, ray);
-  // float mdist = min(dist, wdist) ;
+  float dist = rayMarch(p, ray, min_epsilon, MIN_DIST) - epsilon;
 
-  uint packed = floatBitsToUint(dist - epsilon * .5);
-
+  uint packed = floatBitsToUint(dist);
   oColor = vec4(float((packed >> 24) & 0xffu) / 255., float((packed >> 16) & 0xffu) / 255.,
       float((packed >> 8) & 0xffu) / 255., float(packed & 0xffu) / 255.);
 }
@@ -859,7 +861,8 @@ void main_p() {
 
 // Main shader
 void main_() {
-  SUNLIGHT_DIRECTION = normalize(vec3(cos(iTime * .02), sin(iTime * .02) * 0.5 + 0.8, sin(iTime * .02)));
+  float snnn = 3354.;
+  SUNLIGHT_DIRECTION = normalize(vec3(cos(snnn * .02), sin(snnn * .02) * 0.5 + 0.8, sin(snnn * .02)));
   WaterLevel = sin(iTime * 2. + 3.) * .2;
 
   vec2 screen = fragCoord / (iResolution * .5) - 1.;
@@ -881,7 +884,7 @@ void main_() {
   // vec3 pixelColour = clamp(intersectWithWorld(iCameraPos, ray), 0., 1.);
   // oColor = vec4(pixelColour, 1);
 
-  // oColor.x = iterationsR;
+  oColor.x = shadowR;
   // oColor.y = iterationsR;
   // oColor.z = iterationsR;
 }
