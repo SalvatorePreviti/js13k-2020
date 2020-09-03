@@ -21,6 +21,9 @@ import { collisionShader } from './shader-program'
 import { debug_collisionBufferCanvasPrepare } from './debug'
 import { PI, cos, sin, abs, unpackFloatBytes4, max } from './math/scalar'
 import { cameraPos } from './camera'
+import { vec3Length } from './math/vec3'
+
+const CAMERA_MAX_DISTANCE_FROM_CENTER = 100
 
 const COLLIDER_SIZE = 128
 
@@ -113,6 +116,17 @@ export const updateCollider = (time: number) => {
   cameraPos.x += ddx
   cameraPos.z += ddz
   cameraPos.y += ddy
+
+  // Clamp the camera
+
+  if (cameraPos.y < 0.8) {
+    cameraPos.y = 0.8
+  }
+  const distanceFromCenter = vec3Length(cameraPos)
+  if (distanceFromCenter >= CAMERA_MAX_DISTANCE_FROM_CENTER) {
+    cameraPos.x *= CAMERA_MAX_DISTANCE_FROM_CENTER / distanceFromCenter
+    cameraPos.z *= CAMERA_MAX_DISTANCE_FROM_CENTER / distanceFromCenter
+  }
 
   // Unbind the frame buffer
 

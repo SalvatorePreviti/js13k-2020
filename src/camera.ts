@@ -16,7 +16,7 @@ import {
   debug_updateCameraEulerAngles
 } from './debug'
 import { canvasElement, pageState } from './page'
-import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD, RAD_TO_DEG } from './math/scalar'
+import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD } from './math/scalar'
 import {
   vec3Temp0,
   vec3Add,

@@ -177,6 +177,11 @@ export const vec2Max = (out: Vec2Out, b: Vec2In, a: Vec2In = out) => vec2Set(out
 export const vec2MaxScalar = (out: Vec2Out, scalar: number, a: Vec2In = out) =>
   vec2Set(out, max(scalar, a.x), max(scalar, a.y))
 
+export const vec2ClampLength = (out: Vec2Out, v: Vec2In, minLength: number, maxLength: number) => {
+  const length = vec2Length(v)
+  return vec2DivideScalar(out, vec2ScalarMultiply(out, clamp(length, minLength, maxLength)), length || 1)
+}
+
 export const vec2Clamp = (out: Vec2Out, a: Vec2In, minimum: Vec2In, maximum: Vec2In) =>
   vec2Set(out, clamp(a.x, minimum.x, maximum.x), clamp(a.y, minimum.y, maximum.y))
 
