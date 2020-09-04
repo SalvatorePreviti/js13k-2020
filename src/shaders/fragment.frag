@@ -461,10 +461,13 @@ float oilrig(vec3 p) {
   t = u - vec3(0, .8, 0);
   // rotate wheel around xz based on animation uniform:
   t.xz *= rot(iAnimOilrigWheel);
-  float wheel = torus(t, vec2(.5, .02));
-  wheel = min(wheel, cylinder(t.xzy + vec3(0, 0, .5), .02, .5));  // center-column of spokes
-  pModPolar(t.xz, 5.);
-  wheel = min(wheel, cylinder(t.zyx - vec3(0, 0, .25), .01, .25));  // spokes
+  float wheel = length(t) - 1.;
+  if (wheel < 2.) { 
+    wheel = torus(t, vec2(.5, .02));
+    wheel = min(wheel, cylinder(t.xzy + vec3(0, 0, .5), .02, .5));  // center-column of spokes
+    pModPolar(t.xz, 5.);
+    wheel = min(wheel, cylinder(t.zyx - vec3(0, 0, .25), .01, .25));  // spokes
+  }
   p -= vec3(2, 3.53, -.05);
   p.zy *= rot(-PI / 4.);
   platforms = min(platforms, cuboid(p, vec3(1, 5.1, .1)) - .05);  // ramp from lower platform to upper
