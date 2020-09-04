@@ -5,7 +5,7 @@ import {
   GL_TEXTURE_2D,
   GL_FRAMEBUFFER,
   GL_COLOR_ATTACHMENT0,
-  GL_TEXTURE2
+  GL_TEXTURE5
 } from './gl/gl-constants'
 import {
   gl_createTexture,
@@ -47,7 +47,7 @@ const readDist = (x: number, y: number): number => {
 const getAngleFromIdx = (x: number): number => -((PI * (x - 64)) / 64) - PI / 2
 
 export const initCollider = () => {
-  gl_activeTexture(GL_TEXTURE2)
+  gl_activeTexture(GL_TEXTURE5)
   gl_bindTexture(GL_TEXTURE_2D, colliderTexture)
   gl_texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, COLLIDER_SIZE, COLLIDER_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, null)
   gl_bindFramebuffer(GL_FRAMEBUFFER, colliderFrameBuffer)
@@ -55,27 +55,12 @@ export const initCollider = () => {
 }
 
 export const updateCollider = (time: number) => {
-  // Create and bind the framebuffer
-
-  gl_activeTexture(GL_TEXTURE2)
-
-  gl_bindFramebuffer(GL_FRAMEBUFFER, colliderFrameBuffer)
-
-  // Load the shader
-
   collisionShader._use(time, COLLIDER_SIZE, COLLIDER_SIZE)
 
-  // Render
-
-  gl_bindTexture(GL_TEXTURE_2D, colliderTexture)
-
+  gl_bindFramebuffer(GL_FRAMEBUFFER, colliderFrameBuffer)
   glDrawFullScreenTriangle()
-
-  // Get the rendered data
-
   gl_readPixels(0, 0, COLLIDER_SIZE, COLLIDER_SIZE, GL_RGBA, GL_UNSIGNED_BYTE, colliderBuffer)
-
-  // Process data
+  gl_bindFramebuffer(GL_FRAMEBUFFER, null)
 
   //Ground Collision:
   let totalY = 0
@@ -89,6 +74,7 @@ export const updateCollider = (time: number) => {
   }
   const ddy = totalY / 128 - 0.2 //Take the average distance from the ground and subtract the value used in the shader
 
+  //Cylinder Collision:
   let ddx = 0
   let ddz = 0
   for (let y = 32; y < 96; ++y) {
@@ -127,8 +113,4 @@ export const updateCollider = (time: number) => {
     cameraPos.x *= CAMERA_MAX_DISTANCE_FROM_CENTER / distanceFromCenter
     cameraPos.z *= CAMERA_MAX_DISTANCE_FROM_CENTER / distanceFromCenter
   }
-
-  // Unbind the frame buffer
-
-  gl_bindFramebuffer(GL_FRAMEBUFFER, null)
 }

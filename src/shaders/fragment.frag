@@ -884,7 +884,7 @@ void main_() {
   // vec3 pixelColour = clamp(intersectWithWorld(iCameraPos, ray), 0., 1.);
   // oColor = vec4(pixelColour, 1);
 
-  // oColor.x = shadowR;
+  oColor.x = shadowR;
   // oColor.y = iterationsR;
   // oColor.z = iterationsR;
 }
