@@ -664,6 +664,10 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
     return 1.;  // Skip objects outsite the island and skip underwater
   }
 
+  if (dot(n, SUNLIGHT_DIRECTION) < -0.1) {
+    return 0.;
+  }
+
   float res = 1.;
   float dist = clamp(camDistance * 0.005, 0.01, .1);  // start further out from the surface if the camera is far away
   p = p + n * dist;  // Jump out of the surface by the normal * that dist
@@ -743,8 +747,8 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat, int subMat) {
     case MATERIAL_BUILDINGS:
       if (subMat == SUBMATERIAL_CONCRETE)
         color += 0.1 *
-            (texture(iNoise, hit.xy * .5).x * normal.z + texture(iNoise, hit.yz * .5).x * normal.x +
-                texture(iNoise, hit.xz * .5).x * normal.y - 0.5);
+            (texture(iNoise, hit.xy * .3).x * normal.z + texture(iNoise, hit.yz * .3).x * normal.x +
+                texture(iNoise, hit.xz * .3).x * normal.y - 0.5);
       if (subMat == SUBMATERIAL_METAL)
         color = vec3(1);  // extra bright
       if (subMat == SUBMATERIAL_RED)
@@ -773,26 +777,32 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   if (material == MATERIAL_SCREEN) {
     return iAnimAntennaRotation > 0. ? texture(iScreens, screenCoords).xyz : vec3(0);
   }
+
+  bool isWater = wdist < MAX_DIST && wdist < dist;
+
   if (material == MATERIAL_SKY) {
     color = COLOR_SKY;  // mix(COLOR_SKY, COLOR_SUN, pow(clamp(dot(dir, SUNLIGHT_DIRECTION),0.,1.),10.));
   } else {
     vec3 hit = p + dir * dist;
     int mat = material;
     int subMat = subMaterial;
+    vec3 hitNormal;
     switch (mat) {
-      case MATERIAL_TERRAIN: normal = computeTerrainNormal(hit); break;
-      default: normal = computeNonTerrainNormal(hit); break;
+      case MATERIAL_TERRAIN: hitNormal = computeTerrainNormal(hit); break;
+      default: hitNormal = computeNonTerrainNormal(hit); break;
     }
-    color = getColorAt(hit, normal, mat, subMat);
+
+    color = getColorAt(hit, hitNormal, mat, subMat);
     if (material == MATERIAL_BUILDINGS && (subMaterial == SUBMATERIAL_METAL || subMaterial == SUBMATERIAL_RED)) {
-      specular = pow(clamp01(dot(SUNLIGHT_DIRECTION, reflect(dir, normal))), 50.);
+      specular = pow(clamp01(dot(SUNLIGHT_DIRECTION, reflect(dir, hitNormal))), 50.);
     }
-    shadow = getShadow(p + dir * mdist, mdist, normal);
+    shadow = getShadow(p + dir * mdist, mdist, isWater ? hitNormal : normal);
+    normal = hitNormal;
   }
 
   vec3 waterColor;
   float waterTransparencyMix = 0.;
-  if (wdist < MAX_DIST && wdist < dist) {  // water!
+  if (isWater) {
     vec3 waterhit = p + dir * wdist;
     vec4 whn = waterHeightAndNormal(waterhit.xz);
 
@@ -803,8 +813,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
 
     normal = normalize(mix(normal, whn.yzw, clamp01(waterTransparencyMix + whn.x * .5)));
     waterColor = mix(vec3(.15, .62, .83), vec3(.15, .42, .63), whn.x);
-    specular = dot(SUNLIGHT_DIRECTION, reflect(dir, normal));
-    specular = pow(clamp01(specular), 50.);
+    specular = pow(clamp01(dot(SUNLIGHT_DIRECTION, reflect(dir, normal))), 50.);
   }
 
   lightIntensity = computeLambert(normal, SUNLIGHT_DIRECTION);
