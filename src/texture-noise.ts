@@ -44,7 +44,6 @@ export const buildNoiseTexture = () => {
   gl_pixelStorei(GL_UNPACK_ALIGNMENT, 1)
   gl_texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, NOISE_TEXTURE_SIZE, NOISE_TEXTURE_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
 
-  gl_bindTexture(GL_TEXTURE_2D, noiseTexture)
   glSetTextureSampling()
 
   debug_timeEnd(buildNoiseTexture)
