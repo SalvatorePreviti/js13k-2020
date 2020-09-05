@@ -28,7 +28,7 @@ let _pressedKeys: boolean[] = []
 export const isKeyPressed = (keyId: number) => !!_pressedKeys[keyId]
 
 export const KeyFunctions: Record<number, () => void> = {
-  KEY_MAIN_MENU: showMainMenu
+  [KEY_MAIN_MENU]: showMainMenu
 }
 
 const _keyMap: Record<string, number> = {
