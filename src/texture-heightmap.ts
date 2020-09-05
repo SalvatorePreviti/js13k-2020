@@ -15,7 +15,6 @@ import {
   gl_bindTexture,
   gl_texImage2D,
   gl_deleteFramebuffer,
-  gl_deleteProgram,
   gl_bindFramebuffer,
   gl_framebufferTexture2D,
   gl_createFramebuffer,
@@ -56,9 +55,7 @@ export const buildHeightmapTexture = () => {
 
   // Load the shader
 
-  const program = loadMainShaderProgram('h')
-
-  program._use(0, HEIGHTMAP_TETURE_SIZE, HEIGHTMAP_TETURE_SIZE)
+  loadMainShaderProgram('h')(0, HEIGHTMAP_TETURE_SIZE, HEIGHTMAP_TETURE_SIZE)
 
   // Render
 
@@ -67,7 +64,6 @@ export const buildHeightmapTexture = () => {
   // Deallocate stuff
   gl_framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, null, 0)
   gl_bindFramebuffer(GL_FRAMEBUFFER, null)
-  gl_deleteProgram(program._program)
   gl_deleteFramebuffer(fb)
 
   debug_timeEnd(buildHeightmapTexture)

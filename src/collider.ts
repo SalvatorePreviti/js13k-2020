@@ -55,7 +55,7 @@ export const initCollider = () => {
 }
 
 export const updateCollider = (time: number) => {
-  collisionShader._use(time, COLLIDER_SIZE, COLLIDER_SIZE)
+  collisionShader(time, COLLIDER_SIZE, COLLIDER_SIZE)
 
   gl_bindFramebuffer(GL_FRAMEBUFFER, colliderFrameBuffer)
   glDrawFullScreenTriangle()

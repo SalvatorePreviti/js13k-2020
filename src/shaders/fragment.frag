@@ -35,13 +35,13 @@ const float PROJECTION_LEN = 1. / tan(.5 * FIELD_OF_VIEW);
 in vec2 FC;
 
 uniform vec2 iR;
-uniform vec4 iP;
+uniform vec3 iP;
 uniform vec4 iD;
 uniform vec4 iA;
 uniform vec4 iB;
 uniform vec4 iC;
+uniform vec4 iS;
 uniform mat3 iM;
-uniform vec3 iS;
 uniform lowp int iF;
 
 ///// I/O /////
@@ -59,22 +59,22 @@ out vec4 oColor;
 #define iResolution iR
 
 // Camera position
-#define iCameraPos iP.xyz
-
-// Time in seconds
-#define iTime iP.w
+#define iCameraPos iP
 
 // Camera directiom
 #define iCameraDir iD.xyz
 
+// Time in seconds
+#define iTime iD.w
+
+// Sunlight direction
+#define iSunDirection iS.xyz
+
 // Current level of water
-#define iWaterLevel iD.w
+#define iWaterLevel iS.w
 
 // Camera rotation matrix
 #define iCameraMat3 iM
-
-// Sunlight direction
-#define iSunDirection iS
 
 ///// Game object uniforms /////
 
@@ -909,7 +909,7 @@ void main_p() {
 /**********************************************************************/
 
 // Main shader
-void main_() {
+void main_m() {
   vec2 screen = fragCoord / (iResolution * .5) - 1.;
 
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));

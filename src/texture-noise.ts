@@ -28,9 +28,8 @@ export const buildNoiseTexture = () => {
     }
   }
 
-  const getValue = (x: number, z: number) => {
-    return data[(wrapNatural(x, NOISE_TEXTURE_SIZE) + wrapNatural(z, NOISE_TEXTURE_SIZE) * NOISE_TEXTURE_SIZE) * 4]
-  }
+  const getValue = (x: number, z: number) =>
+    data[(wrapNatural(x, NOISE_TEXTURE_SIZE) + wrapNatural(z, NOISE_TEXTURE_SIZE) * NOISE_TEXTURE_SIZE) * 4]
 
   for (let y = 0, i = 0; y < NOISE_TEXTURE_SIZE; ++y) {
     for (let x = 0; x < NOISE_TEXTURE_SIZE; ++x) {
