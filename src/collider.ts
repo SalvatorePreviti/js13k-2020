@@ -101,13 +101,9 @@ export const updateCollider = (time: number) => {
 
   cameraPos.x += ddx
   cameraPos.z += ddz
-  cameraPos.y += ddy
 
-  // Clamp the camera
+  cameraPos.y = max(cameraPos.y + ddy, 0.9)
 
-  if (cameraPos.y < 0.8) {
-    cameraPos.y = 0.8
-  }
   const distanceFromCenter = vec3Length(cameraPos)
   if (distanceFromCenter >= CAMERA_MAX_DISTANCE_FROM_CENTER) {
     cameraPos.x *= CAMERA_MAX_DISTANCE_FROM_CENTER / distanceFromCenter

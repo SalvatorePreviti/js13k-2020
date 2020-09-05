@@ -73,7 +73,7 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     gl_uniform2f(iResolution, width, height)
 
     // Time in seconds
-    gl_uniform1f(iTime, time)
+    gl_uniform1f(iTime, time) //73
 
     // Camera position
     gl_uniform3f(iCameraPos, cameraPos.x, cameraPos.y, cameraPos.z) // If game is not started we should use gl_uniform3f(iCameraPos, 8, 28, 34)
