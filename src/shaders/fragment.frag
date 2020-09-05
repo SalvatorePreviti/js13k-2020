@@ -386,9 +386,8 @@ float monument(vec3 p) {
   float bounds = length(p.xz) - 2.;
   if (bounds > 3.)
     return bounds;
-  float button = cylinder(p.xzy + vec3(0, 0, clamp(iAnimMonumentDescend, 0., .02)), .05, .53);
-  updateSubMaterial(SUBMATERIAL_METAL, button);
-  float r = min(cylinder(p.xzy, .2, .5), button);  // the button mount and the button
+  float metals = cylinder(p.xzy + vec3(0, 0, clamp(iAnimMonumentDescend, 0., .02)), .05, .53); //the button
+  float r = cylinder(p.xzy, .2, .5);  // the button mount
 
   p.y += iAnimMonumentDescend * 4.;
   if (iGOAntennaKeyVisible) {
@@ -399,8 +398,10 @@ float monument(vec3 p) {
   vec3 q = p;
   pModPolar(p.xz, 8.);
   p.x -= 1.5;
+  metals = min(metals,cuboid(p, vec3(.1, 5, .2))); //the actual monument
+  updateSubMaterial(SUBMATERIAL_METAL, metals);
 
-  return min(r, cuboid(p, vec3(.1, 5, .2)));
+  return min(metals, r);
 }
 
 float prison(vec3 p) {
