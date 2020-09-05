@@ -1,6 +1,6 @@
 import './css/styles.css'
 import { glDrawFullScreenTriangle } from './gl/gl-utils'
-import { pageState, resumeGame } from './page'
+import { resumeGame, mainMenuVisible, renderHeight, renderWidth } from './page'
 import { debug_beginFrame, debug_endFrame, debug_trycatch_wrap, debug_log, debug_updateCameraPosition } from './debug'
 
 import { updateCamera, cameraPos } from './camera'
@@ -13,7 +13,7 @@ import { loadMainShader, mainShader, prerenderedShader } from './shader-program'
 import { updateCollider, initCollider } from './collider'
 import { buildScreenTextures, bindScreenTexture } from './texture-screen'
 import { initPrerenderedTexture, renderToPrerenderedTexture, PRERENDERED_TEXTURE_SIZE } from './texture-prerendered'
-import { isKeyPressed, KEY_ACTION } from './keyboard'
+import { KEY_ACTION } from './keyboard'
 
 let prevTime = 0
 let time = 0
@@ -41,14 +41,14 @@ setTimeout(() => {
 
       updateCamera(timeDelta, time)
 
-      if (!pageState._mainMenu) {
+      if (!mainMenuVisible) {
         updateCollider(time)
       }
 
       debug_updateCameraPosition(cameraPos)
 
       updateAnimations(timeDelta)
-      updateGameObjects(isKeyPressed(KEY_ACTION))
+      updateGameObjects()
       updateText(timeDelta)
 
       // Prerender
@@ -60,7 +60,7 @@ setTimeout(() => {
 
       bindScreenTexture(GAME_OBJECTS._antennaConsole._floppyInserted ? 2 : time & 1)
 
-      mainShader._use(time, pageState._w, pageState._h)
+      mainShader._use(time, renderWidth, renderHeight)
 
       glDrawFullScreenTriangle()
 
@@ -72,7 +72,7 @@ setTimeout(() => {
   )
 
   requestAnimationFrame(animationFrame)
-}, 100)
+}, 99)
 
 if (import.meta.hot) {
   const reloadMainShader = () => {

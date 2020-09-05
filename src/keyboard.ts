@@ -1,7 +1,6 @@
-import { GAME_OBJECTS, INVENTORY } from './state/objects'
-import { showMainMenu, pageState } from './page'
-import { objectAssign } from './core/objects'
 import { debug_mode } from './debug'
+import { mainMenuVisible } from './page'
+import { objectAssign } from './core/objects'
 
 export const KEY_FORWARD = 1
 
@@ -23,18 +22,10 @@ export const KEY_FLY_UP = 10
 
 export const KEY_FLY_DOWN = 11
 
-let _pressedKeys: boolean[] = []
+/* List of pressed keys */
+export let PressedKeys: boolean[] = []
 
-/** Returns true if the given gey is pressed */
-export const isKeyPressed = (keyId: number) => !!_pressedKeys[keyId]
-
-const _keyFunctions: Record<number, () => void> = {
-  [KEY_FLASHLIGHT_TOGGLE]() {
-    GAME_OBJECTS._flashlight._active = INVENTORY._flashlight && !GAME_OBJECTS._flashlight._active
-  },
-
-  [KEY_MAIN_MENU]: showMainMenu
-}
+export const KeyFunctions: Record<number, () => void> = {}
 
 const _keyMap: Record<string, number> = {
   w: KEY_FORWARD,
@@ -81,14 +72,14 @@ if (debug_mode) {
 }
 
 const _setKeyPressed = (e: KeyboardEvent, value: boolean) => {
-  if (!e.keyCode || e.metaKey || !document.activeElement || pageState._mainMenu) {
-    _pressedKeys = [] // Clear pressed status to prevent key sticking when alt+tabbing or showing the menu
+  if (!e.keyCode || e.metaKey || !document.activeElement || mainMenuVisible) {
+    PressedKeys = [] // Clear pressed status to prevent key sticking when alt+tabbing or showing the menu
   } else {
     const keyId = _keyMap[e.key] || 0
-    if (!_pressedKeys[keyId] && _keyFunctions[keyId]) {
-      _keyFunctions[keyId]()
+    if (!e.repeat && !PressedKeys[keyId] && KeyFunctions[keyId]) {
+      KeyFunctions[keyId]()
     }
-    _pressedKeys[keyId] = value
+    PressedKeys[keyId] = value
   }
 }
 

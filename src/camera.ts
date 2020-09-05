@@ -1,5 +1,5 @@
 import {
-  isKeyPressed,
+  PressedKeys,
   KEY_FORWARD,
   KEY_BACKWARD,
   KEY_STRAFE_LEFT,
@@ -15,7 +15,7 @@ import {
   debug_updateCameraDirection,
   debug_updateCameraEulerAngles
 } from './debug'
-import { canvasElement, pageState } from './page'
+import { canvasElement } from './page'
 import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD } from './math/scalar'
 import {
   vec3Temp0,
@@ -31,6 +31,7 @@ import {
 import { vec2New } from './math/vec2'
 import { typedArraySet } from './core/arrays'
 import { RUMBLING } from './state/animations'
+import { GAME_OPTIONS } from './state/options'
 
 const CAMERA_SPEED_DEFAULT = 1.5
 
@@ -101,25 +102,25 @@ const updateCameraDirFromEulerAngles = (time: number) => {
 }
 
 export const updateCamera = (timeDelta: number, time: number) => {
-  const speed = (isKeyPressed(KEY_RUN) ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * timeDelta
+  const speed = (PressedKeys[KEY_RUN] ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * timeDelta
 
-  if (isKeyPressed(KEY_FORWARD)) {
+  if (PressedKeys[KEY_FORWARD]) {
     cameraMoveForward(speed)
   }
-  if (isKeyPressed(KEY_BACKWARD)) {
+  if (PressedKeys[KEY_BACKWARD]) {
     cameraMoveForward(-speed)
   }
-  if (isKeyPressed(KEY_STRAFE_LEFT)) {
+  if (PressedKeys[KEY_STRAFE_LEFT]) {
     cameraStrafe(-speed)
   }
-  if (isKeyPressed(KEY_STRAFE_RIGHT)) {
+  if (PressedKeys[KEY_STRAFE_RIGHT]) {
     cameraStrafe(speed)
   }
   if (debug_mode) {
-    if (isKeyPressed(KEY_FLY_UP)) {
+    if (PressedKeys[KEY_FLY_UP]) {
       cameraPos.y -= speed
     }
-    if (isKeyPressed(KEY_FLY_DOWN)) {
+    if (PressedKeys[KEY_FLY_DOWN]) {
       cameraPos.y += speed
     }
   }
@@ -130,7 +131,7 @@ export const updateCamera = (timeDelta: number, time: number) => {
   debug_updateCameraDirection(cameraDir)
 }
 
-updateCameraDirFromEulerAngles()
+updateCameraDirFromEulerAngles(0)
 
 debug_updateCameraPosition(cameraPos)
 
@@ -139,7 +140,7 @@ onmousemove = (e) => {
     cameraEuler.x = wrapAngleInRadians(cameraEuler.x - e.movementX * MOUSE_ROTATION_SENSITIVITY_X)
 
     cameraEuler.y = clamp(
-      cameraEuler.y + e.movementY * MOUSE_ROTATION_SENSITIVITY_Y * (pageState._invertY ? -1 : 1),
+      cameraEuler.y + e.movementY * MOUSE_ROTATION_SENSITIVITY_Y * (GAME_OPTIONS._invertY ? -1 : 1),
       -87 * DEG_TO_RAD,
       87 * DEG_TO_RAD
     )

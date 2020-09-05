@@ -57,8 +57,6 @@ export const initPrerenderedTexture = () => {
 }
 
 export const renderToPrerenderedTexture = () => {
-  gl_activeTexture(GL_TEXTURE2)
-  gl_bindTexture(GL_TEXTURE_2D, prerenderedTexture)
   gl_bindFramebuffer(GL_FRAMEBUFFER, prerenderedFrameBuffer)
   glDrawFullScreenTriangle()
   gl_bindFramebuffer(GL_FRAMEBUFFER, null)

@@ -1,11 +1,14 @@
 import { GAME_OBJECTS, INVENTORY } from './state/objects'
 import { ANIMATIONS } from './state/animations'
+import { cameraPos, cameraEuler } from './camera'
 
 const serialize = () =>
   JSON.stringify({
     _objects: GAME_OBJECTS,
     _inventory: INVENTORY,
-    _animations: ANIMATIONS
+    _animations: ANIMATIONS,
+    _cameraPos: cameraPos,
+    _cameraEuler: cameraEuler
   })
 
 function deepMerge(original, item) {
@@ -23,6 +26,8 @@ const deserialize = (savedState) => {
   deepMerge(GAME_OBJECTS, r._objects)
   deepMerge(INVENTORY, r._inventory)
   deepMerge(ANIMATIONS, r._animations)
+  deepMerge(cameraPos, r._cameraPos)
+  deepMerge(cameraEuler, r._cameraEuler)
 }
 
 const SAVE_GAME = () => {

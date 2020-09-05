@@ -16,6 +16,8 @@ const float PI = 3.14159265359;
 // Size in pixels of the noise texture
 const float NOISE_TEXTURE_SIZE = 512.;
 
+const float COLLISION_TEXTURE_SIZE = 128.;
+
 const float PRERENDERED_TEXTURE_SIZE = 256.;
 
 const int NOISE_TEXTURE_BITMASK = 0x1ff;
@@ -219,14 +221,15 @@ float opOnion(float sdf, float thickness) {
   return abs(sdf) - thickness;
 }
 
+vec3 elongate(vec3 p, vec3 h) {
+  return p - clamp(p, -h, h);
+}
+
 mat2 rot(float a) {
   float c = cos(a), s = sin(a);
   return mat2(c, s, -s, c);
 }
 
-vec3 invX(vec3 p) {
-  return vec3(-p.x, p.yz);
-}
 vec3 invZ(vec3 p) {
   return vec3(p.xy, -p.z);
 }
@@ -411,7 +414,7 @@ float prison(vec3 p) {
           cuboid(p - vec3(4, -.37, 1), vec3(2, 1, .53))  // the door
           ));
 
-  // The door itself & animation:
+  // The door itself & animation
   vec3 q = p - vec3(4, -.77, .5);
   q.xz *= rot(-iAnimPrisonDoor * PI / 2.);
   float door = cuboid(q - vec3(0, .4, .5), vec3(.05, .99, .52));
@@ -427,15 +430,35 @@ float prison(vec3 p) {
   return min(structure, metalThings);
 }
 
+float submarine(vec3 p) {
+  // clang-format off
+  float bounds = length(p)-9.;
+  if (bounds > 1.) {
+    return bounds;
+  }
+  p.xz *= rot(-PI/4.);
+  float dock = cuboid(p-vec3(-1.5,1,5), vec3(1,.2,3));
+  //p.y += submarineDepth;
+  float sub = smin(
+    sphere(elongate(p, vec3(6,0,0)), 1.7), //main body
+    min(
+      cylinder(elongate(p.xzy - vec3(-2.,0,2.), vec3(.5,0,0)), .4, .5), //the top/periscope thingy
+      min(
+        cuboid(p-vec3(7.5,0,0), vec3(0.3,2,.05)) - .05,
+        cuboid(p-vec3(7.5,0,0), vec3(0.3,.05,2)) - .05
+      )
+    ),
+    0.3
+  );
+  return min(dock, sub);
+  // clang-format on
+}
+
 float oilrig(vec3 p) {
   float bounds = length(p) - 12.;
   if (bounds > 2.)
     return bounds;
-  vec3 q, w, e, o, t, l, u;  // copies of p for different co-ordinate systems
-  q = p;
-  w = p;
-  e = p;
-  o = p;
+  vec3 q = p, w = p, e = p, o = p, t, l, u;  // copies of p for different co-ordinate systems
   q.xz = abs(q.xz);  // mirror in x & z
   float metal = cylinder(q.xzy - vec3(5, 5, 0), .5, 8.3);  // main platform cylinders
   l = q;
@@ -448,7 +471,7 @@ float oilrig(vec3 p) {
   w.y = abs(w.y - 3.5);  // mirror y at y=3.5
   float platforms = cuboid(w - vec3(0, 3.5, 0), vec3(6, .2, 6)) - .05;  // platforms (mirrored around y=3.5)
   platforms = max(platforms, -cuboid(p - vec3(2, 7, 2), vec3(1.5)));  // hole in upper platform
-  platforms = max(platforms, -cuboid(p - vec3(5.7, 0, 4), vec3(.52))); //hole in lower platform for the bridge
+  platforms = max(platforms, -cuboid(p - vec3(5.7, 0, 4), vec3(.52)));  // hole in lower platform for the bridge
   e.z = abs(e.z + 2.);  // mirror around z=2
   metal = min(metal, cylinder(e.xzy - vec3(-6, 1.1, 8.7), 1., 1.75));  // tanks
   metal = min(metal, cylinder(e.xzy - vec3(-6.5, 1.1, 0), .2, 8.));  // pipes from tanks to sea
@@ -461,10 +484,13 @@ float oilrig(vec3 p) {
   t = u - vec3(0, .8, 0);
   // rotate wheel around xz based on animation uniform:
   t.xz *= rot(iAnimOilrigWheel);
-  float wheel = torus(t, vec2(.5, .02));
-  wheel = min(wheel, cylinder(t.xzy + vec3(0, 0, .5), .02, .5));  // center-column of spokes
-  pModPolar(t.xz, 5.);
-  wheel = min(wheel, cylinder(t.zyx - vec3(0, 0, .25), .01, .25));  // spokes
+  float wheel = length(t) - 1.;
+  if (wheel < 2.) { 
+    wheel = torus(t, vec2(.5, .02));
+    wheel = min(wheel, cylinder(t.xzy + vec3(0, 0, .5), .02, .5));  // center-column of spokes
+    pModPolar(t.xz, 5.);
+    wheel = min(wheel, cylinder(t.zyx - vec3(0, 0, .25), .01, .25));  // spokes
+  }
   p -= vec3(2, 3.53, -.05);
   p.zy *= rot(-PI / 4.);
   platforms = min(platforms, cuboid(p, vec3(1, 5.1, .1)) - .05);  // ramp from lower platform to upper
@@ -486,9 +512,7 @@ float guardTower(vec3 p) {
   if (bounds > 4.) {
     return bounds;
   }
-  vec3 q,z,y;
-  q = p;
-  y = p;
+  vec3 q = p, z, y = p;
   pModPolar(q.xz, 6.);
   z = q;
   pModInterval(z.y, 1.5, -3., 7.);
@@ -560,7 +584,8 @@ float nonTerrain(vec3 p) {
   float ob = oilrigBridge(oilrigCoords);
   float aoc = antennaCable(oilrigCoords.zyx - vec3(-2, 9.7, 32.5));
   float guardTower = guardTower(p - vec3(8.7, 9.3, 37));
-  float structures = min(min(min(b, a), min(m, pr)), min(min(r, o), min(ob, guardTower)));
+  float submarine = submarine(p - vec3(-46, -.5, -30));
+  float structures = min(min(min(b, a), min(m, pr)), min(min(r, o), min(ob, min(guardTower, submarine))));
   float gameObjects = min(iGOKeyVisible ? gameObjectKey(p.yzx - vec3(2., 7.4, -45.5)) : MAX_DIST,
       min(iGOFlashlightVisible ? gameObjectFlashlight(p - vec3(-42, 3, 11.2)) : MAX_DIST,
           iGOFloppyDiskVisible ? gameObjectFloppy(p - vec3(12.15, 22.31, 38.65)) : MAX_DIST));
@@ -592,24 +617,17 @@ float distanceToNearestSurface(vec3 p) {
 
 vec3 computeNonTerrainNormal(vec3 p) {
   const vec2 S = vec2(0.001, 0);
-  float d = nonTerrain(p);
-  float a = nonTerrain(p + S.xyy);
-  float b = nonTerrain(p + S.yxy);
-  float c = nonTerrain(p + S.yyx);
-  return normalize(vec3(a, b, c) - d);
+
+  return normalize(vec3(nonTerrain(p + S.xyy), nonTerrain(p + S.yxy), nonTerrain(p + S.yyx)) - nonTerrain(p));
 }
 
 vec3 computeTerrainNormal(vec3 p) {
   const vec2 S = vec2(0.08, 0);
-  float d = terrain(p);
-  float a = terrain(p + S.xyy);
-  float b = terrain(p + S.yxy);
-  float c = terrain(p + S.yyx);
-  return normalize(vec3(a, b, c) - d);
+  return normalize(vec3(terrain(p + S.xyy), terrain(p + S.yxy), terrain(p + S.yyx)) - terrain(p));
 }
 
 float computeLambert(vec3 n, vec3 ld) {
-  return clamp01(dot(normalize(ld), n));
+  return clamp01(dot(ld, n));
 }
 
 float iterationsR;
@@ -664,6 +682,10 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
     return 1.;  // Skip objects outsite the island and skip underwater
   }
 
+  if (dot(n, SUNLIGHT_DIRECTION) < -0.1) {
+    return 0.;  // Skip faces behind the sun
+  }
+
   float res = 1.;
   float dist = clamp(camDistance * 0.005, 0.01, .1);  // start further out from the surface if the camera is far away
   p = p + n * dist;  // Jump out of the surface by the normal * that dist
@@ -694,7 +716,6 @@ float rayTraceWater(vec3 p, vec3 dir) {
 }
 
 vec3 waterFBM(vec2 p) {
-  float ps = 0.75;
   vec3 f = vec3(0);
   float tot = 0.;
   float a = 1.;
@@ -710,14 +731,9 @@ vec3 waterFBM(vec2 p) {
     p += v.yz * .43;
     p *= 2.;
     tot += a;
-    a *= ps;
+    a *= .75;
   }
   return f / tot;
-}
-
-vec4 waterHeightAndNormal(vec2 p) {
-  vec3 dxy = waterFBM(p * .7) * (1. - length(p) / (.9 * MAX_DIST));
-  return vec4(normalize(vec3(dxy.x, dxy.y, 1.)), dxy.z);
 }
 
 vec3 applyFog(vec3 rgb, float dist, vec3 rayDir) {
@@ -743,8 +759,8 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat, int subMat) {
     case MATERIAL_BUILDINGS:
       if (subMat == SUBMATERIAL_CONCRETE)
         color += 0.1 *
-            (texture(iNoise, hit.xy * .5).x * normal.z + texture(iNoise, hit.yz * .5).x * normal.x +
-                texture(iNoise, hit.xz * .5).x * normal.y - 0.5);
+            (texture(iNoise, hit.xy * .3).x * normal.z + texture(iNoise, hit.yz * .3).x * normal.x +
+                texture(iNoise, hit.xz * .3).x * normal.y - 0.5);
       if (subMat == SUBMATERIAL_METAL)
         color = vec3(1);  // extra bright
       if (subMat == SUBMATERIAL_RED)
@@ -765,47 +781,46 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
 
   vec3 color;
   vec3 normal = vec3(0, 1, 0);
-  float mdist = min(dist, wdist);
+  float mdist = dist;
   float shadow = 1.;
-
-  float specular = 0.;
 
   if (material == MATERIAL_SCREEN) {
     return iAnimAntennaRotation > 0. ? texture(iScreens, screenCoords).xyz : vec3(0);
   }
+
+  vec3 hit = p + dir * dist;
+
+  bool isWater = wdist < MAX_DIST && wdist < dist;
+  vec3 waterColor;
+  float waterOpacity = 0.;
+  if (isWater) {
+    waterOpacity = mix(0.2, 1., clamp01((dist - wdist) / TERRAIN_OFFSET));
+
+    vec3 waterhit = p + dir * wdist;
+    vec3 waterXYD = mix(vec3(0),
+        waterFBM(waterhit.xz * (.7 - WaterLevel * .02)) * (1. - length(waterhit) / (.9 * MAX_DIST)), waterOpacity);
+
+    normal = normalize(vec3(waterXYD.x, 1., waterXYD.y));
+
+    wdist -= abs(waterXYD.z) * waterOpacity * .6;  //(waterXYD.z * 2. - 1.) * .1;
+    mdist = wdist;
+
+    waterColor = mix(vec3(.15, .42, .63), vec3(.15, .62, .83), abs(waterXYD.z));
+  }
+
   if (material == MATERIAL_SKY) {
     color = COLOR_SKY;  // mix(COLOR_SKY, COLOR_SUN, pow(clamp(dot(dir, SUNLIGHT_DIRECTION),0.,1.),10.));
   } else {
-    vec3 hit = p + dir * dist;
-    int mat = material;
-    int subMat = subMaterial;
-    switch (mat) {
-      case MATERIAL_TERRAIN: normal = computeTerrainNormal(hit); break;
-      default: normal = computeNonTerrainNormal(hit); break;
-    }
-    color = getColorAt(hit, normal, mat, subMat);
-    if (material == MATERIAL_BUILDINGS && (subMaterial == SUBMATERIAL_METAL || subMaterial == SUBMATERIAL_RED)) {
-      specular = pow(clamp01(dot(SUNLIGHT_DIRECTION, reflect(dir, normal))), 50.);
-    }
+    vec3 hitNormal = material == MATERIAL_TERRAIN ? computeTerrainNormal(hit) : computeNonTerrainNormal(hit);
+    color = getColorAt(hit, hitNormal, material, subMaterial);
     shadow = getShadow(p + dir * mdist, mdist, normal);
+    normal = normalize(mix(hitNormal, normal, waterOpacity));
   }
 
-  vec3 waterColor;
-  float waterTransparencyMix = 0.;
-  if (wdist < MAX_DIST && wdist < dist) {  // water!
-    vec3 waterhit = p + dir * wdist;
-    vec4 whn = waterHeightAndNormal(waterhit.xz);
-
-    float waterHeight = dist - wdist;
-
-    waterTransparencyMix =
-        clamp01(mix(1., (waterHeight + whn.x) * .2, clamp01((TERRAIN_OFFSET + WaterLevel) - waterHeight)));
-
-    normal = normalize(mix(normal, whn.yzw, clamp01(waterTransparencyMix + whn.x * .5)));
-    waterColor = mix(vec3(.15, .62, .83), vec3(.15, .42, .63), whn.x);
-    specular = dot(SUNLIGHT_DIRECTION, reflect(dir, normal));
-    specular = pow(clamp01(specular), 50.);
-  }
+  float specular = isWater ||
+          (material == MATERIAL_BUILDINGS && (subMaterial == SUBMATERIAL_METAL || subMaterial == SUBMATERIAL_RED))
+      ? pow(clamp01(dot(SUNLIGHT_DIRECTION, reflect(dir, normal))), 50.)
+      : 0.;
 
   lightIntensity = computeLambert(normal, SUNLIGHT_DIRECTION);
 
@@ -816,8 +831,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
     shadow += flashLightShadow * (1. - shadow);
   }
 
-  color =
-      (mix(color, waterColor, waterTransparencyMix) * (COLOR_SUN * lightIntensity) + specular) * mix(0.3, 1., shadow);
+  color = (mix(color, waterColor, waterOpacity) * (COLOR_SUN * lightIntensity) + specular) * mix(0.3, 1., shadow);
 
   return applyFog(color, mdist, dir);
 }
@@ -827,14 +841,12 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
 /**********************************************************************/
 
 void main_c() {
-  vec2 screen = fragCoord / (iResolution * 0.5) - 1.;
-  vec2 pos = fragCoord / iResolution;
-
-  vec3 ray = normalize(vec3(0., 0., 1.));
-  ray.xz *= rot(pos.x * 2. * PI + PI);
-
-  vec3 cylinderPos = vec3(iCameraPos.x, iCameraPos.y + screen.y - .8, iCameraPos.z);
-  oColor = packFloat(.2 - distanceToNearestSurface(cylinderPos + ray * MIN_DIST));
+  vec3 ray = vec3(0, 0, 1);
+  ray.xz *= rot(fragCoord.x * (2. * PI / COLLISION_TEXTURE_SIZE) + PI);
+  oColor = packFloat(.2 -
+      distanceToNearestSurface(
+          vec3(iCameraPos.x, iCameraPos.y + (fragCoord.y / (COLLISION_TEXTURE_SIZE * .5) - 1.) - .8, iCameraPos.z) +
+          normalize(ray) * MIN_DIST));
 }
 
 /**********************************************************************/
@@ -846,12 +858,9 @@ void main_p() {
 
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
 
-  float min_epsilon = 1.2 / PRERENDERED_TEXTURE_SIZE;
+  float dist = rayMarch(iCameraPos, ray, 1.2 / PRERENDERED_TEXTURE_SIZE, MIN_DIST);
 
-  vec3 p = iCameraPos;
-  float dist = rayMarch(p, ray, min_epsilon, MIN_DIST) - epsilon;
-
-  uint packed = floatBitsToUint(dist);
+  uint packed = floatBitsToUint(dist >= MAX_DIST ? MAX_DIST : dist - epsilon);
   oColor = vec4(float((packed >> 24) & 0xffu) / 255., float((packed >> 16) & 0xffu) / 255.,
       float((packed >> 8) & 0xffu) / 255., float(packed & 0xffu) / 255.);
 }
