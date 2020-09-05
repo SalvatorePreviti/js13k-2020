@@ -4,13 +4,7 @@ import { cameraPos, cameraEuler } from './camera'
 import { setText } from './text'
 import { resumeGame } from './page'
 
-const data = {
-  _objects: GAME_OBJECTS,
-  _inventory: INVENTORY,
-  _animations: ANIMATIONS,
-  _cameraPos: cameraPos,
-  _cameraEuler: cameraEuler
-}
+const data = [GAME_OBJECTS, INVENTORY, ANIMATIONS, cameraPos, cameraEuler]
 
 function deepMerge(original, item) {
   for (const key in item) {
