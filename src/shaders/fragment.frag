@@ -9,7 +9,8 @@ precision highp float;
 // Sub materials of MATERIAL_BUILDINGS
 #define SUBMATERIAL_CONCRETE 0
 #define SUBMATERIAL_METAL 1
-#define SUBMATERIAL_RED 2
+#define SUBMATERIAL_BRIGHT_RED 2
+#define SUBMATERIAL_DARK_RED 3
 
 const float PI = 3.14159265359;
 
@@ -364,7 +365,7 @@ float antenna(vec3 p, vec2 rotation) {
   p.xy *= rot(-.5);
   structure = min(structure, cuboid(p, vec3(1, 1, .8)) - .01);
   float metalThings = min(dish, min(door, console));
-  updateSubMaterial(SUBMATERIAL_RED, oilrigLever);
+  updateSubMaterial(SUBMATERIAL_BRIGHT_RED, oilrigLever);
   updateSubMaterial(SUBMATERIAL_METAL, metalThings);
 
   return min(min(console, structure), min(metalThings, oilrigLever));
@@ -392,7 +393,7 @@ float monument(vec3 p) {
   p.y += iAnimMonumentDescend * 4.;
   if (iGOAntennaKeyVisible) {
     float key = gameObjectKey(p - vec3(-1.05, 5.05, -1.05));
-    updateSubMaterial(SUBMATERIAL_RED, key);
+    updateSubMaterial(SUBMATERIAL_BRIGHT_RED, key);
     r = min(r, key);
   }
   vec3 q = p;
@@ -453,6 +454,7 @@ float submarine(vec3 p) {
     ),
     0.3
   );
+  updateSubMaterial(SUBMATERIAL_DARK_RED, sub);
   return min(dock, sub);
   // clang-format on
 }
@@ -498,7 +500,7 @@ float oilrig(vec3 p) {
   p.zy *= rot(-PI / 4.);
   platforms = min(platforms, cuboid(p, vec3(1, 5.1, .1)) - .05);  // ramp from lower platform to upper
   updateSubMaterial(SUBMATERIAL_METAL, metal);
-  updateSubMaterial(SUBMATERIAL_RED, wheel);
+  updateSubMaterial(SUBMATERIAL_BRIGHT_RED, wheel);
   return min(platforms, min(metal, wheel));
 }
 
@@ -594,7 +596,7 @@ float nonTerrain(vec3 p) {
           iGOFloppyDiskVisible ? gameObjectFloppy(p - vec3(12.15, 22.31, 38.65)) : MAX_DIST));
 
   updateSubMaterial(SUBMATERIAL_METAL, aoc);
-  updateSubMaterial(SUBMATERIAL_RED, gameObjects);
+  updateSubMaterial(SUBMATERIAL_BRIGHT_RED, gameObjects);
   updateSubMaterial(SUBMATERIAL_CONCRETE, structures);
 
   return min(min(structures, gameObjects), aoc);
@@ -766,8 +768,10 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat, int subMat) {
                 texture(iNoise, hit.xz * .3).x * normal.y - 0.5);
       if (subMat == SUBMATERIAL_METAL)
         color = vec3(1);  // extra bright
-      if (subMat == SUBMATERIAL_RED)
+      if (subMat == SUBMATERIAL_BRIGHT_RED)
         color = vec3(1, 0, 0);
+      if (subMat == SUBMATERIAL_DARK_RED)
+        color = vec3(0.5, 0, 0);
     default: break;
   }
   return color;
@@ -821,7 +825,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   }
 
   float specular = isWater ||
-          (material == MATERIAL_BUILDINGS && (subMaterial == SUBMATERIAL_METAL || subMaterial == SUBMATERIAL_RED))
+          (material == MATERIAL_BUILDINGS && subMaterial > SUBMATERIAL_CONCRETE)
       ? pow(clamp01(dot(SUNLIGHT_DIRECTION, reflect(dir, normal))), 50.)
       : 0.;
 
