@@ -11,12 +11,14 @@ import {
   gl_uniform3f,
   gl_uniform2f,
   gl_uniformMatrix3fv,
-  gl_viewport
+  gl_viewport,
+  gl_uniform4f
 } from './gl/gl-context'
 import { cameraPos, cameraDir, cameraEuler, cameraMat3 } from './camera'
 
 import { GAME_OBJECTS } from './state/objects'
 import { ANIMATIONS } from './state/animations'
+import { sin } from './math/scalar'
 
 export const loadMainShaderProgram = (mainFunction: string) => {
   debug_time(`${loadMainShaderProgram.name} ${mainFunction}`)
@@ -28,16 +30,16 @@ export const loadMainShaderProgram = (mainFunction: string) => {
   )
 
   const {
-    iNoise,
-    iHeightmap,
-    iPrerendered,
-    iScreens,
-    iResolution,
-    iTime,
-    iCameraPos,
-    iCameraDir,
-    iCameraEuler,
-    iCameraMat3,
+    tN: iNoise,
+    tH: iHeightmap,
+    tP: iPrerendered,
+    tS: iScreens,
+    iR: iResolution,
+    iP,
+    iD,
+    iM: iCameraMat3,
+    iF,
+    iFlashlightOn,
     iGOKeyVisible,
     iGOFlashlightVisible,
     iGOAntennaKeyVisible,
@@ -48,8 +50,7 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     iAnimOilrigRamp,
     iAnimOilrigWheel,
     iAnimAntennaRotation,
-    iAnimElevatorHeight,
-    iFlashlightOn
+    iAnimElevatorHeight
   } = glNewUniformLocationGetter(program)
 
   // Texture 0
@@ -65,23 +66,19 @@ export const loadMainShaderProgram = (mainFunction: string) => {
   gl_uniform1i(iScreens, 3)
 
   const _use = (time: number, width: number, height: number) => {
+    const waterLevel = sin(time * 2 + 3) * 0.2
+
     gl_viewport(0, 0, width, height)
     gl_useProgram(program)
 
     // Render output resolution
     gl_uniform2f(iResolution, width, height)
 
-    // Time in seconds
-    gl_uniform1f(iTime, time)
-
     // Camera position
-    gl_uniform3f(iCameraPos, cameraPos.x, cameraPos.y, cameraPos.z) // If game is not started we should use gl_uniform3f(iCameraPos, 8, 28, 34)
+    gl_uniform4f(iP, cameraPos.x, cameraPos.y, cameraPos.z, time)
 
     // Camera direction
-    gl_uniform3f(iCameraDir, cameraDir.x, cameraDir.y, cameraDir.z)
-
-    // Camera rotation, x is yaw and y is pitch
-    gl_uniform2f(iCameraEuler, cameraEuler.x, cameraEuler.y)
+    gl_uniform4f(iD, cameraDir.x, cameraDir.y, cameraDir.z, waterLevel)
 
     // Camera rotation matrix
     gl_uniformMatrix3fv(iCameraMat3, false, cameraMat3)

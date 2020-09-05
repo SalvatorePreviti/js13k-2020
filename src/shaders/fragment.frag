@@ -31,49 +31,54 @@ const float FIELD_OF_VIEW = radians(45.0);
 // Projection matrix
 const float PROJECTION_LEN = 1. / tan(.5 * FIELD_OF_VIEW);
 
+in vec2 FC;
+
 // Screen position, in pixels. Bottom left is (0, 0), top right is (iResolution.x-1, iResolution.y-1).
-in vec2 fragCoord;
+#define fragCoord FC
+
+uniform vec2 iR;
+uniform vec4 iP;
+uniform vec4 iD;
+uniform mat3 iM;
+uniform lowp int iF;
 
 // Screen resolution in pixels.
-uniform vec2 iResolution;
-
-// Time in seconds
-uniform float iTime;
+#define iResolution iR
 
 // Camera position
-uniform vec3 iCameraPos;
+#define iCameraPos iP.xyz
+
+// Time in seconds
+#define iTime iP.w
 
 // Camera directiom
-uniform vec3 iCameraDir;
+#define iCameraDir iD.xyz
 
-// Camera rotation x is yaw, y is pitch.
-uniform vec2 iCameraEuler;
+// Current level of water
+#define iWaterLevel iD.w
 
 // Camera rotation matrix
-uniform mat3 iCameraMat3;
-
-// Noise texture
-uniform sampler2D iNoise;
-
-// Heightmap texture
-uniform sampler2D iHeightmap;
-
-// Prerendered texture
-uniform sampler2D iPrerendered;
-
-// Screens texture
-uniform sampler2D iScreens;
+#define iCameraMat3 iM
 
 // Game object uniforms
+
+// Flashlight on
+#define iFlashlightOn ((iF & 0x01) != 0)
+
 // Prison Key
-uniform bool iGOKeyVisible;
+#define iGOKeyVisible ((iF & 0x02) != 0)
+
 // Flashlight
-uniform bool iGOFlashlightVisible;
+#define iGOFlashlightVisible ((iF & 0x04) != 0)
 
 // Antenna key
-uniform bool iGOAntennaKeyVisible;
+#define iGOAntennaKeyVisible ((iF & 0x08) != 0)
+
 // Floppy Disk
-uniform bool iGOFloppyDiskVisible;
+#define iGOFloppyDiskVisible ((iF & 0x10) != 0)
+
+// Submarine
+#define iSubmarineVisible ((iF & 0x20) != 0)
 
 // Animation uniforms
 // Prison Door 0 - closed, 1 - open
@@ -91,17 +96,27 @@ uniform float iAnimAntennaRotation;
 // elevator height
 uniform float iAnimElevatorHeight;
 
-uniform bool iFlashlightOn;
+// Noise texture
+#define iNoise tN
+uniform sampler2D iNoise;
 
-uniform bool iSubmarineVisible;
+// Heightmap texture
+#define iHeightmap tH
+uniform sampler2D iHeightmap;
+
+// Prerendered texture
+#define iPrerendered tP
+uniform sampler2D iPrerendered;
+
+// Screens texture
+#define iScreens tS
+uniform sampler2D iScreens;
 
 // Output color
+#define oColor oC
 out vec4 oColor;
 
 //=== STATE ===
-
-// Current level of water
-float WaterLevel;
 
 // Keep the current epsilon global
 float epsilon;
@@ -486,7 +501,7 @@ float oilrig(vec3 p) {
   // rotate wheel around xz based on animation uniform:
   t.xz *= rot(iAnimOilrigWheel);
   float wheel = length(t) - 1.;
-  if (wheel < 2.) { 
+  if (wheel < 2.) {
     wheel = torus(t, vec2(.5, .02));
     wheel = min(wheel, cylinder(t.xzy + vec3(0, 0, .5), .02, .5));  // center-column of spokes
     pModPolar(t.xz, 5.);
@@ -679,7 +694,7 @@ float shadowR = 0.;
 
 #define SHADOW_ITERATIONS 50
 float getShadow(vec3 p, float camDistance, vec3 n) {
-  if (abs(p.x) >= TERRAIN_SIZE.x * 3. || abs(p.z) >= TERRAIN_SIZE.z * 3. || p.y < WaterLevel - 0.01) {
+  if (abs(p.x) >= TERRAIN_SIZE.x * 3. || abs(p.z) >= TERRAIN_SIZE.z * 3. || p.y < iWaterLevel - 0.01) {
     return 1.;  // Skip objects outsite the island and skip underwater
   }
 
@@ -712,7 +727,7 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
 }
 
 float rayTraceWater(vec3 p, vec3 dir) {
-  float t = (WaterLevel - p.y) / dir.y;
+  float t = (iWaterLevel - p.y) / dir.y;
   return min(t >= 0. ? t : MAX_DIST, MAX_DIST);
 }
 
@@ -799,7 +814,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
 
     vec3 waterhit = p + dir * wdist;
     vec3 waterXYD = mix(vec3(0),
-        waterFBM(waterhit.xz * (.7 - WaterLevel * .02)) * (1. - length(waterhit) / (.9 * MAX_DIST)), waterOpacity);
+        waterFBM(waterhit.xz * (.7 - iWaterLevel * .02)) * (1. - length(waterhit) / (.9 * MAX_DIST)), waterOpacity);
 
     normal = normalize(vec3(waterXYD.x, 1., waterXYD.y));
 
@@ -873,7 +888,6 @@ void main_p() {
 // Main shader
 void main_() {
   SUNLIGHT_DIRECTION = normalize(vec3(cos(iTime * .02), sin(iTime * .02) * 0.5 + 0.8, sin(iTime * .02)));
-  WaterLevel = sin(iTime * 2. + 3.) * .2;
 
   vec2 screen = fragCoord / (iResolution * .5) - 1.;
 
