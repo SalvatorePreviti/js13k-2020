@@ -16,6 +16,8 @@ const float PI = 3.14159265359;
 // Size in pixels of the noise texture
 const float NOISE_TEXTURE_SIZE = 512.;
 
+const float COLLISION_TEXTURE_SIZE = 128.;
+
 const float PRERENDERED_TEXTURE_SIZE = 256.;
 
 const int NOISE_TEXTURE_BITMASK = 0x1ff;
@@ -592,20 +594,13 @@ float distanceToNearestSurface(vec3 p) {
 
 vec3 computeNonTerrainNormal(vec3 p) {
   const vec2 S = vec2(0.001, 0);
-  float d = nonTerrain(p);
-  float a = nonTerrain(p + S.xyy);
-  float b = nonTerrain(p + S.yxy);
-  float c = nonTerrain(p + S.yyx);
-  return normalize(vec3(a, b, c) - d);
+
+  return normalize(vec3(nonTerrain(p + S.xyy), nonTerrain(p + S.yxy), nonTerrain(p + S.yyx)) - nonTerrain(p));
 }
 
 vec3 computeTerrainNormal(vec3 p) {
   const vec2 S = vec2(0.08, 0);
-  float d = terrain(p);
-  float a = terrain(p + S.xyy);
-  float b = terrain(p + S.yxy);
-  float c = terrain(p + S.yyx);
-  return normalize(vec3(a, b, c) - d);
+  return normalize(vec3(terrain(p + S.xyy), terrain(p + S.yxy), terrain(p + S.yyx)) - terrain(p));
 }
 
 float computeLambert(vec3 n, vec3 ld) {
@@ -698,7 +693,6 @@ float rayTraceWater(vec3 p, vec3 dir) {
 }
 
 vec3 waterFBM(vec2 p) {
-  float ps = 0.75;
   vec3 f = vec3(0);
   float tot = 0.;
   float a = 1.;
@@ -714,7 +708,7 @@ vec3 waterFBM(vec2 p) {
     p += v.yz * .43;
     p *= 2.;
     tot += a;
-    a *= ps;
+    a *= .75;
   }
   return f / tot;
 }
@@ -777,7 +771,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   vec3 waterColor;
   float waterOpacity = 0.;
   if (isWater) {
-    waterOpacity = mix(0.15, 1., clamp01((dist - wdist) / TERRAIN_OFFSET));
+    waterOpacity = mix(0.2, 1., clamp01((dist - wdist) / TERRAIN_OFFSET));
 
     vec3 waterhit = p + dir * wdist;
     vec3 waterXYD = mix(vec3(0),
@@ -824,14 +818,12 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
 /**********************************************************************/
 
 void main_c() {
-  vec2 screen = fragCoord / (iResolution * 0.5) - 1.;
-  vec2 pos = fragCoord / iResolution;
-
-  vec3 ray = normalize(vec3(0., 0., 1.));
-  ray.xz *= rot(pos.x * 2. * PI + PI);
-
-  vec3 cylinderPos = vec3(iCameraPos.x, iCameraPos.y + screen.y - .8, iCameraPos.z);
-  oColor = packFloat(.2 - distanceToNearestSurface(cylinderPos + ray * MIN_DIST));
+  vec3 ray = vec3(0, 0, 1);
+  ray.xz *= rot(fragCoord.x * (2. * PI / COLLISION_TEXTURE_SIZE) + PI);
+  oColor = packFloat(.2 -
+      distanceToNearestSurface(
+          vec3(iCameraPos.x, iCameraPos.y + (fragCoord.y / (COLLISION_TEXTURE_SIZE * .5) - 1.) - .8, iCameraPos.z) +
+          normalize(ray) * MIN_DIST));
 }
 
 /**********************************************************************/
@@ -843,10 +835,7 @@ void main_p() {
 
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
 
-  float min_epsilon = 1.2 / PRERENDERED_TEXTURE_SIZE;
-
-  vec3 p = iCameraPos;
-  float dist = rayMarch(p, ray, min_epsilon, MIN_DIST);
+  float dist = rayMarch(iCameraPos, ray, 1.2 / PRERENDERED_TEXTURE_SIZE, MIN_DIST);
 
   uint packed = floatBitsToUint(dist >= MAX_DIST ? MAX_DIST : dist - epsilon);
   oColor = vec4(float((packed >> 24) & 0xffu) / 255., float((packed >> 16) & 0xffu) / 255.,
