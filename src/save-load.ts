@@ -2,9 +2,10 @@ import { GAME_OBJECTS, INVENTORY } from './state/objects'
 import { ANIMATIONS } from './state/animations'
 import { cameraPos, cameraEuler } from './camera'
 import { setText } from './text'
-import { resumeGame } from './page'
+import { resumeGame, getElementById } from './page'
 import { MINIGAME } from './state/minigame'
 import { GAME_OPTIONS } from './state/options'
+import { updateMinigameTexture } from './texture-screen'
 
 const data = [GAME_OBJECTS, INVENTORY, ANIMATIONS, MINIGAME, GAME_OPTIONS, cameraPos, cameraEuler]
 
@@ -25,7 +26,9 @@ const SAVE_GAME = () => {
 }
 const LOAD_GAME = () => {
   deepMerge(data, JSON.parse(localStorage.getItem('ISLAND404')))
+  updateMinigameTexture()
   resumeGame()
 }
 
-export { SAVE_GAME, LOAD_GAME }
+getElementById('S').onclick = SAVE_GAME
+getElementById('L').onclick = LOAD_GAME

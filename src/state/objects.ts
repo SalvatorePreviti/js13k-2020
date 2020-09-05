@@ -6,7 +6,7 @@ import { KEY_ACTION, KEY_FLASHLIGHT_TOGGLE, KeyFunctions, PressedKeys } from '..
 import { objectValues } from '../core/objects'
 import { MINIGAME, MINIGAME_LOADING, MINIGAME_ACTIVE, MINIGAME_INACTIVE } from './minigame'
 import { vec2Set } from '../math/vec2'
-import { DEG_TO_RAD } from '../math/scalar'
+import { DEG_TO_RAD, PI } from '../math/scalar'
 
 interface GameObject {
   _location: Vec3
@@ -98,7 +98,7 @@ const GAME_OBJECTS = {
     _visible: true,
     _lookAtDistance: 1.5,
     _onInteract() {
-      if (ANIMATIONS._antennaRotation._running && INVENTORY._floppy) {
+      if (ANIMATIONS._antennaRotation._running && INVENTORY._floppy && MINIGAME._state === MINIGAME_INACTIVE) {
         MINIGAME._state = MINIGAME_LOADING
         runAnimation(ANIMATIONS._afterFloppyInsert)
         vec3Set(cameraPos, 5.844, 14.742, 4)
@@ -218,6 +218,20 @@ const GAME_OBJECTS = {
         return 'Call elevator'
       }
       return ''
+    }
+  },
+  _submarine: {
+    _location: vec3New(-46.5, 2, -28.5),
+    _lookAtDistance: 5,
+    _visible: false,
+    _onLookAt: () => 'A submarine! My way out. [press E or Space to Escape!]',
+    _gameEnded: false,
+    _onInteract() {
+      this._gameEnded = true
+      runAnimation(ANIMATIONS._submarine, false)
+      vec3Set(cameraPos, -42, 12, -47)
+      vec2Set(cameraEuler, -12.7 * DEG_TO_RAD, 33.7 * DEG_TO_RAD)
+      setText('<h1>The End</h1><h2>Game by Salvatore Previti & Ben Clark</h2>Thank you for playing!', 10000)
     }
   }
 }

@@ -82,6 +82,13 @@ const ANIMATIONS = {
     _onComplete() {
       MINIGAME._state = MINIGAME_ACTIVE
     }
+  },
+  _submarine: {
+    _value: -10,
+    _initial: -10,
+    _max: 0,
+    _speed: 1,
+    _running: 0
   }
 }
 
