@@ -11,13 +11,15 @@ import {
   gl_uniform2f,
   gl_uniformMatrix3fv,
   gl_viewport,
-  gl_uniform4f
+  gl_uniform4f,
+  gl_uniform3f
 } from './gl/gl-context'
 import { cameraPos, cameraDir, cameraMat3 } from './camera'
 
 import { GAME_OBJECTS } from './state/objects'
 import { ANIMATIONS } from './state/animations'
-import { sin } from './math/scalar'
+import { sin, cos } from './math/scalar'
+import { vec3Normalize, vec3Temp0, vec3Set } from './math/vec3'
 
 export const loadMainShaderProgram = (mainFunction: string) => {
   debug_time(`${loadMainShaderProgram.name} ${mainFunction}`)
@@ -34,18 +36,13 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     tP: iPrerendered,
     tS: iScreens,
     iR: iResolution,
+    iM: iCameraMat3,
+    iS: iSunDirection,
     iP,
     iD,
-    iM: iCameraMat3,
     iF,
-    iAnimPrisonDoor,
-    iAnimAntennaDoor,
-    iAnimMonumentDescend,
-    iAnimOilrigRamp,
-    iAnimOilrigWheel,
-    iAnimAntennaRotation,
-    iAnimElevatorHeight,
-    iSubmarineHeight
+    iA,
+    iB
   } = glNewUniformLocationGetter(program)
 
   // Texture 0
@@ -61,18 +58,21 @@ export const loadMainShaderProgram = (mainFunction: string) => {
   gl_uniform1i(iScreens, 3)
 
   const _use = (time: number, width: number, height: number) => {
-    const waterLevel = sin(time * 2 + 3) * 0.2
-
     gl_viewport(0, 0, width, height)
     gl_useProgram(program)
 
     // Render output resolution
     gl_uniform2f(iResolution, width, height)
 
-    // Camera position
+    // Sun directiom
+    vec3Normalize(vec3Set(vec3Temp0, cos(time * 0.02), sin(time * 0.02) * 0.5 + 0.8, sin(time * 0.02)))
+    gl_uniform3f(iSunDirection, vec3Temp0.x, vec3Temp0.y, vec3Temp0.z)
+
+    // Camera position and time
     gl_uniform4f(iP, cameraPos.x, cameraPos.y, cameraPos.z, time)
 
-    // Camera direction
+    // Camera direction and water level
+    const waterLevel = sin(time * 2 + 3) * 0.2
     gl_uniform4f(iD, cameraDir.x, cameraDir.y, cameraDir.z, waterLevel)
 
     // Camera rotation matrix
@@ -87,26 +87,29 @@ export const loadMainShaderProgram = (mainFunction: string) => {
         (GAME_OBJECTS._floppyDisk._visible ? 0x10 : 0)
     )
 
-    //prison door, open-closed
-    gl_uniform1f(iAnimPrisonDoor, ANIMATIONS._prisonDoor._value)
+    gl_uniform4f(
+      iA,
+      // prison door, open-closed
+      ANIMATIONS._prisonDoor._value,
+      // antenna door, open-closed
+      ANIMATIONS._antennaDoor._value,
+      // monument Descend
+      ANIMATIONS._monumentDescend._value,
+      // ramp to oil rig
+      ANIMATIONS._oilrigRamp._value
+    )
 
-    //antenna door, open-closed
-    gl_uniform1f(iAnimAntennaDoor, ANIMATIONS._antennaDoor._value)
-
-    //monument Descend
-    gl_uniform1f(iAnimMonumentDescend, ANIMATIONS._monumentDescend._value)
-
-    //ramp to oil rig
-    gl_uniform1f(iAnimOilrigRamp, ANIMATIONS._oilrigRamp._value)
-
-    //wheel on oil rig
-    gl_uniform1f(iAnimOilrigWheel, ANIMATIONS._oilrigWheel._value)
-    //antenna rotation
-    gl_uniform1f(iAnimAntennaRotation, ANIMATIONS._antennaRotation._value)
-    //elevator height
-    gl_uniform1f(iAnimElevatorHeight, ANIMATIONS._elevatorHeight._value)
-
-    gl_uniform1f(iSubmarineHeight, ANIMATIONS._submarine._value)
+    gl_uniform4f(
+      iB,
+      // wheel on oil rig
+      ANIMATIONS._oilrigWheel._value,
+      // antenna rotation
+      ANIMATIONS._antennaRotation._value,
+      // elevator height
+      ANIMATIONS._elevatorHeight._value,
+      // submarine position
+      ANIMATIONS._submarine._value
+    )
   }
 
   const result = {

@@ -34,14 +34,26 @@ const float PROJECTION_LEN = 1. / tan(.5 * FIELD_OF_VIEW);
 
 in vec2 FC;
 
-// Screen position, in pixels. Bottom left is (0, 0), top right is (iResolution.x-1, iResolution.y-1).
-#define fragCoord FC
-
 uniform vec2 iR;
 uniform vec4 iP;
 uniform vec4 iD;
+uniform vec4 iA;
+uniform vec4 iB;
+uniform vec4 iC;
 uniform mat3 iM;
+uniform vec3 iS;
 uniform lowp int iF;
+
+///// I/O /////
+
+// Screen position, in pixels. Bottom left is (0, 0), top right is (iResolution.x-1, iResolution.y-1).
+#define fragCoord FC
+
+// Output color
+#define oColor oC
+out vec4 oColor;
+
+///// Core uniforms /////
 
 // Screen resolution in pixels.
 #define iResolution iR
@@ -61,7 +73,10 @@ uniform lowp int iF;
 // Camera rotation matrix
 #define iCameraMat3 iM
 
-// Game object uniforms
+// Sunlight direction
+#define iSunDirection iS
+
+///// Game object uniforms /////
 
 // Flashlight on
 #define iFlashlightOn ((iF & 0x01) != 0)
@@ -78,23 +93,33 @@ uniform lowp int iF;
 // Floppy Disk
 #define iGOFloppyDiskVisible ((iF & 0x10) != 0)
 
-// Animation uniforms
+///// Animation uniforms /////
+
 // Prison Door 0 - closed, 1 - open
-uniform float iAnimPrisonDoor;
+#define iAnimPrisonDoor iA.x
+
 // Antenna Door 0-1
-uniform float iAnimAntennaDoor;
+#define iAnimAntennaDoor iA.y
+
 // Monument Descend
-uniform float iAnimMonumentDescend;
+#define iAnimMonumentDescend iA.z
+
 // Oil Rig Ramp (and lever in antenna room for 0-1 of it)
-uniform float iAnimOilrigRamp;
+#define iAnimOilrigRamp iA.w
+
 // the wheel on the rig
-uniform float iAnimOilrigWheel;
+#define iAnimOilrigWheel iB.x
+
 // antenna rotation
-uniform float iAnimAntennaRotation;
+#define iAnimAntennaRotation iB.y
+
 // elevator height
-uniform float iAnimElevatorHeight;
+#define iAnimElevatorHeight iB.z
+
 // submarine position
-uniform float iSubmarineHeight;
+#define iSubmarineHeight iB.w
+
+///// Textures /////
 
 // Noise texture
 #define iNoise tN
@@ -112,18 +137,12 @@ uniform sampler2D iPrerendered;
 #define iScreens tS
 uniform sampler2D iScreens;
 
-// Output color
-#define oColor oC
-out vec4 oColor;
-
 //=== STATE ===
 
 // Keep the current epsilon global
 float epsilon;
 
 //=== COLORS ===
-
-vec3 SUNLIGHT_DIRECTION = normalize(vec3(1, 1, 0));
 
 const vec3 COLOR_SKY = vec3(.4, .8, 1);
 const vec3 COLOR_SUN = vec3(1.1, .9, .85);
@@ -701,7 +720,7 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
     return 1.;  // Skip objects outsite the island and skip underwater
   }
 
-  if (dot(n, SUNLIGHT_DIRECTION) < -0.1) {
+  if (dot(n, iSunDirection) < -0.1) {
     return 0.;  // Skip faces behind the sun
   }
 
@@ -710,7 +729,7 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
   p = p + n * dist;  // Jump out of the surface by the normal * that dist
 
   for (int i = 0; dist < 100. && i < SHADOW_ITERATIONS; i++) {
-    float nearest = nonTerrain(p + SUNLIGHT_DIRECTION * dist);
+    float nearest = nonTerrain(p + iSunDirection * dist);
 
     shadowR += 1. / float(SHADOW_ITERATIONS);
 
@@ -759,7 +778,7 @@ vec3 applyFog(vec3 rgb, float dist, vec3 rayDir) {
   float dRatio = dist / MAX_DIST;
 
   float fogAmount = clamp01(pow(dRatio, 3.5) + 1.0 - exp(-dist * 0.005));
-  float sunAmount = max(dot(rayDir, SUNLIGHT_DIRECTION), 0.0);
+  float sunAmount = max(dot(rayDir, iSunDirection), 0.0);
   vec3 fogColor = mix(COLOR_SKY, COLOR_SUN, pow(sunAmount, 10.0));
   return mix(rgb, fogColor, fogAmount);
 }
@@ -830,7 +849,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   }
 
   if (material == MATERIAL_SKY) {
-    color = COLOR_SKY;  // mix(COLOR_SKY, COLOR_SUN, pow(clamp(dot(dir, SUNLIGHT_DIRECTION),0.,1.),10.));
+    color = COLOR_SKY;  // mix(COLOR_SKY, COLOR_SUN, pow(clamp(dot(dir, iSunDirection),0.,1.),10.));
   } else {
     vec3 hitNormal = material == MATERIAL_TERRAIN ? computeTerrainNormal(hit) : computeNonTerrainNormal(hit);
     color = getColorAt(hit, hitNormal, material, subMaterial);
@@ -839,10 +858,10 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   }
 
   float specular = isWater || (material == MATERIAL_BUILDINGS && subMaterial > SUBMATERIAL_CONCRETE)
-      ? pow(clamp01(dot(SUNLIGHT_DIRECTION, reflect(dir, normal))), 50.)
+      ? pow(clamp01(dot(iSunDirection, reflect(dir, normal))), 50.)
       : 0.;
 
-  lightIntensity = computeLambert(normal, SUNLIGHT_DIRECTION);
+  lightIntensity = computeLambert(normal, iSunDirection);
 
   // Flashlight
   if (iFlashlightOn && dist < 20.) {
@@ -891,8 +910,6 @@ void main_p() {
 
 // Main shader
 void main_() {
-  SUNLIGHT_DIRECTION = normalize(vec3(cos(iTime * .02), sin(iTime * .02) * 0.5 + 0.8, sin(iTime * .02)));
-
   vec2 screen = fragCoord / (iResolution * .5) - 1.;
 
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
