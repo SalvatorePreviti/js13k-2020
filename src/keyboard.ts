@@ -22,10 +22,8 @@ export const KEY_FLY_UP = 10
 
 export const KEY_FLY_DOWN = 11
 
-let _pressedKeys: boolean[] = []
-
-/** Returns true if the given gey is pressed */
-export const isKeyPressed = (keyId: number) => !!_pressedKeys[keyId]
+/* List of pressed keys */
+export let PressedKeys: boolean[] = []
 
 export const KeyFunctions: Record<number, () => void> = {
   [KEY_MAIN_MENU]: showMainMenu
@@ -77,13 +75,13 @@ if (debug_mode) {
 
 const _setKeyPressed = (e: KeyboardEvent, value: boolean) => {
   if (!e.keyCode || e.metaKey || !document.activeElement || mainMenuVisible) {
-    _pressedKeys = [] // Clear pressed status to prevent key sticking when alt+tabbing or showing the menu
+    PressedKeys = [] // Clear pressed status to prevent key sticking when alt+tabbing or showing the menu
   } else {
     const keyId = _keyMap[e.key] || 0
-    if (!e.repeat && !_pressedKeys[keyId] && KeyFunctions[keyId]) {
+    if (!e.repeat && !PressedKeys[keyId] && KeyFunctions[keyId]) {
       KeyFunctions[keyId]()
     }
-    _pressedKeys[keyId] = value
+    PressedKeys[keyId] = value
   }
 }
 

@@ -1,4 +1,4 @@
-import { min, round } from './math/scalar'
+import { min } from './math/scalar'
 import { newProxyBinder, objectAssign } from './core/objects'
 import { GAME_OPTIONS } from './state/options'
 
@@ -32,14 +32,13 @@ const mainElement = getElementById('M') as HTMLDivElement
 const handleResize = () => {
   let cw = min(MAIN_ELEMENT_MAX_WIDTH, innerWidth - MAIN_ELEMENT_PADDING)
   let ch = innerHeight - MAIN_ELEMENT_PADDING
-  const targetAspectRatio = cw / ch
-  if (MAIN_ELEMENT_ASPECT_RATIO >= targetAspectRatio) {
-    ch = round(cw / MAIN_ELEMENT_ASPECT_RATIO)
+  if (MAIN_ELEMENT_ASPECT_RATIO >= cw / ch) {
+    ch = cw / MAIN_ELEMENT_ASPECT_RATIO
   } else {
-    cw = round(ch * MAIN_ELEMENT_ASPECT_RATIO)
+    cw = ch * MAIN_ELEMENT_ASPECT_RATIO
   }
 
-  const whStyles = { width: cw, height: ch }
+  const whStyles = { width: cw | 0, height: ch | 0 }
   objectAssign(mainElement.style, whStyles)
   objectAssign(canvasElement.style, whStyles)
 
@@ -48,8 +47,8 @@ const handleResize = () => {
   let { clientWidth: w, clientHeight: h } = mainElement
   const highQuality = GAME_OPTIONS._highQuality
   if (!highQuality) {
-    w /= 2
-    h /= 2
+    w = (w / 2) | 0
+    h = (h / 2) | 0
   }
 
   renderWidth = w
@@ -72,7 +71,6 @@ highQualityCheckbox.onchange = () => {
 }
 
 export const showMainMenu = () => {
-  console.log('SHOW MAIN MENU')
   mainMenuVisible = true
   body.className = 'N'
   exitPointerLock()

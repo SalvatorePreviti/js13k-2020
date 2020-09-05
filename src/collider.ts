@@ -65,10 +65,9 @@ export const updateCollider = (time: number) => {
   //Ground Collision:
   let totalY = 0
   for (let x = 0; x < 128; x++) {
-    let maxY = -100
+    let maxY = -99
     for (let y = 0; y < 32; y++) {
-      const dist = readDist(x, y)
-      maxY = max(dist, maxY)
+      maxY = max(readDist(x, y), maxY)
     }
     totalY += maxY
   }
@@ -100,9 +99,8 @@ export const updateCollider = (time: number) => {
   }
 
   cameraPos.x += ddx
-  cameraPos.z += ddz
-
   cameraPos.y = max(cameraPos.y + ddy, 0.9)
+  cameraPos.z += ddz
 
   const distanceFromCenter = vec3Length(cameraPos)
   if (distanceFromCenter >= CAMERA_MAX_DISTANCE_FROM_CENTER) {

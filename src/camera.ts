@@ -1,5 +1,5 @@
 import {
-  isKeyPressed,
+  PressedKeys,
   KEY_FORWARD,
   KEY_BACKWARD,
   KEY_STRAFE_LEFT,
@@ -102,25 +102,25 @@ const updateCameraDirFromEulerAngles = (time: number) => {
 }
 
 export const updateCamera = (timeDelta: number, time: number) => {
-  const speed = (isKeyPressed(KEY_RUN) ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * timeDelta
+  const speed = (PressedKeys[KEY_RUN] ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * timeDelta
 
-  if (isKeyPressed(KEY_FORWARD)) {
+  if (PressedKeys[KEY_FORWARD]) {
     cameraMoveForward(speed)
   }
-  if (isKeyPressed(KEY_BACKWARD)) {
+  if (PressedKeys[KEY_BACKWARD]) {
     cameraMoveForward(-speed)
   }
-  if (isKeyPressed(KEY_STRAFE_LEFT)) {
+  if (PressedKeys[KEY_STRAFE_LEFT]) {
     cameraStrafe(-speed)
   }
-  if (isKeyPressed(KEY_STRAFE_RIGHT)) {
+  if (PressedKeys[KEY_STRAFE_RIGHT]) {
     cameraStrafe(speed)
   }
   if (debug_mode) {
-    if (isKeyPressed(KEY_FLY_UP)) {
+    if (PressedKeys[KEY_FLY_UP]) {
       cameraPos.y -= speed
     }
-    if (isKeyPressed(KEY_FLY_DOWN)) {
+    if (PressedKeys[KEY_FLY_DOWN]) {
       cameraPos.y += speed
     }
   }

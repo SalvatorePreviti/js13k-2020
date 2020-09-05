@@ -2,7 +2,7 @@ import { vec3New, vec3Distance, vec3Direction, vec3Temp0, vec3Dot } from '../mat
 import { runAnimation, ANIMATIONS } from './animations'
 import { cameraPos, cameraDir } from '../camera'
 import { setText } from '../text'
-import { isKeyPressed, KEY_ACTION, KEY_FLASHLIGHT_TOGGLE, KeyFunctions } from '../keyboard'
+import { KEY_ACTION, KEY_FLASHLIGHT_TOGGLE, KeyFunctions, PressedKeys } from '../keyboard'
 import { objectValues } from '../core/objects'
 
 interface GameObject {
@@ -240,7 +240,7 @@ const updateGameObjects = () => {
   const visibleObject = getVisibleObject()
   if (visibleObject) {
     setText(visibleObject._onLookAt() || '')
-    if (isKeyPressed(KEY_ACTION)) {
+    if (PressedKeys[KEY_ACTION]) {
       visibleObject._onInteract()
     }
   } else {
