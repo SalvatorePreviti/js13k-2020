@@ -3,7 +3,6 @@ import { ANIMATIONS } from './state/animations'
 import { cameraPos, cameraEuler } from './camera'
 import { setText } from './text'
 import { resumeGame } from './page'
-import { debug_updateCameraEulerAngles } from './debug'
 
 const data = {
   _objects: GAME_OBJECTS,
