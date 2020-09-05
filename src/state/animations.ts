@@ -1,6 +1,7 @@
 import { objectValues } from '../core/objects'
 import { GAME_OBJECTS } from './objects'
 import { vec3New } from '../math/vec3'
+import { MINIGAME, MINIGAME_ACTIVE } from './minigame'
 
 interface Animation {
   _value: float
@@ -71,6 +72,16 @@ const ANIMATIONS = {
     _speed: 4,
     _running: 0,
     _rumble: true
+  },
+  _afterFloppyInsert: {
+    _value: 0,
+    _initial: 0,
+    _max: 1,
+    _speed: 1,
+    _running: 0,
+    _onComplete() {
+      MINIGAME._state = MINIGAME_ACTIVE
+    }
   }
 }
 

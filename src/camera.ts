@@ -32,6 +32,7 @@ import { vec2New } from './math/vec2'
 import { typedArraySet } from './core/arrays'
 import { RUMBLING } from './state/animations'
 import { GAME_OPTIONS } from './state/options'
+import { MINIGAME, MINIGAME_INACTIVE } from './state/minigame'
 
 const CAMERA_SPEED_DEFAULT = 1.5
 
@@ -104,24 +105,26 @@ const updateCameraDirFromEulerAngles = (time: number) => {
 export const updateCamera = (timeDelta: number, time: number) => {
   const speed = (PressedKeys[KEY_RUN] ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * timeDelta
 
-  if (PressedKeys[KEY_FORWARD]) {
-    cameraMoveForward(speed)
-  }
-  if (PressedKeys[KEY_BACKWARD]) {
-    cameraMoveForward(-speed)
-  }
-  if (PressedKeys[KEY_STRAFE_LEFT]) {
-    cameraStrafe(-speed)
-  }
-  if (PressedKeys[KEY_STRAFE_RIGHT]) {
-    cameraStrafe(speed)
-  }
-  if (debug_mode) {
-    if (PressedKeys[KEY_FLY_UP]) {
-      cameraPos.y -= speed
+  if (MINIGAME._state === MINIGAME_INACTIVE) {
+    if (PressedKeys[KEY_FORWARD]) {
+      cameraMoveForward(speed)
     }
-    if (PressedKeys[KEY_FLY_DOWN]) {
-      cameraPos.y += speed
+    if (PressedKeys[KEY_BACKWARD]) {
+      cameraMoveForward(-speed)
+    }
+    if (PressedKeys[KEY_STRAFE_LEFT]) {
+      cameraStrafe(-speed)
+    }
+    if (PressedKeys[KEY_STRAFE_RIGHT]) {
+      cameraStrafe(speed)
+    }
+    if (debug_mode) {
+      if (PressedKeys[KEY_FLY_UP]) {
+        cameraPos.y -= speed
+      }
+      if (PressedKeys[KEY_FLY_DOWN]) {
+        cameraPos.y += speed
+      }
     }
   }
 

@@ -1,9 +1,12 @@
-import { vec3New, vec3Distance, vec3Direction, vec3Temp0, vec3Dot } from '../math/vec3'
+import { vec3New, vec3Distance, vec3Direction, vec3Temp0, vec3Dot, vec3Set } from '../math/vec3'
 import { runAnimation, ANIMATIONS } from './animations'
-import { cameraPos, cameraDir } from '../camera'
+import { cameraPos, cameraDir, cameraEuler } from '../camera'
 import { setText } from '../text'
 import { KEY_ACTION, KEY_FLASHLIGHT_TOGGLE, KeyFunctions, PressedKeys } from '../keyboard'
 import { objectValues } from '../core/objects'
+import { MINIGAME, MINIGAME_LOADING, MINIGAME_ACTIVE, MINIGAME_INACTIVE } from './minigame'
+import { vec2Set } from '../math/vec2'
+import { DEG_TO_RAD } from '../math/scalar'
 
 interface GameObject {
   _location: Vec3
@@ -94,14 +97,15 @@ const GAME_OBJECTS = {
     _location: vec3New(4.8, 14.4, 3.7),
     _visible: true,
     _lookAtDistance: 1.5,
-    _floppyInserted: false,
     _onInteract() {
       if (ANIMATIONS._antennaRotation._running && INVENTORY._floppy) {
-        this._floppyInserted = true
+        MINIGAME._state = MINIGAME_LOADING
+        vec3Set(cameraPos, 5.844, 14.742, 4)
+        vec2Set(cameraEuler, -90 * DEG_TO_RAD, 17 * DEG_TO_RAD)
       }
     },
     _onLookAt: () =>
-      GAME_OBJECTS._antennaConsole._floppyInserted
+      MINIGAME._state !== MINIGAME_INACTIVE
         ? ''
         : ANIMATIONS._antennaRotation._running
         ? INVENTORY._floppy

@@ -10,11 +10,11 @@ import {
   GL_CLAMP_TO_EDGE
 } from './gl/gl-constants'
 import { glSetTextureSampling } from './gl/gl-utils'
-import { body, getElementById } from './page'
+import { getElementById } from './page'
 
 export const SCREEN_TEXTURE_SIZE = 512
 
-const screenTextures: WebGLTexture[] = [gl_createTexture(), gl_createTexture(), gl_createTexture()]
+const screenTextures: WebGLTexture[] = [gl_createTexture(), gl_createTexture(), gl_createTexture(), gl_createTexture()]
 let lastBoundTexture = -1
 
 export const bindScreenTexture = (index: number) => {
@@ -27,40 +27,37 @@ export const bindScreenTexture = (index: number) => {
   return texture
 }
 
+const canvas = getElementById('D') as HTMLCanvasElement
+const context = canvas.getContext('2d')
+const { strokeRect, fillText, fillRect, getImageData } = newProxyBinder(context)
+const setFontSize = (size: number) => {
+  context.font = `${size}px monospace`
+}
+const setFillColor = (color: string) => {
+  context.fillStyle = `#${color}`
+}
+
+const captureScreenTexture = (index: number) => {
+  bindScreenTexture(index)
+  const imageData = getImageData(0, 0, SCREEN_TEXTURE_SIZE, SCREEN_TEXTURE_SIZE)
+  gl_pixelStorei(GL_UNPACK_ALIGNMENT, 1)
+  gl_texImage2D(
+    GL_TEXTURE_2D,
+    0,
+    GL_RGBA,
+    SCREEN_TEXTURE_SIZE,
+    SCREEN_TEXTURE_SIZE,
+    0,
+    GL_RGBA,
+    GL_UNSIGNED_BYTE,
+    imageData
+  )
+
+  glSetTextureSampling(GL_CLAMP_TO_EDGE)
+}
+
 export const buildScreenTextures = () => {
   debug_time(buildScreenTextures)
-
-  const canvas = getElementById('D') as HTMLCanvasElement
-
-  body.appendChild(canvas)
-
-  const context = canvas.getContext('2d')
-  const { strokeRect, fillText, fillRect, getImageData } = newProxyBinder(context)
-  const setFontSize = (size: number) => {
-    context.font = `${size}px monospace`
-  }
-  const setFillColor = (color: string) => {
-    context.fillStyle = `#${color}`
-  }
-
-  const captureScreenTexture = (index: number) => {
-    bindScreenTexture(index)
-    const imageData = getImageData(0, 0, SCREEN_TEXTURE_SIZE, SCREEN_TEXTURE_SIZE)
-    gl_pixelStorei(GL_UNPACK_ALIGNMENT, 1)
-    gl_texImage2D(
-      GL_TEXTURE_2D,
-      0,
-      GL_RGBA,
-      SCREEN_TEXTURE_SIZE,
-      SCREEN_TEXTURE_SIZE,
-      0,
-      GL_RGBA,
-      GL_UNSIGNED_BYTE,
-      imageData
-    )
-
-    glSetTextureSampling(GL_CLAMP_TO_EDGE)
-  }
 
   context.lineWidth = 5
   context.scale(1, 1.3)
