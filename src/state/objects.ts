@@ -100,6 +100,7 @@ const GAME_OBJECTS = {
     _onInteract() {
       if (ANIMATIONS._antennaRotation._running && INVENTORY._floppy) {
         MINIGAME._state = MINIGAME_LOADING
+        runAnimation(ANIMATIONS._afterFloppyInsert)
         vec3Set(cameraPos, 5.844, 14.742, 4)
         vec2Set(cameraEuler, -90 * DEG_TO_RAD, 17 * DEG_TO_RAD)
       }

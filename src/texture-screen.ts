@@ -1,5 +1,12 @@
 import { debug_time, debug_timeEnd } from './debug'
-import { gl_createTexture, gl_bindTexture, gl_texImage2D, gl_pixelStorei, gl_activeTexture } from './gl/gl-context'
+import {
+  gl_createTexture,
+  gl_bindTexture,
+  gl_texImage2D,
+  gl_pixelStorei,
+  gl_activeTexture,
+  gl_drawElementsInstanced
+} from './gl/gl-context'
 import { newProxyBinder } from './core/objects'
 import {
   GL_TEXTURE3,
@@ -11,6 +18,7 @@ import {
 } from './gl/gl-constants'
 import { glSetTextureSampling } from './gl/gl-utils'
 import { getElementById } from './page'
+import { sin } from './math/scalar'
 
 export const SCREEN_TEXTURE_SIZE = 512
 
@@ -54,6 +62,31 @@ const captureScreenTexture = (index: number) => {
   )
 
   glSetTextureSampling(GL_CLAMP_TO_EDGE)
+}
+
+export const updateMinigameTexture = () => {
+  setFillColor('000015')
+  fillRect(0, 0, SCREEN_TEXTURE_SIZE, SCREEN_TEXTURE_SIZE)
+  context.lineWidth = 5
+
+  const drawLine = (col, freq, phase, amp) => {
+    context.strokeStyle = col
+    context.beginPath()
+    for (let x = -5; x < SCREEN_TEXTURE_SIZE + 5; x++) {
+      const y = (sin(x * 0.05) + sin(x * freq + phase) * amp) * 25 + 100
+      if (x === -5) {
+        context.moveTo(x, y)
+      } else {
+        context.lineTo(x, y)
+      }
+    }
+    context.stroke()
+  }
+  drawLine('#f00', 0.03, 2, 1)
+  context.globalCompositeOperation = 'lighter'
+  drawLine('#0ff', 0.01, 3, 0.5)
+  context.globalCompositeOperation = 'source-over'
+  captureScreenTexture(3)
 }
 
 export const buildScreenTextures = () => {
@@ -104,6 +137,8 @@ export const buildScreenTextures = () => {
   fillText('Loading data disk...', 150, 265)
 
   captureScreenTexture(2)
+
+  updateMinigameTexture()
 
   debug_timeEnd(buildScreenTextures)
 }
