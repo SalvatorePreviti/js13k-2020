@@ -1,6 +1,7 @@
 import { objectValues } from '../core/objects'
 import { GAME_OBJECTS } from './objects'
 import { vec3New } from '../math/vec3'
+import { MINIGAME, MINIGAME_ACTIVE } from './minigame'
 
 interface Animation {
   _value: float
@@ -9,7 +10,7 @@ interface Animation {
   _max: float
   _running: int
   _onComplete?: Function
-  _rumble?: boolean //should rumble during this animation
+  _rumble?: (animValue: float) => boolean //function that is passed the value and returns true/false whether it should be rumbling
 }
 
 const ANIMATIONS = {
@@ -37,7 +38,7 @@ const ANIMATIONS = {
       //Set the key location so it can be picked up:
       GAME_OBJECTS._antennaKey._location = vec3New(46.4, 4.6, 29.4)
     },
-    _rumble: true
+    _rumble: () => true
   },
   _oilrigRamp: {
     _value: 0,
@@ -45,7 +46,7 @@ const ANIMATIONS = {
     _initial: 0,
     _max: 19,
     _running: 0,
-    _rumble: true
+    _rumble: (v) => v < 0.5 || v > 18.8
   },
   _oilrigWheel: {
     _value: 0,
@@ -70,7 +71,24 @@ const ANIMATIONS = {
     _max: 1,
     _speed: 4,
     _running: 0,
-    _rumble: true
+    _rumble: (v) => v < -19 || v > 0.8
+  },
+  _afterFloppyInsert: {
+    _value: 0,
+    _initial: 0,
+    _max: 1,
+    _speed: 1,
+    _running: 0,
+    _onComplete() {
+      MINIGAME._state = MINIGAME_ACTIVE
+    }
+  },
+  _submarine: {
+    _value: -10,
+    _initial: -10,
+    _max: 0,
+    _speed: 1,
+    _running: 0
   }
 }
 
@@ -84,7 +102,7 @@ function updateAnimations(dt: float) {
       continue
     }
     if (anim._rumble) {
-      RUMBLING = true
+      RUMBLING = anim._rumble(anim._value)
     }
     anim._value += anim._speed * dt * anim._running
     if (anim._value > anim._max || anim._value < anim._initial) {

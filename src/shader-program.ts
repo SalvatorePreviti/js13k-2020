@@ -8,13 +8,12 @@ import {
   gl_uniform1i,
   gl_useProgram,
   gl_uniform1f,
-  gl_uniform3f,
   gl_uniform2f,
   gl_uniformMatrix3fv,
   gl_viewport,
   gl_uniform4f
 } from './gl/gl-context'
-import { cameraPos, cameraDir, cameraEuler, cameraMat3 } from './camera'
+import { cameraPos, cameraDir, cameraMat3 } from './camera'
 
 import { GAME_OBJECTS } from './state/objects'
 import { ANIMATIONS } from './state/animations'
@@ -39,18 +38,14 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     iD,
     iM: iCameraMat3,
     iF,
-    iFlashlightOn,
-    iGOKeyVisible,
-    iGOFlashlightVisible,
-    iGOAntennaKeyVisible,
-    iGOFloppyDiskVisible,
     iAnimPrisonDoor,
     iAnimAntennaDoor,
     iAnimMonumentDescend,
     iAnimOilrigRamp,
     iAnimOilrigWheel,
     iAnimAntennaRotation,
-    iAnimElevatorHeight
+    iAnimElevatorHeight,
+    iSubmarineHeight
   } = glNewUniformLocationGetter(program)
 
   // Texture 0
@@ -83,14 +78,15 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     // Camera rotation matrix
     gl_uniformMatrix3fv(iCameraMat3, false, cameraMat3)
 
-    //Key visibility
-    gl_uniform1i(iGOKeyVisible, GAME_OBJECTS._key._visible ? 1 : 0)
-    //Torch visibility
-    gl_uniform1i(iGOFlashlightVisible, GAME_OBJECTS._flashlight._visible ? 1 : 0)
-    //Antenna Key visibility
-    gl_uniform1i(iGOAntennaKeyVisible, GAME_OBJECTS._antennaKey._visible ? 1 : 0)
-    //Floppy Disk visibility
-    gl_uniform1i(iGOFloppyDiskVisible, GAME_OBJECTS._floppyDisk._visible ? 1 : 0)
+    gl_uniform1i(
+      iF,
+      (GAME_OBJECTS._flashlight._active ? 0x01 : 0) |
+        (GAME_OBJECTS._key._visible ? 0x02 : 0) |
+        (GAME_OBJECTS._flashlight._visible ? 0x04 : 0) |
+        (GAME_OBJECTS._antennaKey._visible ? 0x08 : 0) |
+        (GAME_OBJECTS._floppyDisk._visible ? 0x10 : 0)
+    )
+
     //prison door, open-closed
     gl_uniform1f(iAnimPrisonDoor, ANIMATIONS._prisonDoor._value)
 
@@ -110,7 +106,7 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     //elevator height
     gl_uniform1f(iAnimElevatorHeight, ANIMATIONS._elevatorHeight._value)
 
-    gl_uniform1i(iFlashlightOn, GAME_OBJECTS._flashlight._active ? 1 : 0)
+    gl_uniform1f(iSubmarineHeight, ANIMATIONS._submarine._value)
   }
 
   const result = {
