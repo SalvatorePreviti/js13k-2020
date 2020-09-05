@@ -17,6 +17,7 @@ import { cameraPos, cameraDir, cameraEuler, cameraMat3 } from './camera'
 
 import { GAME_OBJECTS } from './state/objects'
 import { ANIMATIONS } from './state/animations'
+import { MINIGAME, MINIGAME_COMPLETE } from './state/minigame'
 
 export const loadMainShaderProgram = (mainFunction: string) => {
   debug_time(`${loadMainShaderProgram.name} ${mainFunction}`)
@@ -49,7 +50,8 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     iAnimOilrigWheel,
     iAnimAntennaRotation,
     iAnimElevatorHeight,
-    iFlashlightOn
+    iFlashlightOn,
+    iSubmarineHeight
   } = glNewUniformLocationGetter(program)
 
   // Texture 0
@@ -114,6 +116,8 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     gl_uniform1f(iAnimElevatorHeight, ANIMATIONS._elevatorHeight._value)
 
     gl_uniform1i(iFlashlightOn, GAME_OBJECTS._flashlight._active ? 1 : 0)
+
+    gl_uniform1f(iSubmarineHeight, ANIMATIONS._submarine._value)
   }
 
   const result = {

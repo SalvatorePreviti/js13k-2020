@@ -1,6 +1,5 @@
 import { min } from './math/scalar'
 import { newProxyBinder, objectAssign } from './core/objects'
-import { SAVE_GAME, LOAD_GAME } from './save-load'
 import { GAME_OPTIONS } from './state/options'
 import { KEY_MAIN_MENU, KeyFunctions } from './keyboard'
 
@@ -92,7 +91,5 @@ const startOrResumeClick = () => {
 }
 
 getElementById('R').onclick = startOrResumeClick
-getElementById('S').onclick = SAVE_GAME
-getElementById('L').onclick = LOAD_GAME
 KeyFunctions[KEY_MAIN_MENU] = showMainMenu
 canvasElement.onmousedown = canvasRequestPointerLock

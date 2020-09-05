@@ -93,7 +93,7 @@ uniform float iAnimElevatorHeight;
 
 uniform bool iFlashlightOn;
 
-uniform bool iSubmarineVisible;
+uniform float iSubmarineHeight;
 
 // Output color
 out vec4 oColor;
@@ -440,7 +440,8 @@ float submarine(vec3 p) {
   }
   p.xz *= rot(-PI/4.);
   float dock = cuboid(p-vec3(-1.5,1,5), vec3(1,.2,3));
-  float sub = iSubmarineVisible ? smin(
+  p.y -= iSubmarineHeight;
+  float sub = smin(
     sphere(elongate(p, vec3(6,0,0)), 1.7), //main body
     min(
       cylinder(elongate(p.xzy - vec3(-2.,0,2.), vec3(.5,0,0)), .4, .5), //the top/periscope thingy
@@ -450,7 +451,7 @@ float submarine(vec3 p) {
       )
     ),
     0.3
-  ) : MAX_DIST;
+  );
   return min(dock, sub);
   // clang-format on
 }
