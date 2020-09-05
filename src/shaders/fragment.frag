@@ -221,8 +221,8 @@ float opOnion(float sdf, float thickness) {
   return abs(sdf) - thickness;
 }
 
-vec3 elongate( vec3 p, vec3 h ) {
-    return p - clamp( p, -h, h );
+vec3 elongate(vec3 p, vec3 h) {
+  return p - clamp(p, -h, h);
 }
 
 mat2 rot(float a) {
@@ -431,6 +431,7 @@ float prison(vec3 p) {
 }
 
 float submarine(vec3 p) {
+  // clang-format off
   float bounds = length(p)-9.;
   if (bounds > 1.) {
     return bounds;
@@ -450,17 +451,14 @@ float submarine(vec3 p) {
     0.3
   );
   return min(dock, sub);
+  // clang-format on
 }
 
 float oilrig(vec3 p) {
   float bounds = length(p) - 12.;
   if (bounds > 2.)
     return bounds;
-  vec3 q, w, e, o, t, l, u;  // copies of p for different co-ordinate systems
-  q = p;
-  w = p;
-  e = p;
-  o = p;
+  vec3 q = p, w = p, e = p, o = p, t, l, u;  // copies of p for different co-ordinate systems
   q.xz = abs(q.xz);  // mirror in x & z
   float metal = cylinder(q.xzy - vec3(5, 5, 0), .5, 8.3);  // main platform cylinders
   l = q;
@@ -511,9 +509,7 @@ float guardTower(vec3 p) {
   if (bounds > 4.) {
     return bounds;
   }
-  vec3 q,z,y;
-  q = p;
-  y = p;
+  vec3 q = p, z, y = p;
   pModPolar(q.xz, 6.);
   z = q;
   pModInterval(z.y, 1.5, -3., 7.);
@@ -585,7 +581,7 @@ float nonTerrain(vec3 p) {
   float ob = oilrigBridge(oilrigCoords);
   float aoc = antennaCable(oilrigCoords.zyx - vec3(-2, 9.7, 32.5));
   float guardTower = guardTower(p - vec3(8.7, 9.3, 37));
-  float submarine = submarine(p - vec3(-46,-.5,-30));
+  float submarine = submarine(p - vec3(-46, -.5, -30));
   float structures = min(min(min(b, a), min(m, pr)), min(min(r, o), min(ob, min(guardTower, submarine))));
   float gameObjects = min(iGOKeyVisible ? gameObjectKey(p.yzx - vec3(2., 7.4, -45.5)) : MAX_DIST,
       min(iGOFlashlightVisible ? gameObjectFlashlight(p - vec3(-42, 3, 11.2)) : MAX_DIST,
