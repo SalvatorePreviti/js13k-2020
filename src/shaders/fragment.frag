@@ -609,7 +609,7 @@ vec3 computeTerrainNormal(vec3 p) {
 }
 
 float computeLambert(vec3 n, vec3 ld) {
-  return clamp01(dot(normalize(ld), n));
+  return clamp01(dot(ld, n));
 }
 
 float iterationsR;
@@ -665,7 +665,7 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
   }
 
   if (dot(n, SUNLIGHT_DIRECTION) < -0.1) {
-    return 0.;
+    return 0.;  // Skip faces behind the sun
   }
 
   float res = 1.;
