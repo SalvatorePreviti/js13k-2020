@@ -4,7 +4,7 @@ import { cameraPos, cameraDir, cameraEuler } from '../camera'
 import { setText } from '../text'
 import { KEY_ACTION, KEY_FLASHLIGHT_TOGGLE, KeyFunctions, PressedKeys } from '../keyboard'
 import { objectValues } from '../core/objects'
-import { MINIGAME, MINIGAME_LOADING, MINIGAME_ACTIVE, MINIGAME_INACTIVE } from './minigame'
+import { MINIGAME, MINIGAME_LOADING, MINIGAME_INACTIVE } from './minigame'
 import { vec2Set } from '../math/vec2'
 import { DEG_TO_RAD, PI } from '../math/scalar'
 
@@ -146,9 +146,9 @@ const GAME_OBJECTS = {
     },
     _onLookAt: () => 'A big wheel, I suppose it will feed fuel to the generator…'
   },
-  _door: {
-    _location: vec3New(-43, 3.6, 14.8),
-    _lookAtDistance: 2,
+  _prisonDoor: {
+    _location: vec3New(-43, 3.4, 15),
+    _lookAtDistance: 2.2,
     _visible: true,
     _checked: false,
     _onInteract() {
