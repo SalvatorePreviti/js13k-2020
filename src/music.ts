@@ -3,13 +3,13 @@ import { song } from './soundbox/song'
 
 const player = new CPlayer()
 player.init(song)
-let done
-while (!done) {
-  done = player.generate() >= 1
+while (player.generate() < 1) {
+  //ignore the error
 }
 const musicWave = player.createWave()
 
 const mAudio = new Audio()
+mAudio.loop = true
 mAudio.src = URL.createObjectURL(new Blob([musicWave], { type: 'audio/wav' }))
 
 const play = (): void => {
