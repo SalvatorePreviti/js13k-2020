@@ -1,6 +1,8 @@
 import { GAME_OBJECTS, INVENTORY } from './state/objects'
 import { ANIMATIONS } from './state/animations'
 import { cameraPos, cameraEuler } from './camera'
+import { setText } from './text'
+import { resumeGame } from './page'
 
 const serialize = () =>
   JSON.stringify({
@@ -32,9 +34,12 @@ const deserialize = (savedState) => {
 
 const SAVE_GAME = () => {
   localStorage.setItem('ISLAND404', serialize())
+  setText('Saved', 2)
+  resumeGame()
 }
 const LOAD_GAME = () => {
   deserialize(localStorage.getItem('ISLAND404'))
+  resumeGame()
 }
 
 export { SAVE_GAME, LOAD_GAME }
