@@ -221,14 +221,15 @@ float opOnion(float sdf, float thickness) {
   return abs(sdf) - thickness;
 }
 
+vec3 elongate( vec3 p, vec3 h ) {
+    return p - clamp( p, -h, h );
+}
+
 mat2 rot(float a) {
   float c = cos(a), s = sin(a);
   return mat2(c, s, -s, c);
 }
 
-vec3 invX(vec3 p) {
-  return vec3(-p.x, p.yz);
-}
 vec3 invZ(vec3 p) {
   return vec3(p.xy, -p.z);
 }
@@ -413,7 +414,7 @@ float prison(vec3 p) {
           cuboid(p - vec3(4, -.37, 1), vec3(2, 1, .53))  // the door
           ));
 
-  // The door itself & animation:
+  // The door itself & animation
   vec3 q = p - vec3(4, -.77, .5);
   q.xz *= rot(-iAnimPrisonDoor * PI / 2.);
   float door = cuboid(q - vec3(0, .4, .5), vec3(.05, .99, .52));
@@ -427,6 +428,28 @@ float prison(vec3 p) {
   updateSubMaterial(SUBMATERIAL_CONCRETE, structure);
 
   return min(structure, metalThings);
+}
+
+float submarine(vec3 p) {
+  float bounds = length(p)-9.;
+  if (bounds > 1.) {
+    return bounds;
+  }
+  p.xz *= rot(-PI/4.);
+  float dock = cuboid(p-vec3(-1.5,1,5), vec3(1,.2,3));
+  //p.y += submarineDepth;
+  float sub = smin(
+    sphere(elongate(p, vec3(6,0,0)), 1.7), //main body
+    min(
+      cylinder(elongate(p.xzy - vec3(-2.,0,2.), vec3(.5,0,0)), .4, .5), //the top/periscope thingy
+      min(
+        cuboid(p-vec3(7.5,0,0), vec3(0.3,2,.05)) - .05,
+        cuboid(p-vec3(7.5,0,0), vec3(0.3,.05,2)) - .05
+      )
+    ),
+    0.3
+  );
+  return min(dock, sub);
 }
 
 float oilrig(vec3 p) {
@@ -562,7 +585,8 @@ float nonTerrain(vec3 p) {
   float ob = oilrigBridge(oilrigCoords);
   float aoc = antennaCable(oilrigCoords.zyx - vec3(-2, 9.7, 32.5));
   float guardTower = guardTower(p - vec3(8.7, 9.3, 37));
-  float structures = min(min(min(b, a), min(m, pr)), min(min(r, o), min(ob, guardTower)));
+  float submarine = submarine(p - vec3(-46,-.5,-30));
+  float structures = min(min(min(b, a), min(m, pr)), min(min(r, o), min(ob, min(guardTower, submarine))));
   float gameObjects = min(iGOKeyVisible ? gameObjectKey(p.yzx - vec3(2., 7.4, -45.5)) : MAX_DIST,
       min(iGOFlashlightVisible ? gameObjectFlashlight(p - vec3(-42, 3, 11.2)) : MAX_DIST,
           iGOFloppyDiskVisible ? gameObjectFloppy(p - vec3(12.15, 22.31, 38.65)) : MAX_DIST));
