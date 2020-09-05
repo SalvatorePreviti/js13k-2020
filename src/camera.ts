@@ -71,8 +71,8 @@ const updateCameraDirFromEulerAngles = (time: number) => {
   //vec3FromYawAndPitch(cameraDir, cameraEulerAngles)
   let { x: yaw, y: pitch } = cameraEuler
   if (RUMBLING) {
-    yaw += sin(time * 100) * 0.01
-    pitch += sin(time * 200) * 0.01
+    yaw += sin(time * 100) * 0.005
+    pitch += sin(time * 200) * 0.005
   }
 
   // if (game is not started we should use) {
