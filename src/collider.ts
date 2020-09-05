@@ -5,7 +5,7 @@ import {
   GL_TEXTURE_2D,
   GL_FRAMEBUFFER,
   GL_COLOR_ATTACHMENT0,
-  GL_TEXTURE2
+  GL_TEXTURE5
 } from './gl/gl-constants'
 import {
   gl_createTexture,
@@ -19,13 +19,16 @@ import {
 } from './gl/gl-context'
 import { collisionShader } from './shader-program'
 import { debug_collisionBufferCanvasPrepare } from './debug'
-import { PI, cos, sin, unpackFloatBytes3, abs } from './math/scalar'
+import { PI, cos, sin, abs, unpackFloatBytes4, max } from './math/scalar'
 import { cameraPos } from './camera'
+import { vec3Length } from './math/vec3'
+
+const CAMERA_MAX_DISTANCE_FROM_CENTER = 100
 
 const COLLIDER_SIZE = 128
 
-const _colliderTexture: WebGLTexture = gl_createTexture()
-const _colliderFrameBuffer = gl_createFramebuffer()
+const colliderTexture: WebGLTexture = gl_createTexture()
+const colliderFrameBuffer = gl_createFramebuffer()
 
 const colliderBuffer = new Uint8Array(COLLIDER_SIZE * COLLIDER_SIZE * 4)
 
@@ -33,44 +36,44 @@ debug_collisionBufferCanvasPrepare(colliderBuffer, COLLIDER_SIZE, COLLIDER_SIZE)
 
 const readDist = (x: number, y: number): number => {
   const bufIdx = y * COLLIDER_SIZE * 4 + x * 4
-  return unpackFloatBytes3(colliderBuffer[bufIdx + 1], colliderBuffer[bufIdx + 2], colliderBuffer[bufIdx + 3])
+  return unpackFloatBytes4(
+    colliderBuffer[bufIdx],
+    colliderBuffer[bufIdx + 1],
+    colliderBuffer[bufIdx + 2],
+    colliderBuffer[bufIdx + 3]
+  )
 }
 
 const getAngleFromIdx = (x: number): number => -((PI * (x - 64)) / 64) - PI / 2
 
+export const initCollider = () => {
+  gl_activeTexture(GL_TEXTURE5)
+  gl_bindTexture(GL_TEXTURE_2D, colliderTexture)
+  gl_texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, COLLIDER_SIZE, COLLIDER_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, null)
+  gl_bindFramebuffer(GL_FRAMEBUFFER, colliderFrameBuffer)
+  gl_framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colliderTexture, 0)
+}
+
 export const updateCollider = (time: number) => {
-  // Create and bind the framebuffer
-
-  gl_bindFramebuffer(GL_FRAMEBUFFER, _colliderFrameBuffer)
-
-  // Load the shader
-
   collisionShader._use(time, COLLIDER_SIZE, COLLIDER_SIZE)
 
-  // Render
-
-  gl_activeTexture(GL_TEXTURE2)
-  gl_bindTexture(GL_TEXTURE_2D, _colliderTexture)
-  gl_texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, COLLIDER_SIZE, COLLIDER_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, null)
-  gl_framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _colliderTexture, 0)
-
-  gl_bindTexture(GL_TEXTURE_2D, _colliderTexture)
-
+  gl_bindFramebuffer(GL_FRAMEBUFFER, colliderFrameBuffer)
   glDrawFullScreenTriangle()
-
-  // Get the rendered data
-
   gl_readPixels(0, 0, COLLIDER_SIZE, COLLIDER_SIZE, GL_RGBA, GL_UNSIGNED_BYTE, colliderBuffer)
-
-  // Process data
+  gl_bindFramebuffer(GL_FRAMEBUFFER, null)
 
   //Ground Collision:
   let totalY = 0
   for (let x = 0; x < 128; x++) {
-    totalY += readDist(x, 0)
+    let maxY = -99
+    for (let y = 0; y < 32; y++) {
+      maxY = max(readDist(x, y), maxY)
+    }
+    totalY += maxY
   }
   const ddy = totalY / 128 - 0.2 //Take the average distance from the ground and subtract the value used in the shader
 
+  //Cylinder Collision:
   let ddx = 0
   let ddz = 0
   for (let y = 32; y < 96; ++y) {
@@ -96,11 +99,12 @@ export const updateCollider = (time: number) => {
   }
 
   cameraPos.x += ddx
+  cameraPos.y = max(cameraPos.y + ddy, 0.9)
   cameraPos.z += ddz
 
-  cameraPos.y += ddy
-
-  // Unbind the frame buffer
-
-  gl_bindFramebuffer(GL_FRAMEBUFFER, null)
+  const distanceFromCenter = vec3Length(cameraPos)
+  if (distanceFromCenter >= CAMERA_MAX_DISTANCE_FROM_CENTER) {
+    cameraPos.x *= CAMERA_MAX_DISTANCE_FROM_CENTER / distanceFromCenter
+    cameraPos.z *= CAMERA_MAX_DISTANCE_FROM_CENTER / distanceFromCenter
+  }
 }

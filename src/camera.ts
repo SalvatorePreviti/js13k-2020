@@ -1,17 +1,21 @@
 import {
-  isKeyPressed,
+  PressedKeys,
   KEY_FORWARD,
   KEY_BACKWARD,
   KEY_STRAFE_LEFT,
   KEY_STRAFE_RIGHT,
   KEY_FLY_UP,
   KEY_FLY_DOWN,
-  KEY_RUN,
-  KEY_FLASHLIGHT_TOGGLE
+  KEY_RUN
 } from './keyboard'
 
-import { debug_updateCameraPosition, debug_updateCameraDirection, debug_updateCameraEulerAngles } from './debug'
-import { canvasElement } from './gl/canvas'
+import {
+  debug_mode,
+  debug_updateCameraPosition,
+  debug_updateCameraDirection,
+  debug_updateCameraEulerAngles
+} from './debug'
+import { canvasElement } from './page'
 import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD } from './math/scalar'
 import {
   vec3Temp0,
@@ -26,9 +30,12 @@ import {
 } from './math/vec3'
 import { vec2New } from './math/vec2'
 import { typedArraySet } from './core/arrays'
-import { INVENTORY } from './objects'
+import { RUMBLING } from './state/animations'
+import { GAME_OPTIONS } from './state/options'
+import { MINIGAME, MINIGAME_LOADING, MINIGAME_ACTIVE } from './state/minigame'
+import { GAME_OBJECTS } from './state/objects'
 
-const CAMERA_SPEED_DEFAULT = 1.5
+const CAMERA_SPEED_DEFAULT = 2
 
 const CAMERA_SPEED_RUN = 40
 
@@ -47,11 +54,6 @@ export const cameraDir: Vec3 = vec3NewValue()
 /** Camera rotation matrix */
 export const cameraMat3: Mat3 = new Float32Array(9)
 
-//Is the flashlight on or off
-export let flashlightOn: boolean = false
-
-let flashLightKeyDown: boolean = false
-
 export const cameraMoveForward = (amount: number) => {
   cameraPos.x += amount * cameraDir.x
   cameraPos.z += amount * cameraDir.z
@@ -65,41 +67,18 @@ export const cameraMoveDown = (amount: number) => {
   cameraPos.y += amount
 }
 
-export const updateCamera = (timeDelta: number) => {
-  const speed = (isKeyPressed(KEY_RUN) ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * timeDelta
-
-  if (isKeyPressed(KEY_FORWARD)) {
-    cameraMoveForward(speed)
-  }
-  if (isKeyPressed(KEY_BACKWARD)) {
-    cameraMoveForward(-speed)
-  }
-  if (isKeyPressed(KEY_STRAFE_LEFT)) {
-    cameraStrafe(-speed)
-  }
-  if (isKeyPressed(KEY_STRAFE_RIGHT)) {
-    cameraStrafe(speed)
-  }
-  if (isKeyPressed(KEY_FLY_UP)) {
-    cameraMoveDown(-speed)
-  }
-  if (isKeyPressed(KEY_FLY_DOWN)) {
-    cameraMoveDown(speed)
-  }
-
-  if (isKeyPressed(KEY_FLASHLIGHT_TOGGLE) && INVENTORY._flashlight) {
-    if (!flashLightKeyDown) {
-      flashlightOn = !flashlightOn
-    }
-    flashLightKeyDown = true
-  } else {
-    flashLightKeyDown = false
-  }
-}
-
-const updateCameraDirFromEulerAngles = () => {
+const updateCameraDirFromEulerAngles = (time: number) => {
   //vec3FromYawAndPitch(cameraDir, cameraEulerAngles)
-  const { x: yaw, y: pitch } = cameraEuler
+  let { x: yaw, y: pitch } = cameraEuler
+  if (RUMBLING) {
+    yaw += sin(time * 100) * 0.01
+    pitch += sin(time * 200) * 0.01
+  }
+
+  // if (game is not started we should use) {
+  //   yaw = -170 * DEG_TO_RAD
+  //   pitch = 15 * DEG_TO_RAD
+  // }
 
   const sinYaw = sin(yaw)
   const cosYaw = cos(yaw)
@@ -122,25 +101,56 @@ const updateCameraDirFromEulerAngles = () => {
     -sinPitch,
     cosYaw * cosPitch
   )
+}
+
+export const updateCamera = (timeDelta: number, time: number) => {
+  const speed = (PressedKeys[KEY_RUN] ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * timeDelta
+
+  if (
+    MINIGAME._state !== MINIGAME_LOADING &&
+    MINIGAME._state !== MINIGAME_ACTIVE &&
+    !GAME_OBJECTS._submarine._gameEnded
+  ) {
+    if (PressedKeys[KEY_FORWARD]) {
+      cameraMoveForward(speed)
+    }
+    if (PressedKeys[KEY_BACKWARD]) {
+      cameraMoveForward(-speed)
+    }
+    if (PressedKeys[KEY_STRAFE_LEFT]) {
+      cameraStrafe(-speed)
+    }
+    if (PressedKeys[KEY_STRAFE_RIGHT]) {
+      cameraStrafe(speed)
+    }
+    if (debug_mode) {
+      if (PressedKeys[KEY_FLY_UP]) {
+        cameraPos.y -= speed
+      }
+      if (PressedKeys[KEY_FLY_DOWN]) {
+        cameraPos.y += speed
+      }
+    }
+  }
+
+  updateCameraDirFromEulerAngles(time)
 
   debug_updateCameraEulerAngles(cameraEuler)
   debug_updateCameraDirection(cameraDir)
 }
 
-updateCameraDirFromEulerAngles()
+updateCameraDirFromEulerAngles(0)
 
 debug_updateCameraPosition(cameraPos)
 
-canvasElement.addEventListener('mousedown', (e) => {
-  if (e.button === 0) {
-    canvasElement.requestPointerLock()
-  }
-})
-
-document.addEventListener('mousemove', (e) => {
-  if (document.pointerLockElement === canvasElement) {
+onmousemove = (e) => {
+  if (document.pointerLockElement === canvasElement && !GAME_OBJECTS._submarine._gameEnded) {
     cameraEuler.x = wrapAngleInRadians(cameraEuler.x - e.movementX * MOUSE_ROTATION_SENSITIVITY_X)
-    cameraEuler.y = clamp(cameraEuler.y + e.movementY * MOUSE_ROTATION_SENSITIVITY_Y, -87 * DEG_TO_RAD, 87 * DEG_TO_RAD)
-    updateCameraDirFromEulerAngles()
+
+    cameraEuler.y = clamp(
+      cameraEuler.y + e.movementY * MOUSE_ROTATION_SENSITIVITY_Y * (GAME_OPTIONS._invertY ? -1 : 1),
+      -87 * DEG_TO_RAD,
+      87 * DEG_TO_RAD
+    )
   }
-})
+}

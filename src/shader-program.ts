@@ -13,10 +13,11 @@ import {
   gl_uniformMatrix3fv,
   gl_viewport
 } from './gl/gl-context'
-import { cameraPos, cameraDir, cameraEuler, cameraMat3, flashlightOn } from './camera'
+import { cameraPos, cameraDir, cameraEuler, cameraMat3 } from './camera'
 
-import { GAME_OBJECTS } from './objects'
-import { ANIMATIONS } from './animations'
+import { GAME_OBJECTS } from './state/objects'
+import { ANIMATIONS } from './state/animations'
+import { MINIGAME, MINIGAME_COMPLETE } from './state/minigame'
 
 export const loadMainShaderProgram = (mainFunction: string) => {
   debug_time(`${loadMainShaderProgram.name} ${mainFunction}`)
@@ -28,8 +29,9 @@ export const loadMainShaderProgram = (mainFunction: string) => {
   )
 
   const {
-    iHeightmap,
     iNoise,
+    iHeightmap,
+    iPrerendered,
     iScreens,
     iResolution,
     iTime,
@@ -40,22 +42,28 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     iGOKeyVisible,
     iGOFlashlightVisible,
     iGOAntennaKeyVisible,
+    iGOFloppyDiskVisible,
     iAnimPrisonDoor,
     iAnimAntennaDoor,
     iAnimMonumentDescend,
     iAnimOilrigRamp,
     iAnimOilrigWheel,
     iAnimAntennaRotation,
-    iFlashlightOn
+    iAnimElevatorHeight,
+    iFlashlightOn,
+    iSubmarineHeight
   } = glNewUniformLocationGetter(program)
 
   // Texture 0
-  gl_uniform1i(iHeightmap, 0)
+  gl_uniform1i(iNoise, 0)
 
   // Texture 1
-  gl_uniform1i(iNoise, 1)
+  gl_uniform1i(iHeightmap, 1)
 
-  // Texture 1
+  // Texture 2
+  gl_uniform1i(iPrerendered, 2)
+
+  // Texture 3
   gl_uniform1i(iScreens, 3)
 
   const _use = (time: number, width: number, height: number) => {
@@ -69,7 +77,7 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     gl_uniform1f(iTime, time)
 
     // Camera position
-    gl_uniform3f(iCameraPos, cameraPos.x, cameraPos.y, cameraPos.z)
+    gl_uniform3f(iCameraPos, cameraPos.x, cameraPos.y, cameraPos.z) // If game is not started we should use gl_uniform3f(iCameraPos, 8, 28, 34)
 
     // Camera direction
     gl_uniform3f(iCameraDir, cameraDir.x, cameraDir.y, cameraDir.z)
@@ -84,8 +92,10 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     gl_uniform1i(iGOKeyVisible, GAME_OBJECTS._key._visible ? 1 : 0)
     //Torch visibility
     gl_uniform1i(iGOFlashlightVisible, GAME_OBJECTS._flashlight._visible ? 1 : 0)
-    //Torch visibility
+    //Antenna Key visibility
     gl_uniform1i(iGOAntennaKeyVisible, GAME_OBJECTS._antennaKey._visible ? 1 : 0)
+    //Floppy Disk visibility
+    gl_uniform1i(iGOFloppyDiskVisible, GAME_OBJECTS._floppyDisk._visible ? 1 : 0)
     //prison door, open-closed
     gl_uniform1f(iAnimPrisonDoor, ANIMATIONS._prisonDoor._value)
 
@@ -100,10 +110,14 @@ export const loadMainShaderProgram = (mainFunction: string) => {
 
     //wheel on oil rig
     gl_uniform1f(iAnimOilrigWheel, ANIMATIONS._oilrigWheel._value)
-    //wheel on oil rig
+    //antenna rotation
     gl_uniform1f(iAnimAntennaRotation, ANIMATIONS._antennaRotation._value)
+    //elevator height
+    gl_uniform1f(iAnimElevatorHeight, ANIMATIONS._elevatorHeight._value)
 
-    gl_uniform1i(iFlashlightOn, flashlightOn ? 1 : 0)
+    gl_uniform1i(iFlashlightOn, GAME_OBJECTS._flashlight._active ? 1 : 0)
+
+    gl_uniform1f(iSubmarineHeight, ANIMATIONS._submarine._value)
   }
 
   const result = {
@@ -121,6 +135,8 @@ export let mainShader: MainShaderProgram
 
 export let collisionShader: MainShaderProgram
 
+export let prerenderedShader: MainShaderProgram
+
 export const loadMainShader = () => {
   debug_exec(() => {
     if (mainShader) {
@@ -129,7 +145,11 @@ export const loadMainShader = () => {
     if (collisionShader) {
       gl_deleteProgram(collisionShader._program)
     }
+    if (prerenderedShader) {
+      gl_deleteProgram(prerenderedShader._program)
+    }
   })
   mainShader = loadMainShaderProgram('')
   collisionShader = loadMainShaderProgram('c')
+  prerenderedShader = loadMainShaderProgram('p')
 }

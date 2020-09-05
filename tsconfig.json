@@ -47,5 +47,6 @@
     "moduleResolution": "node"
   },
   "compileOnSave": false,
-  "typeAcquisition": { "enable": true }
+  "typeAcquisition": { "enable": true },
+  "exclude": ["dist"]
 }

@@ -81,11 +81,11 @@ export const loadShaderProgram = (vertexSourceCode: string, fragmentSourceCode: 
   return result
 }
 
-export const glSetTextureLinearSampling = (wrap: number = GL_REPEAT) => {
+export const glSetTextureSampling = (wrap: number = GL_REPEAT, filter = GL_LINEAR) => {
   gl_texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap)
   gl_texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap)
-  gl_texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-  gl_texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+  gl_texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter)
+  gl_texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter)
 }
 
 export const glNewUniformLocationGetter = (program: WebGLProgram) =>

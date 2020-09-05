@@ -1,4 +1,4 @@
-import { canvasElement } from './canvas'
+import { canvasElement } from '../page'
 
 import { newProxyBinder } from '../core/objects'
 

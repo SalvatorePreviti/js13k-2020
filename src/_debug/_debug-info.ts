@@ -1,6 +1,9 @@
 import './_debug.less'
 import debugInfoHtmlString from './_debug.html'
-import { max, RAD_TO_DEG, unpackFloatBytes3 } from '../math/scalar'
+
+const unpackFloatBytes4 = (r: number, g: number, b: number, a: number): number => {
+  return r / 255 + g / 65025 + b / 16581375 + a / 40948250625
+}
 
 function appendDebugInfoHtmlToBody() {
   const tempDiv = document.createElement('div')
@@ -83,7 +86,8 @@ export function debug_collisionBufferCanvasDraw() {
       debugCollisionBufferCanvasImageBuf[i] = debugCollisionSourceBuffer[i]
 
       const dist =
-        unpackFloatBytes3(
+        unpackFloatBytes4(
+          debugCollisionSourceBuffer[i],
           debugCollisionSourceBuffer[i + 1],
           debugCollisionSourceBuffer[i + 2],
           debugCollisionSourceBuffer[i + 3]
@@ -179,7 +183,7 @@ function initGraph(index: number, name: string) {
   context.globalAlpha = 1
   context.font = SMALL_FONT
   context.fillText(name, GRAPH_X + 2, GRAPH_SPACING + translation + 1)
-  GRAPH_TEXT_VALUE_X = max(GRAPH_TEXT_VALUE_X, 4 + context.measureText(name).width)
+  GRAPH_TEXT_VALUE_X = Math.max(GRAPH_TEXT_VALUE_X, 4 + context.measureText(name).width)
   context.font = BIG_FONT
 }
 
@@ -206,7 +210,7 @@ export function updateGraph(index: number, maxValue: number, value: number, text
   } else if (value < 0) {
     value = 0
   }
-  const d = max(0, (1 - value / maxValue) * GRAPH_HEIGHT)
+  const d = Math.max(0, (1 - value / maxValue) * GRAPH_HEIGHT)
 
   context.fillStyle = GRAPHS_DRAW_FG_COLORS[index]
   context.fillRect(GRAPH_X + GRAPH_WIDTH - 1, GRAPH_Y + d + translation, 1, GRAPH_HEIGHT - d)
@@ -290,6 +294,8 @@ export function updateCameraDirection(direction: Readonly<Vec3>) {
   context.fillText(direction.y.toFixed(4), GRAPH_WIDTH, DEBUG_INFO_CAMERA_DIR_Y + TEXT_HEIGHT * 2)
   context.fillText(direction.z.toFixed(4), GRAPH_WIDTH, DEBUG_INFO_CAMERA_DIR_Y + TEXT_HEIGHT * 3)
 }
+
+const RAD_TO_DEG = 180 / Math.PI
 
 export function updateCameraEulerAngles(eulerAngles: Readonly<Vec2>) {
   context.fillStyle = '#120'

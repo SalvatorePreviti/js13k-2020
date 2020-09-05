@@ -1,12 +1,4 @@
-import { DebugReportInfo } from '../debug'
-import { GL_COMPILE_STATUS, GL_LINK_STATUS, GL_VALIDATE_STATUS } from '../gl/gl-constants'
-import {
-  gl_validateProgram,
-  gl_getProgramParameter,
-  gl_getProgramInfoLog,
-  gl_getShaderParameter,
-  gl_getShaderInfoLog
-} from '../gl/gl-context'
+import type { DebugReportInfo } from '../debug'
 
 const MAX_ITEMS_HARD_LIMIT = 200
 const MAX_ITEMS_SOFT_LIMIT = 150
@@ -94,7 +86,7 @@ class ReportItem {
   public readonly kind: 'error' | 'warn' | 'info'
   public readonly context: string
   public readonly title: string
-  public readonly message: string
+  public message: string
   public readonly file: string
 
   public repeatCount: number = 1
@@ -188,8 +180,9 @@ export function debug_report(
   if (!message) {
     return
   }
+  const input = message
   if (message instanceof Error) {
-    message = message.stack || message.toString()
+    message = message.stack || `${message}`
   }
 
   let context = ''
@@ -205,7 +198,21 @@ export function debug_report(
     }
   }
 
-  _reportItemsList.add(new ReportItem(kind, context, message, file, title))
+  const newItem = new ReportItem(kind, context, message, file, title)
+  if (_reportItemsList.add(newItem) === newItem) {
+    switch (kind) {
+      case 'error':
+        console.error(input)
+        break
+      case 'warn':
+      case 'warning':
+        console.warn(input)
+        break
+      case 'info':
+        console.info(input)
+        break
+    }
+  }
 }
 
 /** Clears the previous error report on screen */
@@ -312,13 +319,13 @@ export function debug_checkShaderCompileStatus(
   shader: WebGLShader,
   info: DebugReportInfo
 ): void {
-  if (!gl_getShaderParameter(shader, GL_COMPILE_STATUS)) {
-    debug_report('error', gl_getShaderInfoLog(shader) || 'compilation failed', info)
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    debug_report('error', gl.getShaderInfoLog(shader) || 'compilation failed', info)
   } else {
-    const infoLog = gl_getShaderInfoLog(shader)
+    const infoLog = gl.getShaderInfoLog(shader)
     if (infoLog) {
       if (infoLog.indexOf('WARN') >= 0) {
-        debug_report('warn', gl_getShaderInfoLog(shader), info)
+        debug_report('warn', gl.getShaderInfoLog(shader), info)
       }
     }
   }
@@ -329,20 +336,20 @@ export function debug_checkShaderProgramLinkStatus(
   shaderProgram: WebGLProgram,
   info: DebugReportInfo
 ): void {
-  if (!gl_getProgramParameter(shaderProgram, GL_LINK_STATUS)) {
-    debug_report('error', gl_getProgramInfoLog(shaderProgram) || 'link failed', info)
+  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+    debug_report('error', gl.getProgramInfoLog(shaderProgram) || 'link failed', info)
   } else {
-    let infoLog = gl_getProgramInfoLog(shaderProgram)
+    let infoLog = gl.getProgramInfoLog(shaderProgram)
     if (infoLog) {
       if (infoLog.indexOf('WARN') >= 0) {
         debug_report('warn', infoLog, info)
       }
     }
-    gl_validateProgram(shaderProgram)
-    if (!gl_getProgramParameter(shaderProgram, GL_VALIDATE_STATUS)) {
-      debug_report('error', gl_getProgramInfoLog(shaderProgram) || 'validation failed', info)
+    gl.validateProgram(shaderProgram)
+    if (!gl.getProgramParameter(shaderProgram, gl.VALIDATE_STATUS)) {
+      debug_report('error', gl.getProgramInfoLog(shaderProgram) || 'validation failed', info)
     } else {
-      infoLog = gl_getProgramInfoLog(shaderProgram)
+      infoLog = gl.getProgramInfoLog(shaderProgram)
       if (infoLog) {
         if (infoLog.indexOf('WARN') >= 0) {
           debug_report('warn', infoLog, info)

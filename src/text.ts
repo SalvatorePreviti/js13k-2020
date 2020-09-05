@@ -1,4 +1,5 @@
-const element = document.getElementById('T')
+import { gameTextElement } from './page'
+
 interface Text {
   _text: string
   _timeout: number
@@ -35,14 +36,14 @@ function setText(text: string, timeout: number = -1) {
   }
 }
 
-function updateText(dt) {
+function updateText(dt: number) {
   if (currentText && currentText._timeout > 0) {
     currentText._timeout -= dt
   }
 
   if (currentText._timeout < 0 && textQueue[0]) {
     currentText = textQueue.pop()
-    element.innerHTML = currentText._text
+    gameTextElement.innerHTML = currentText._text
   }
 }
 

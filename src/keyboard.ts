@@ -1,3 +1,7 @@
+import { debug_mode } from './debug'
+import { mainMenuVisible } from './page'
+import { objectAssign } from './core/objects'
+
 export const KEY_FORWARD = 1
 
 export const KEY_BACKWARD = 2
@@ -12,14 +16,16 @@ export const KEY_ACTION = 6
 
 export const KEY_FLASHLIGHT_TOGGLE = 7
 
+export const KEY_MAIN_MENU = 8
+
 export const KEY_FLY_UP = 10
 
 export const KEY_FLY_DOWN = 11
 
-let _pressedKeys: boolean[] = []
+/* List of pressed keys */
+export let PressedKeys: boolean[] = []
 
-/** Returns true if the given gey is pressed */
-export const isKeyPressed = (keyId: number) => !!_pressedKeys[keyId]
+export const KeyFunctions: Record<number, () => void> = {}
 
 const _keyMap: Record<string, number> = {
   w: KEY_FORWARD,
@@ -48,25 +54,34 @@ const _keyMap: Record<string, number> = {
   q: KEY_FLASHLIGHT_TOGGLE,
   Q: KEY_FLASHLIGHT_TOGGLE,
 
-  f: KEY_FLY_UP,
-  F: KEY_FLY_UP,
-  '+': KEY_FLY_UP,
+  Escape: KEY_MAIN_MENU,
+  M: KEY_MAIN_MENU,
+  m: KEY_MAIN_MENU
+}
 
-  r: KEY_FLY_DOWN,
-  R: KEY_FLY_DOWN,
-  '-': KEY_FLY_DOWN
+if (debug_mode) {
+  objectAssign(_keyMap, {
+    f: KEY_FLY_UP,
+    F: KEY_FLY_UP,
+    '+': KEY_FLY_UP,
+
+    r: KEY_FLY_DOWN,
+    R: KEY_FLY_DOWN,
+    '-': KEY_FLY_DOWN
+  })
 }
 
 const _setKeyPressed = (e: KeyboardEvent, value: boolean) => {
-  if (!e.keyCode || e.metaKey || !document.activeElement) {
-    _pressedKeys = [] // Clear pressed status to prevent key sticking when alt+tabbing
+  if (!e.keyCode || e.metaKey || !document.activeElement || mainMenuVisible) {
+    PressedKeys = [] // Clear pressed status to prevent key sticking when alt+tabbing or showing the menu
   } else {
-    const keyId = _keyMap[e.key]
-    if (keyId) {
-      _pressedKeys[keyId] = value
+    const keyId = _keyMap[e.key] || 0
+    if (!e.repeat && !PressedKeys[keyId] && KeyFunctions[keyId]) {
+      KeyFunctions[keyId]()
     }
+    PressedKeys[keyId] = value
   }
 }
 
-addEventListener('keydown', (ev) => _setKeyPressed(ev, true))
-addEventListener('keyup', (ev) => _setKeyPressed(ev, false))
+onkeydown = (ev) => _setKeyPressed(ev, true)
+onkeyup = (ev) => _setKeyPressed(ev, false)

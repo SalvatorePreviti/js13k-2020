@@ -206,6 +206,11 @@ export const vec3Max = (out: Vec3Out, b: Vec3In, a: Vec3In = out) => vec3SetEach
 export const vec3MaxScalar = (out: Vec3Out, scalar: number, a: Vec3In = out) =>
   vec3SetEachVecScalar(out, a, scalar, max)
 
+export const vec3ClampLength = (out: Vec3Out, v: Vec3In, minLength: number, maxLength: number) => {
+  const length = vec3Length(v)
+  return vec3DivideScalar(out, vec3ScalarMultiply(out, clamp(length, minLength, maxLength)), length || 1)
+}
+
 export const vec3Clamp = (out: Vec3Out, a: Vec3In, minimum: Vec3In, maximum: Vec3In) =>
   vec3SetEachVecVecVec(out, a, minimum, maximum, clamp)
 

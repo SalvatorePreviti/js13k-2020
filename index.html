@@ -1,15 +1,33 @@
 <html>
+  <head>
+    <title>js13k-2020</title>
+  </head>
 
-<head>
-  <title>js13k-2020</title>
-</head>
-
-<body>
-  <main id="M">
-    <canvas id="C"></canvas>
-    <div id="T"></div>
-  </main>
-  <script type="module" src="./src/main.ts"></script>
-</body>
-
+  <body class="L">
+    <div id="M">
+      <canvas id="D" width="512" height="512"></canvas>
+      <canvas id="C"></canvas>
+      <div id="T">
+        <h1>Loading...</h1>
+      </div>
+      <div id="N">
+        <h1>ISLAND NOT FOUND</h1>
+        <h3><b id="R">Resume Game</b></h3>
+        <h3><b id="S">Save Game</b></h3>
+        <h3><b id="L">Load Game</b></h3>
+        <small>
+          <label><input type="checkbox" id="Y" /> Invert Y</label><br />
+          <label><input type="checkbox" id="Q" checked /> High quality</label><br /><br />
+          Shift: run<br />
+          W,A,S,D,Arrows: move<br />
+          O,P,Mouse: turn<br />
+          E,Space: interact<br />
+          Q: flashlight<br />
+          Esc,M: menu<br />
+        </small>
+        <i><br />Copyright (c) 2020 Ben Clark, Salvatore Previti.</i>
+      </div>
+    </div>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
 </html>

@@ -3,7 +3,8 @@ import { resolveAssetText } from './builder-utils'
 import path from 'path'
 
 import { spglslAngleCompile } from 'spglsl'
-import { devBeginOperation } from '../lib/dev-utils'
+import { devBeginOperation, prettyFileSize } from '../lib/dev-utils'
+import chalk from 'chalk'
 
 export const createRollupPluginImportShader = (extensions: string[]): Plugin => {
   return {
@@ -53,7 +54,11 @@ async function compressShader(source: string, filePath: string): Promise<string>
     throw error
   }
 
-  endOp(spglslResult.infoLog.inspect())
+  endOp(
+    `\n   ${chalk.blueBright('before')} ${`${prettyFileSize(source.length)}\n   ${chalk.blueBright(
+      'after'
+    )}  ${prettyFileSize((spglslResult.output || '').length)}`}\n   ${spglslResult.infoLog.inspect()}`
+  )
 
   return spglslResult.output
 }

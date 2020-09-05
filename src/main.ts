@@ -1,59 +1,79 @@
-import './css/styles.less'
+import './css/styles.css'
 import { glDrawFullScreenTriangle } from './gl/gl-utils'
-import { canvasSize } from './gl/canvas'
+import { resumeGame, mainMenuVisible, renderHeight, renderWidth } from './page'
 import { debug_beginFrame, debug_endFrame, debug_trycatch_wrap, debug_log, debug_updateCameraPosition } from './debug'
 
 import { updateCamera, cameraPos } from './camera'
 import { buildHeightmapTexture } from './texture-heightmap'
 import { buildNoiseTexture } from './texture-noise'
-import { updateAnimations } from './animations'
-import { updateGameObjects } from './objects'
+import { updateAnimations } from './state/animations'
+import { updateGameObjects, GAME_OBJECTS } from './state/objects'
 import { updateText } from './text'
-import { loadMainShader, mainShader } from './shader-program'
-import { updateCollider } from './collider'
+import { loadMainShader, mainShader, prerenderedShader } from './shader-program'
+import { updateCollider, initCollider } from './collider'
 import { buildScreenTextures, bindScreenTexture } from './texture-screen'
+import { initPrerenderedTexture, renderToPrerenderedTexture, PRERENDERED_TEXTURE_SIZE } from './texture-prerendered'
+import { MINIGAME_LOADING, MINIGAME, MINIGAME_ACTIVE } from './state/minigame'
+import './save-load'
 import { play } from './music'
 
 let prevTime = 0
 let time = 0
 
-buildNoiseTexture()
-buildHeightmapTexture()
-buildScreenTextures()
-loadMainShader()
+setTimeout(() => {
+  resumeGame() //showMainMenu()
 
-const animationFrame = debug_trycatch_wrap(
-  (timeMilliseconds: number) => {
-    debug_beginFrame()
+  buildNoiseTexture()
+  buildHeightmapTexture()
+  buildScreenTextures()
+  initPrerenderedTexture()
+  initCollider()
+  loadMainShader()
 
-    time = timeMilliseconds / 1000
-    const timeDelta = time - prevTime
-    requestAnimationFrame(animationFrame)
+  const animationFrame = debug_trycatch_wrap(
+    (timeMilliseconds: number) => {
+      requestAnimationFrame(animationFrame)
+      time = timeMilliseconds / 1000
+      const timeDelta = time - prevTime
+      if (timeDelta < 0.07) {
+        //return
+      }
 
-    updateCamera(timeDelta)
-    updateCollider(time)
-    debug_updateCameraPosition(cameraPos)
+      debug_beginFrame()
+      updateCamera(timeDelta, time)
 
-    updateAnimations(timeDelta)
-    updateGameObjects()
-    updateText(timeDelta)
+      if (!mainMenuVisible && !GAME_OBJECTS._submarine._gameEnded) {
+        updateCollider(time)
+      }
 
-    // Render main scene
+      debug_updateCameraPosition(cameraPos)
 
-    bindScreenTexture(time & 1)
+      updateAnimations(timeDelta)
+      updateGameObjects()
+      updateText(timeDelta)
 
-    mainShader._use(time, canvasSize.x, canvasSize.y)
+      // Prerender
 
-    glDrawFullScreenTriangle()
+      prerenderedShader._use(time, PRERENDERED_TEXTURE_SIZE, PRERENDERED_TEXTURE_SIZE)
+      renderToPrerenderedTexture()
 
-    prevTime = time
+      // Render main scene
 
-    debug_endFrame(time)
-  },
-  { rethrow: false, file: import.meta.url }
-)
+      bindScreenTexture(MINIGAME._state >= MINIGAME_ACTIVE ? 3 : MINIGAME._state === MINIGAME_LOADING ? 2 : time & 1)
 
-requestAnimationFrame(animationFrame)
+      mainShader._use(time, renderWidth, renderHeight)
+
+      glDrawFullScreenTriangle()
+
+      prevTime = time
+
+      debug_endFrame(time)
+    },
+    { rethrow: false, file: import.meta.url }
+  )
+
+  requestAnimationFrame(animationFrame)
+}, 99)
 
 //Music wont play until the user has interacted with document:
 document.onclick = () => play()

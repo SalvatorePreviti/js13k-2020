@@ -1,4 +1,4 @@
-import { glDrawFullScreenTriangle, glSetTextureLinearSampling } from './gl/gl-utils'
+import { glDrawFullScreenTriangle, glSetTextureSampling } from './gl/gl-utils'
 
 import { debug_time, debug_timeEnd } from './debug'
 import {
@@ -7,7 +7,8 @@ import {
   GL_TEXTURE_2D,
   GL_FRAMEBUFFER,
   GL_COLOR_ATTACHMENT0,
-  GL_CLAMP_TO_EDGE
+  GL_CLAMP_TO_EDGE,
+  GL_TEXTURE1
 } from './gl/gl-constants'
 import {
   gl_createTexture,
@@ -17,7 +18,8 @@ import {
   gl_deleteProgram,
   gl_bindFramebuffer,
   gl_framebufferTexture2D,
-  gl_createFramebuffer
+  gl_createFramebuffer,
+  gl_activeTexture
 } from './gl/gl-context'
 import { loadMainShaderProgram } from './shader-program'
 
@@ -28,6 +30,7 @@ export const heightmapTexture: WebGLTexture = gl_createTexture()
 export const buildHeightmapTexture = () => {
   debug_time(buildHeightmapTexture)
 
+  gl_activeTexture(GL_TEXTURE1)
   gl_bindTexture(GL_TEXTURE_2D, heightmapTexture)
   gl_texImage2D(
     GL_TEXTURE_2D,
@@ -41,7 +44,7 @@ export const buildHeightmapTexture = () => {
     null
   )
 
-  glSetTextureLinearSampling(GL_CLAMP_TO_EDGE)
+  glSetTextureSampling(GL_CLAMP_TO_EDGE)
 
   // Create and bind the framebuffer
 
@@ -66,8 +69,6 @@ export const buildHeightmapTexture = () => {
   gl_bindFramebuffer(GL_FRAMEBUFFER, null)
   gl_deleteProgram(program._program)
   gl_deleteFramebuffer(fb)
-
-  gl_bindTexture(GL_TEXTURE_2D, heightmapTexture)
 
   debug_timeEnd(buildHeightmapTexture)
 }

@@ -1,9 +1,12 @@
-import { vec3New, vec3Distance, vec3Direction, vec3Temp0, vec3Dot } from './math/vec3'
+import { vec3New, vec3Distance, vec3Direction, vec3Temp0, vec3Dot, vec3Set } from '../math/vec3'
 import { runAnimation, ANIMATIONS } from './animations'
-import { cameraPos, cameraDir } from './camera'
-import { setText } from './text'
-import { isKeyPressed, KEY_ACTION } from './keyboard'
-import { objectValues } from './core/objects'
+import { cameraPos, cameraDir, cameraEuler } from '../camera'
+import { setText } from '../text'
+import { KEY_ACTION, KEY_FLASHLIGHT_TOGGLE, KeyFunctions, PressedKeys } from '../keyboard'
+import { objectValues } from '../core/objects'
+import { MINIGAME, MINIGAME_LOADING, MINIGAME_ACTIVE, MINIGAME_INACTIVE } from './minigame'
+import { vec2Set } from '../math/vec2'
+import { DEG_TO_RAD, PI } from '../math/scalar'
 
 interface GameObject {
   _location: Vec3
@@ -16,7 +19,8 @@ interface GameObject {
 const INVENTORY = {
   _key: false,
   _antennaKey: false,
-  _flashlight: false
+  _flashlight: false,
+  _floppy: false
 }
 
 const GAME_OBJECTS = {
@@ -34,6 +38,7 @@ const GAME_OBJECTS = {
   _flashlight: {
     _location: vec3New(-42, 3, 11.2),
     _visible: true,
+    _active: false,
     _lookAtDistance: 1.5,
     _onInteract() {
       this._visible = false
@@ -92,10 +97,21 @@ const GAME_OBJECTS = {
     _location: vec3New(4.8, 14.4, 3.7),
     _visible: true,
     _lookAtDistance: 1.5,
-    _onInteract: () => {},
+    _onInteract() {
+      if (ANIMATIONS._antennaRotation._running && INVENTORY._floppy && MINIGAME._state === MINIGAME_INACTIVE) {
+        MINIGAME._state = MINIGAME_LOADING
+        runAnimation(ANIMATIONS._afterFloppyInsert)
+        vec3Set(cameraPos, 5.844, 14.742, 4)
+        vec2Set(cameraEuler, -90 * DEG_TO_RAD, 17 * DEG_TO_RAD)
+      }
+    },
     _onLookAt: () =>
-      ANIMATIONS._antennaRotation._running
-        ? 'Damn, I need to find this floppy disk'
+      MINIGAME._state !== MINIGAME_INACTIVE
+        ? ''
+        : ANIMATIONS._antennaRotation._running
+        ? INVENTORY._floppy
+          ? 'Insert the floppy disk'
+          : 'Damn, I need to find this floppy disk'
         : 'There is no electricity, there must be a generator somewhere in this damn island'
   },
   _monumentButton: {
@@ -150,6 +166,73 @@ const GAME_OBJECTS = {
         ? 'A locked door, I need a key'
         : 'A door [press E or Space to open]'
     }
+  },
+  _floppyDisk: {
+    _location: vec3New(12.2, 22.3, 38.7),
+    _lookAtDistance: 2,
+    _visible: true,
+    _onInteract() {
+      this._visible = false
+      INVENTORY._floppy = true
+    },
+    _onLookAt: () => 'A floppy disk'
+  },
+  _bottomLiftButton: {
+    _location: vec3New(9.3, 2, 36.1),
+    _lookAtDistance: 2,
+    _visible: true,
+    _onInteract() {
+      if (!ANIMATIONS._antennaRotation._running) {
+        return
+      }
+      if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._initial) {
+        runAnimation(ANIMATIONS._elevatorHeight)
+      }
+      if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._max) {
+        runAnimation(ANIMATIONS._elevatorHeight, false) //run it backwards
+      }
+    },
+    _onLookAt() {
+      if (!ANIMATIONS._antennaRotation._running) {
+        return 'Elevator is out of order'
+      }
+      if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._initial) {
+        return 'Activate'
+      }
+      if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._max) {
+        return 'Call elevator'
+      }
+      return ''
+    }
+  },
+  _topLiftButton: {
+    _location: vec3New(9.3, 22.5, 36.1),
+    _lookAtDistance: 2,
+    _visible: true,
+    _onInteract: () => GAME_OBJECTS._bottomLiftButton._onInteract(),
+    _onLookAt() {
+      if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._max) {
+        return 'Activate'
+      }
+      if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._initial) {
+        return 'Call elevator'
+      }
+      return ''
+    }
+  },
+  _submarine: {
+    _location: vec3New(-46.5, 2, -28.5),
+    _lookAtDistance: 5,
+    _visible: false,
+    _onLookAt: () => 'A submarine! My way out. [press E or Space to Escape!]',
+    _gameEnded: false,
+    _onInteract() {
+      this._gameEnded = true
+      runAnimation(ANIMATIONS._submarine, false)
+      vec3Set(cameraPos, -42, 12, -47)
+      vec2Set(cameraEuler, -12.7 * DEG_TO_RAD, 33.7 * DEG_TO_RAD)
+      setText('<h1>The End</h1><h2>Game by Salvatore Previti & Ben Clark</h2>Thank you for playing!', 10000)
+    }
   }
 }
 
@@ -176,7 +259,7 @@ const updateGameObjects = () => {
   const visibleObject = getVisibleObject()
   if (visibleObject) {
     setText(visibleObject._onLookAt() || '')
-    if (isKeyPressed(KEY_ACTION)) {
+    if (PressedKeys[KEY_ACTION]) {
       visibleObject._onInteract()
     }
   } else {
@@ -185,3 +268,7 @@ const updateGameObjects = () => {
 }
 
 export { GAME_OBJECTS, INVENTORY, updateGameObjects }
+
+KeyFunctions[KEY_FLASHLIGHT_TOGGLE] = () => {
+  GAME_OBJECTS._flashlight._active = INVENTORY._flashlight && !GAME_OBJECTS._flashlight._active
+}
