@@ -240,16 +240,14 @@ const GAME_OBJECTS_LIST: GameObject[] = objectValues(GAME_OBJECTS)
 
 const getVisibleObject = (): GameObject => {
   for (const gameObject of GAME_OBJECTS_LIST) {
-    if (!gameObject._visible) {
-      continue
-    }
-    const objectLocation = gameObject._location
-    if (vec3Distance(objectLocation, cameraPos) > gameObject._lookAtDistance) {
-      continue
-    }
-    const dotToObject = vec3Dot(cameraDir, vec3Direction(vec3Temp0, cameraPos, objectLocation))
-    if (dotToObject > 0.9) {
-      return gameObject
+    if (gameObject._visible) {
+      const objectLocation = gameObject._location
+      if (vec3Distance(objectLocation, cameraPos) <= gameObject._lookAtDistance) {
+        const dotToObject = vec3Dot(cameraDir, vec3Direction(vec3Temp0, cameraPos, objectLocation))
+        if (dotToObject > 0.9) {
+          return gameObject
+        }
+      }
     }
   }
   return undefined
