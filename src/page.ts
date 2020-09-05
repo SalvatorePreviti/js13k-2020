@@ -1,5 +1,6 @@
 import { min, round } from './math/scalar'
 import { newProxyBinder, objectAssign } from './core/objects'
+import { GAME_OPTIONS } from './state/options'
 
 export const { body } = document
 
@@ -18,13 +19,11 @@ const MAIN_ELEMENT_ASPECT_RATIO = 1.5
 /** The maximum width of the main element, and the canvas. */
 const MAIN_ELEMENT_MAX_WIDTH = 1200
 
-export const pageState = {
-  _mainMenu: false,
-  _invertY: false,
-  _highQuality: true,
-  _w: 0,
-  _h: 0
-}
+export let mainMenuVisible = false
+
+export let renderWidth = 0
+
+export let renderHeight = 0
 
 /** The main element that holds the canvas and the main menu. */
 const mainElement = getElementById('M') as HTMLDivElement
@@ -47,14 +46,14 @@ const handleResize = () => {
   mainElement.style.fontSize = `${(ch / 23) | 0}px`
 
   let { clientWidth: w, clientHeight: h } = mainElement
-  const highQuality = pageState._highQuality
+  const highQuality = GAME_OPTIONS._highQuality
   if (!highQuality) {
     w /= 2
     h /= 2
   }
 
-  pageState._w = w
-  pageState._h = h
+  renderWidth = w
+  renderHeight = h
   canvasElement.width = w
   canvasElement.height = h
 }
@@ -63,26 +62,27 @@ onresize = handleResize
 handleResize()
 
 const invertYCheckbox = getElementById('Y') as HTMLInputElement
-invertYCheckbox.onchange = () => (pageState._invertY = invertYCheckbox.checked)
+invertYCheckbox.onchange = () => (GAME_OPTIONS._invertY = invertYCheckbox.checked)
 
 const highQualityCheckbox = getElementById('Q') as HTMLInputElement
 highQualityCheckbox.onchange = () => {
   const value = highQualityCheckbox.checked
-  pageState._highQuality = value
+  GAME_OPTIONS._highQuality = value
   handleResize()
 }
 
 export const showMainMenu = () => {
-  pageState._mainMenu = true
+  console.log('SHOW MAIN MENU')
+  mainMenuVisible = true
   body.className = 'N'
   exitPointerLock()
 }
 
 const canvasRequestPointerLock = (e?: MouseEvent) =>
-  (!e || e.button === 0) && !pageState._mainMenu && canvasElement.requestPointerLock()
+  (!e || e.button === 0) && !mainMenuVisible && canvasElement.requestPointerLock()
 
 export const resumeGame = () => {
-  pageState._mainMenu = false
+  mainMenuVisible = false
   body.className = ''
 }
 

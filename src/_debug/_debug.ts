@@ -7,7 +7,6 @@ import {
   debug_collisionBufferCanvasPrepare,
   debug_collisionBufferCanvasDraw
 } from './_debug-info'
-import { max } from '../math/scalar'
 
 export {
   debug_reportClear,
@@ -82,8 +81,8 @@ export function debug_endFrame(timeInSeconds?: number) {
 
   updateGraphInfo(timeInSeconds)
 
-  _durationMs = max(_durationMs, time - _msTime)
-  _renderTimeMs = max(_renderTimeMs, time - _renderTimeStart)
+  _durationMs = Math.max(_durationMs, time - _msTime)
+  _renderTimeMs = Math.max(_renderTimeMs, time - _renderTimeStart)
   _msTime = time
 }
 

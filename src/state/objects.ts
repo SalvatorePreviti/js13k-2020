@@ -2,7 +2,7 @@ import { vec3New, vec3Distance, vec3Direction, vec3Temp0, vec3Dot } from '../mat
 import { runAnimation, ANIMATIONS } from './animations'
 import { cameraPos, cameraDir } from '../camera'
 import { setText } from '../text'
-import { isKeyPressed, KEY_ACTION } from '../keyboard'
+import { isKeyPressed, KEY_ACTION, KEY_FLASHLIGHT_TOGGLE, KeyFunctions } from '../keyboard'
 import { objectValues } from '../core/objects'
 
 interface GameObject {
@@ -249,3 +249,7 @@ const updateGameObjects = () => {
 }
 
 export { GAME_OBJECTS, INVENTORY, updateGameObjects }
+
+KeyFunctions[KEY_FLASHLIGHT_TOGGLE] = () => {
+  GAME_OBJECTS._flashlight._active = INVENTORY._flashlight && !GAME_OBJECTS._flashlight._active
+}

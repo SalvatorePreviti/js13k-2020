@@ -1,6 +1,6 @@
 import './css/styles.css'
 import { glDrawFullScreenTriangle } from './gl/gl-utils'
-import { pageState, resumeGame } from './page'
+import { resumeGame, mainMenuVisible, renderHeight, renderWidth } from './page'
 import { debug_beginFrame, debug_endFrame, debug_trycatch_wrap, debug_log, debug_updateCameraPosition } from './debug'
 
 import { updateCamera, cameraPos } from './camera'
@@ -40,7 +40,7 @@ setTimeout(() => {
 
       updateCamera(timeDelta, time)
 
-      if (!pageState._mainMenu) {
+      if (!mainMenuVisible) {
         updateCollider(time)
       }
 
@@ -59,7 +59,7 @@ setTimeout(() => {
 
       bindScreenTexture(GAME_OBJECTS._antennaConsole._floppyInserted ? 2 : time & 1)
 
-      mainShader._use(time, pageState._w, pageState._h)
+      mainShader._use(time, renderWidth, renderHeight)
 
       glDrawFullScreenTriangle()
 
@@ -71,7 +71,7 @@ setTimeout(() => {
   )
 
   requestAnimationFrame(animationFrame)
-}, 100)
+}, 99)
 
 if (import.meta.hot) {
   const reloadMainShader = () => {

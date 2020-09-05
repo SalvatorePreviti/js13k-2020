@@ -17,7 +17,6 @@ import { cameraPos, cameraDir, cameraEuler, cameraMat3 } from './camera'
 
 import { GAME_OBJECTS } from './state/objects'
 import { ANIMATIONS } from './state/animations'
-import { pageState } from './page'
 
 export const loadMainShaderProgram = (mainFunction: string) => {
   debug_time(`${loadMainShaderProgram.name} ${mainFunction}`)
@@ -114,7 +113,7 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     //elevator height
     gl_uniform1f(iAnimElevatorHeight, ANIMATIONS._elevatorHeight._value)
 
-    gl_uniform1i(iFlashlightOn, GAME_OBJECTS._flashlight._active && !pageState._mainMenu ? 1 : 0)
+    gl_uniform1i(iFlashlightOn, GAME_OBJECTS._flashlight._active ? 1 : 0)
   }
 
   const result = {

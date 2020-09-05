@@ -36,7 +36,7 @@ function setText(text: string, timeout: number = -1) {
   }
 }
 
-function updateText(dt) {
+function updateText(dt: number) {
   if (currentText && currentText._timeout > 0) {
     currentText._timeout -= dt
   }
