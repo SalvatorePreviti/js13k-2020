@@ -31,15 +31,9 @@ input {
   height: 1.1em;
 }
 
-#N,
-#D {
+#N {
   position: absolute;
   top: 0;
-}
-
-/* 2D canvas */
-#D {
-  height: 9px;
 }
 
 #N {

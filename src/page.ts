@@ -5,7 +5,7 @@ import { KEY_MAIN_MENU, KeyFunctions } from './keyboard'
 
 export const { body } = document
 
-export const { getElementById, getElementsByTagName, exitPointerLock } = newProxyBinder(document)
+export const { getElementById, getElementsByTagName, exitPointerLock, createElement } = newProxyBinder(document)
 
 export const canvasElement = getElementById('C') as HTMLCanvasElement
 
