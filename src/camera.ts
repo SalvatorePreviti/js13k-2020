@@ -122,7 +122,7 @@ export const updateCamera = (timeDelta: number, time: number) => {
     if (PressedKeys[KEY_STRAFE_RIGHT]) {
       vec3Add(movementVec, cameraStrafeVec(1))
     }
-    if (movementVec.x || movementVec.y || movementVec.z) {
+    if (movementVec.x || movementVec.z) {
       vec3Add(cameraPos, vec3ScalarMultiply(vec3Normalize(movementVec), speed))
     }
     if (debug_mode) {
