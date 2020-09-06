@@ -68,6 +68,13 @@ export const showMainMenu = () => {
   document.exitPointerLock()
 }
 
+document.onpointerlockchange = () => {
+  //document.pointerLockElement is falsy if we've unlocked
+  if (!document.pointerLockElement) {
+    showMainMenu()
+  }
+}
+
 const canvasRequestPointerLock = (e?: MouseEvent) =>
   (!e || !e.button) && !mainMenuVisible && canvasElement.requestPointerLock()
 
