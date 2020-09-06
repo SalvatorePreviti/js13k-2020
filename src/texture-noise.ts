@@ -1,17 +1,17 @@
 import { debug_time, debug_timeEnd } from './debug'
 import { GL_TEXTURE_2D, GL_RGBA, GL_UNSIGNED_BYTE, GL_TEXTURE0 } from './gl/gl-constants'
-import { gl_activeTexture, gl_bindTexture, gl_texImage2D, gl_createTexture } from './gl/gl-context'
 import { glSetTextureSampling } from './gl/gl-utils'
+import { gl } from './page'
 
 const NOISE_TEXTURE_SIZE = 512
 
-const noiseTexture: WebGLTexture = gl_createTexture()
+const noiseTexture: WebGLTexture = gl.createTexture()
 
 export const buildNoiseTexture = () => {
   debug_time(buildNoiseTexture)
 
-  gl_activeTexture(GL_TEXTURE0)
-  gl_bindTexture(GL_TEXTURE_2D, noiseTexture)
+  gl.activeTexture(GL_TEXTURE0)
+  gl.bindTexture(GL_TEXTURE_2D, noiseTexture)
 
   const data = new Uint8Array(NOISE_TEXTURE_SIZE * NOISE_TEXTURE_SIZE * 4)
 
@@ -48,7 +48,7 @@ export const buildNoiseTexture = () => {
     }
   }
 
-  gl_texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, NOISE_TEXTURE_SIZE, NOISE_TEXTURE_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
+  gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, NOISE_TEXTURE_SIZE, NOISE_TEXTURE_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
 
   glSetTextureSampling()
 

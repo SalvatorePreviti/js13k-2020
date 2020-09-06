@@ -1,5 +1,4 @@
 import { debug_time, debug_timeEnd } from './debug'
-import { gl_createTexture, gl_bindTexture, gl_texImage2D, gl_activeTexture } from './gl/gl-context'
 import { GL_TEXTURE3, GL_TEXTURE_2D, GL_RGBA, GL_UNSIGNED_BYTE, GL_CLAMP_TO_EDGE } from './gl/gl-constants'
 import { glSetTextureSampling } from './gl/gl-utils'
 //import { createElement } from './page'
@@ -8,18 +7,19 @@ import { KeyFunctions, KEY_FORWARD, KEY_BACKWARD, KEY_STRAFE_LEFT, KEY_STRAFE_RI
 import { MINIGAME, MINIGAME_COMPLETE, MINIGAME_ACTIVE } from './state/minigame'
 import { GAME_OBJECTS } from './state/objects'
 import { runAnimation, ANIMATIONS } from './state/animations'
+import { gl } from './page'
 
 export const SCREEN_TEXTURE_SIZE = 512
 
-const screenTextures: WebGLTexture[] = [gl_createTexture(), gl_createTexture(), gl_createTexture(), gl_createTexture()]
+const screenTextures: WebGLTexture[] = [gl.createTexture(), gl.createTexture(), gl.createTexture(), gl.createTexture()]
 let lastBoundTexture = -1
 
 export const bindScreenTexture = (index: number) => {
   const texture = screenTextures[index]
   if (lastBoundTexture !== index) {
     lastBoundTexture = index
-    gl_activeTexture(GL_TEXTURE3)
-    gl_bindTexture(GL_TEXTURE_2D, texture)
+    gl.activeTexture(GL_TEXTURE3)
+    gl.bindTexture(GL_TEXTURE_2D, texture)
   }
   return texture
 }
@@ -32,7 +32,7 @@ const context = canvas.getContext('2d')
 const captureScreenTexture = (index: number) => {
   bindScreenTexture(index)
   const imageData = context.getImageData(0, 0, SCREEN_TEXTURE_SIZE, SCREEN_TEXTURE_SIZE)
-  gl_texImage2D(
+  gl.texImage2D(
     GL_TEXTURE_2D,
     0,
     GL_RGBA,

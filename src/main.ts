@@ -1,6 +1,5 @@
 import './css/styles.css'
-import { glDrawFullScreenTriangle } from './gl/gl-utils'
-import { resumeGame, mainMenuVisible, renderHeight, renderWidth } from './page'
+import { resumeGame, mainMenuVisible, renderHeight, renderWidth, gl } from './page'
 import { debug_beginFrame, debug_endFrame, debug_trycatch_wrap, debug_log, debug_updateCameraPosition } from './debug'
 
 import { min } from './math/scalar'
@@ -16,6 +15,7 @@ import { buildScreenTextures, bindScreenTexture } from './texture-screen'
 import { initPrerenderedTexture, renderToPrerenderedTexture, PRERENDERED_TEXTURE_SIZE } from './texture-prerendered'
 import { MINIGAME } from './state/minigame'
 import './save-load'
+import { GL_TRIANGLES } from './gl/gl-constants'
 
 let prevTime = 0
 let time = 0
@@ -60,7 +60,7 @@ setTimeout(() => {
 
       mainShader(time, renderWidth, renderHeight)
 
-      glDrawFullScreenTriangle()
+      gl.drawArrays(GL_TRIANGLES, 0, 3)
 
       prevTime = time
 

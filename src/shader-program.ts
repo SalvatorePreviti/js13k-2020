@@ -9,25 +9,6 @@ import {
   debug_checkShaderProgramLinkStatus,
   debug_checkShaderCompileStatus
 } from './debug'
-import {
-  gl_deleteProgram,
-  gl_uniform1i,
-  gl_useProgram,
-  gl_uniform2f,
-  gl_uniformMatrix3fv,
-  gl_viewport,
-  gl_uniform4f,
-  gl_uniform3f,
-  gl_createProgram,
-  gl_linkProgram,
-  gl,
-  gl_deleteShader,
-  gl_attachShader,
-  gl_createShader,
-  gl_shaderSource,
-  gl_compileShader,
-  gl_getUniformLocation
-} from './gl/gl-context'
 import { cameraPos, cameraDir, cameraMat3 } from './camera'
 
 import { GAME_OBJECTS } from './state/objects'
@@ -35,21 +16,21 @@ import { ANIMATIONS } from './state/animations'
 import { sin, cos } from './math/scalar'
 import { vec3Normalize, vec3Temp0, vec3Set } from './math/vec3'
 import { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER } from './gl/gl-constants'
-import { newProxyGetter } from './core/objects'
+import { gl } from './page'
 
 export const loadMainShaderProgram = (mainFunction: string) => {
   debug_time(`${loadMainShaderProgram.name} ${mainFunction}`)
 
   // A new program
 
-  const program = gl_createProgram()
+  const program = gl.createProgram()
 
   debug_reportClear(`compile-shader-${name}`, import.meta.url)
 
   const loadShaderCode = (type: number, sourceCode: string) => {
-    const shader = gl_createShader(type)
-    gl_shaderSource(shader, sourceCode)
-    gl_compileShader(shader)
+    const shader = gl.createShader(type)
+    gl.shaderSource(shader, sourceCode)
+    gl.compileShader(shader)
 
     debug_checkShaderCompileStatus(gl, shader, {
       title: type === GL_VERTEX_SHADER ? 'vertex shader' : 'fragment shader',
@@ -57,7 +38,7 @@ export const loadMainShaderProgram = (mainFunction: string) => {
       file: import.meta.url
     })
 
-    gl_attachShader(program, shader)
+    gl.attachShader(program, shader)
     return shader
   }
 
@@ -68,7 +49,7 @@ export const loadMainShaderProgram = (mainFunction: string) => {
 
   // Link them together
 
-  gl_linkProgram(program)
+  gl.linkProgram(program)
 
   debug_checkShaderProgramLinkStatus(gl, program, {
     title: 'shader program',
@@ -78,9 +59,22 @@ export const loadMainShaderProgram = (mainFunction: string) => {
 
   // Activate the program
 
-  gl_useProgram(program)
+  gl.useProgram(program)
 
-  const {
+  const iNoise = gl.getUniformLocation(program, 'tN')
+  const iHeightmap = gl.getUniformLocation(program, 'tH')
+  const iPrerendered = gl.getUniformLocation(program, 'tP')
+  const iScreens = gl.getUniformLocation(program, 'tS')
+  const iResolution = gl.getUniformLocation(program, 'iR')
+  const iCameraMat3 = gl.getUniformLocation(program, 'iM')
+  const iSunDirection = gl.getUniformLocation(program, 'iS')
+  const iP = gl.getUniformLocation(program, 'iP')
+  const iD = gl.getUniformLocation(program, 'iD')
+  const iF = gl.getUniformLocation(program, 'iF')
+  const iA = gl.getUniformLocation(program, 'iA')
+  const iB = gl.getUniformLocation(program, 'iB')
+
+  /*const {
     tN: iNoise,
     tH: iHeightmap,
     tP: iPrerendered,
@@ -93,32 +87,32 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     iF,
     iA,
     iB
-  } = newProxyGetter((uniform: string) => gl_getUniformLocation(program, uniform))
+  } = newProxyGetter((uniform: string) => gl.getUniformLocation(program, uniform))*/
 
-  ;[iNoise, iHeightmap, iPrerendered, iScreens].map(gl_uniform1i)
+  ;[iNoise, iHeightmap, iPrerendered, iScreens].map(gl.uniform1i)
 
   const useShader = (time: number, width: number, height: number) => {
-    gl_viewport(0, 0, width, height)
-    gl_useProgram(program)
+    gl.viewport(0, 0, width, height)
+    gl.useProgram(program)
 
     // Render output resolution
-    gl_uniform2f(iResolution, width, height)
+    gl.uniform2f(iResolution, width, height)
 
     // Sun directiom
     const waterLevel = sin(time * 2 + 3) * 0.2
     vec3Normalize(vec3Set(vec3Temp0, cos(time * 0.02), sin(time * 0.02) * 0.5 + 0.8, sin(time * 0.02)))
-    gl_uniform4f(iSunDirection, vec3Temp0.x, vec3Temp0.y, vec3Temp0.z, waterLevel)
+    gl.uniform4f(iSunDirection, vec3Temp0.x, vec3Temp0.y, vec3Temp0.z, waterLevel)
 
     // Camera position and time
-    gl_uniform3f(iP, cameraPos.x, cameraPos.y, cameraPos.z)
+    gl.uniform3f(iP, cameraPos.x, cameraPos.y, cameraPos.z)
 
     // Camera direction and water level
-    gl_uniform4f(iD, cameraDir.x, cameraDir.y, cameraDir.z, time)
+    gl.uniform4f(iD, cameraDir.x, cameraDir.y, cameraDir.z, time)
 
     // Camera rotation matrix
-    gl_uniformMatrix3fv(iCameraMat3, false, cameraMat3)
+    gl.uniformMatrix3fv(iCameraMat3, false, cameraMat3)
 
-    gl_uniform1i(
+    gl.uniform1i(
       iF,
       (GAME_OBJECTS._flashlight._active && 0x01) |
         (GAME_OBJECTS._key._visible && 0x02) |
@@ -127,7 +121,7 @@ export const loadMainShaderProgram = (mainFunction: string) => {
         (GAME_OBJECTS._floppyDisk._visible && 0x10)
     )
 
-    gl_uniform4f(
+    gl.uniform4f(
       iA,
       // prison door, open-closed
       ANIMATIONS._prisonDoor._value,
@@ -139,7 +133,7 @@ export const loadMainShaderProgram = (mainFunction: string) => {
       ANIMATIONS._oilrigRamp._value
     )
 
-    gl_uniform4f(
+    gl.uniform4f(
       iB,
       // wheel on oil rig
       ANIMATIONS._oilrigWheel._value,
@@ -153,8 +147,8 @@ export const loadMainShaderProgram = (mainFunction: string) => {
   }
 
   if (debug_mode) {
-    gl_deleteShader(vertexShader)
-    gl_deleteShader(fragmentShader)
+    gl.deleteShader(vertexShader)
+    gl.deleteShader(fragmentShader)
     useShader._program = program
   }
 
@@ -173,13 +167,13 @@ export let prerenderedShader: UseShaderFunction
 export const loadMainShader = () => {
   debug_exec(() => {
     if (mainShader) {
-      gl_deleteProgram(mainShader._program)
+      gl.deleteProgram(mainShader._program)
     }
     if (collisionShader) {
-      gl_deleteProgram(collisionShader._program)
+      gl.deleteProgram(collisionShader._program)
     }
     if (prerenderedShader) {
-      gl_deleteProgram(prerenderedShader._program)
+      gl.deleteProgram(prerenderedShader._program)
     }
   })
   mainShader = loadMainShaderProgram('m')
