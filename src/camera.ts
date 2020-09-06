@@ -15,7 +15,7 @@ import {
   debug_updateCameraDirection,
   debug_updateCameraEulerAngles
 } from './debug'
-import { canvasElement } from './page'
+import { canvasElement, mouseYInversion } from './page'
 import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD } from './math/scalar'
 import {
   vec3Temp0,
@@ -26,12 +26,12 @@ import {
   VEC3_UNIT_Y,
   vec3New,
   vec3NewValue,
-  vec3Set
+  vec3Set,
+  vec3Temp1
 } from './math/vec3'
 import { vec2New } from './math/vec2'
 import { typedArraySet } from './core/arrays'
 import { RUMBLING } from './state/animations'
-import { GAME_OPTIONS } from './state/options'
 import { MINIGAME, MINIGAME_LOADING, MINIGAME_ACTIVE } from './state/minigame'
 import { GAME_OBJECTS } from './state/objects'
 
@@ -54,14 +54,11 @@ export const cameraDir: Vec3 = vec3NewValue()
 /** Camera rotation matrix */
 export const cameraMat3: Mat3 = new Float32Array(9)
 
-export const cameraMoveForward = (amount: number) => {
-  cameraPos.x += amount * cameraDir.x
-  cameraPos.z += amount * cameraDir.z
-}
+export const movementForward = (direction: number) =>
+  vec3Add(vec3Temp0, vec3ScalarMultiply(vec3Normalize(vec3Set(vec3Temp1, cameraDir.x, 0, cameraDir.z)), direction))
 
-export const cameraStrafe = (amount: number) => {
-  vec3Add(cameraPos, vec3ScalarMultiply(vec3Normalize(vec3Cross(vec3Temp0, cameraDir, VEC3_UNIT_Y)), amount))
-}
+export const movementStrafe = (direction: number) =>
+  vec3Add(vec3Temp0, vec3ScalarMultiply(vec3Normalize(vec3Cross(vec3Temp1, cameraDir, VEC3_UNIT_Y)), direction))
 
 export const cameraMoveDown = (amount: number) => {
   cameraPos.y += amount
@@ -71,8 +68,8 @@ const updateCameraDirFromEulerAngles = (time: number) => {
   //vec3FromYawAndPitch(cameraDir, cameraEulerAngles)
   let { x: yaw, y: pitch } = cameraEuler
   if (RUMBLING) {
-    yaw += sin(time * 100) * 0.01
-    pitch += sin(time * 200) * 0.01
+    yaw += sin(time * 100) * 0.005
+    pitch += sin(time * 200) * 0.005
   }
 
   // if (game is not started we should use) {
@@ -111,17 +108,21 @@ export const updateCamera = (timeDelta: number, time: number) => {
     MINIGAME._state !== MINIGAME_ACTIVE &&
     !GAME_OBJECTS._submarine._gameEnded
   ) {
+    vec3Set(vec3Temp0, 0, 0, 0)
     if (PressedKeys[KEY_FORWARD]) {
-      cameraMoveForward(speed)
+      movementForward(1)
     }
     if (PressedKeys[KEY_BACKWARD]) {
-      cameraMoveForward(-speed)
+      movementForward(-1)
     }
     if (PressedKeys[KEY_STRAFE_LEFT]) {
-      cameraStrafe(-speed)
+      movementStrafe(-1)
     }
     if (PressedKeys[KEY_STRAFE_RIGHT]) {
-      cameraStrafe(speed)
+      movementStrafe(1)
+    }
+    if (vec3Temp0.x || vec3Temp0.z) {
+      vec3Add(cameraPos, vec3ScalarMultiply(vec3Normalize(vec3Temp0), speed))
     }
     if (debug_mode) {
       if (PressedKeys[KEY_FLY_UP]) {
@@ -148,7 +149,7 @@ onmousemove = (e) => {
     cameraEuler.x = wrapAngleInRadians(cameraEuler.x - e.movementX * MOUSE_ROTATION_SENSITIVITY_X)
 
     cameraEuler.y = clamp(
-      cameraEuler.y + e.movementY * MOUSE_ROTATION_SENSITIVITY_Y * (GAME_OPTIONS._invertY ? -1 : 1),
+      cameraEuler.y + e.movementY * mouseYInversion * MOUSE_ROTATION_SENSITIVITY_Y,
       -87 * DEG_TO_RAD,
       87 * DEG_TO_RAD
     )

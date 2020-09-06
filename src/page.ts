@@ -1,15 +1,14 @@
 import { min } from './math/scalar'
-import { newProxyBinder, objectAssign } from './core/objects'
-import { GAME_OPTIONS } from './state/options'
+import { objectAssign } from './core/objects'
 import { KEY_MAIN_MENU, KeyFunctions } from './keyboard'
 
-export const { body } = document
+export const body = document.body
 
-export const { getElementById, getElementsByTagName, exitPointerLock } = newProxyBinder(document)
+//export const { getElementById, getElementsByTagName, exitPointerLock, createElement } = newProxyBinder(document)
 
-export const canvasElement = getElementById('C') as HTMLCanvasElement
+export const canvasElement = document.getElementById('C') as HTMLCanvasElement
 
-export const gameTextElement = getElementById('T')
+export const gameTextElement = document.getElementById('T') as HTMLDivElement
 
 /** Total horizontal and vertical padding to apply to the main element */
 const MAIN_ELEMENT_PADDING = 30
@@ -20,14 +19,19 @@ const MAIN_ELEMENT_ASPECT_RATIO = 1.5
 /** The maximum width of the main element, and the canvas. */
 const MAIN_ELEMENT_MAX_WIDTH = 1200
 
-export let mainMenuVisible = false
+export let mainMenuVisible: boolean
 
-export let renderWidth = 0
+export let renderWidth: number
 
-export let renderHeight = 0
+export let renderHeight: number
+
+export let mouseYInversion = 1
 
 /** The main element that holds the canvas and the main menu. */
-const mainElement = getElementById('M') as HTMLDivElement
+const mainElement = document.getElementById('M') as HTMLDivElement
+
+const highQualityCheckbox = document.getElementById('Q') as HTMLInputElement
+const invertYCheckbox = document.getElementById('Y') as HTMLInputElement
 
 /** Handle resize event to update canvas size. */
 const handleResize = () => {
@@ -39,15 +43,12 @@ const handleResize = () => {
     cw = ch * MAIN_ELEMENT_ASPECT_RATIO
   }
 
-  const whStyles = { width: cw | 0, height: ch | 0 }
+  const whStyles = { width: cw | 0, height: ch | 0, fontSize: `${(ch / 23) | 0}px` }
   objectAssign(mainElement.style, whStyles)
   objectAssign(canvasElement.style, whStyles)
 
-  mainElement.style.fontSize = `${(ch / 23) | 0}px`
-
   let { clientWidth: w, clientHeight: h } = mainElement
-  const highQuality = GAME_OPTIONS._highQuality
-  if (!highQuality) {
+  if (!highQualityCheckbox.checked) {
     w = (w / 2) | 0
     h = (h / 2) | 0
   }
@@ -58,27 +59,14 @@ const handleResize = () => {
   canvasElement.height = h
 }
 
-onresize = handleResize
-handleResize()
-
-const invertYCheckbox = getElementById('Y') as HTMLInputElement
-invertYCheckbox.onchange = () => (GAME_OPTIONS._invertY = invertYCheckbox.checked)
-
-const highQualityCheckbox = getElementById('Q') as HTMLInputElement
-highQualityCheckbox.onchange = () => {
-  const value = highQualityCheckbox.checked
-  GAME_OPTIONS._highQuality = value
-  handleResize()
-}
-
 export const showMainMenu = () => {
   mainMenuVisible = true
   body.className = 'N'
-  exitPointerLock()
+  document.exitPointerLock()
 }
 
 const canvasRequestPointerLock = (e?: MouseEvent) =>
-  (!e || e.button === 0) && !mainMenuVisible && canvasElement.requestPointerLock()
+  (!e || !e.button) && !mainMenuVisible && canvasElement.requestPointerLock()
 
 export const resumeGame = () => {
   mainMenuVisible = false
@@ -90,6 +78,35 @@ const startOrResumeClick = () => {
   canvasRequestPointerLock()
 }
 
-getElementById('R').onclick = startOrResumeClick
+handleResize()
+onresize = handleResize
+
+document.getElementById('R').onclick = startOrResumeClick
+
 KeyFunctions[KEY_MAIN_MENU] = showMainMenu
+
 canvasElement.onmousedown = canvasRequestPointerLock
+highQualityCheckbox.onchange = handleResize
+invertYCheckbox.onchange = () => (mouseYInversion = invertYCheckbox.checked ? -1 : 1)
+
+export const gl = canvasElement.getContext('webgl2', {
+  /** Boolean that indicates if the canvas contains an alpha buffer. */
+  alpha: false,
+  /** Boolean that hints the user agent to reduce the latency by desynchronizing the canvas paint cycle from the event loop */
+  desynchronized: true,
+  /** Boolean that indicates whether or not to perform anti-aliasing. */
+  antialias: false,
+  /** Boolean that indicates that the drawing buffer has a depth buffer of at least 16 bits. */
+  depth: false,
+  /** Boolean that indicates if a context will be created if the system performance is low or if no hardware GPU is available. */
+  failIfMajorPerformanceCaveat: false,
+  /** A hint to the user agent indicating what configuration of GPU is suitable for the WebGL context. */
+  powerPreference: 'high-performance',
+  /** If the value is true the buffers will not be cleared and will preserve their values until cleared or overwritten. */
+  preserveDrawingBuffer: false,
+  /** Boolean that indicates that the drawing buffer has a stencil buffer of at least 8 bits. */
+  stencil: false
+})
+
+/** Main framebuffer used for pregenerating the heightmap and to render the collision shader */
+export const glFrameBuffer: WebGLFramebuffer = gl.createFramebuffer()

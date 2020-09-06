@@ -1,4 +1,4 @@
-import { glDrawFullScreenTriangle, glSetTextureSampling } from './gl/gl-utils'
+import { glSetTextureSampling } from './gl/gl-utils'
 
 import { debug_time, debug_timeEnd } from './debug'
 import {
@@ -8,31 +8,22 @@ import {
   GL_FRAMEBUFFER,
   GL_COLOR_ATTACHMENT0,
   GL_CLAMP_TO_EDGE,
-  GL_TEXTURE1
+  GL_TEXTURE1,
+  GL_TRIANGLES
 } from './gl/gl-constants'
-import {
-  gl_createTexture,
-  gl_bindTexture,
-  gl_texImage2D,
-  gl_deleteFramebuffer,
-  gl_deleteProgram,
-  gl_bindFramebuffer,
-  gl_framebufferTexture2D,
-  gl_createFramebuffer,
-  gl_activeTexture
-} from './gl/gl-context'
 import { loadMainShaderProgram } from './shader-program'
+import { gl, glFrameBuffer } from './page'
 
 export const HEIGHTMAP_TETURE_SIZE = 2048
 
-export const heightmapTexture: WebGLTexture = gl_createTexture()
+export const heightmapTexture: WebGLTexture = gl.createTexture()
 
 export const buildHeightmapTexture = () => {
   debug_time(buildHeightmapTexture)
 
-  gl_activeTexture(GL_TEXTURE1)
-  gl_bindTexture(GL_TEXTURE_2D, heightmapTexture)
-  gl_texImage2D(
+  gl.activeTexture(GL_TEXTURE1)
+  gl.bindTexture(GL_TEXTURE_2D, heightmapTexture)
+  gl.texImage2D(
     GL_TEXTURE_2D,
     0,
     GL_RGBA,
@@ -46,29 +37,14 @@ export const buildHeightmapTexture = () => {
 
   glSetTextureSampling(GL_CLAMP_TO_EDGE)
 
-  // Create and bind the framebuffer
+  gl.bindFramebuffer(GL_FRAMEBUFFER, glFrameBuffer)
+  gl.framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, heightmapTexture, 0)
 
-  const fb = gl_createFramebuffer()
-  gl_bindFramebuffer(GL_FRAMEBUFFER, fb)
+  loadMainShaderProgram('h')(0, HEIGHTMAP_TETURE_SIZE, HEIGHTMAP_TETURE_SIZE)
 
-  // attach the texture as the first color attachment
-  gl_framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, heightmapTexture, 0)
+  gl.drawArrays(GL_TRIANGLES, 0, 3)
 
-  // Load the shader
-
-  const program = loadMainShaderProgram('h')
-
-  program._use(0, HEIGHTMAP_TETURE_SIZE, HEIGHTMAP_TETURE_SIZE)
-
-  // Render
-
-  glDrawFullScreenTriangle()
-
-  // Deallocate stuff
-  gl_framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, null, 0)
-  gl_bindFramebuffer(GL_FRAMEBUFFER, null)
-  gl_deleteProgram(program._program)
-  gl_deleteFramebuffer(fb)
+  gl.bindFramebuffer(GL_FRAMEBUFFER, null)
 
   debug_timeEnd(buildHeightmapTexture)
 }

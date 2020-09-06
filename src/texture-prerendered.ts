@@ -1,4 +1,4 @@
-import { glSetTextureSampling, glDrawFullScreenTriangle } from './gl/gl-utils'
+import { glSetTextureSampling } from './gl/gl-utils'
 
 import { debug_time, debug_timeEnd } from './debug'
 import {
@@ -9,30 +9,21 @@ import {
   GL_COLOR_ATTACHMENT0,
   GL_CLAMP_TO_EDGE,
   GL_TEXTURE2,
-  GL_NEAREST
+  GL_NEAREST,
+  GL_TRIANGLES
 } from './gl/gl-constants'
-import {
-  gl_createTexture,
-  gl_bindTexture,
-  gl_texImage2D,
-  gl_bindFramebuffer,
-  gl_framebufferTexture2D,
-  gl_createFramebuffer,
-  gl_activeTexture
-} from './gl/gl-context'
+import { gl, glFrameBuffer } from './page'
 
 export const PRERENDERED_TEXTURE_SIZE = 256
 
-export const prerenderedTexture: WebGLTexture = gl_createTexture()
-
-const prerenderedFrameBuffer: WebGLFramebuffer = gl_createFramebuffer()
+export const prerenderedTexture: WebGLTexture = gl.createTexture()
 
 export const initPrerenderedTexture = () => {
   debug_time(initPrerenderedTexture)
 
-  gl_activeTexture(GL_TEXTURE2)
-  gl_bindTexture(GL_TEXTURE_2D, prerenderedTexture)
-  gl_texImage2D(
+  gl.activeTexture(GL_TEXTURE2)
+  gl.bindTexture(GL_TEXTURE_2D, prerenderedTexture)
+  gl.texImage2D(
     GL_TEXTURE_2D,
     0,
     GL_RGBA,
@@ -46,18 +37,18 @@ export const initPrerenderedTexture = () => {
 
   glSetTextureSampling(GL_CLAMP_TO_EDGE, GL_NEAREST)
 
-  gl_bindFramebuffer(GL_FRAMEBUFFER, prerenderedFrameBuffer)
+  gl.bindFramebuffer(GL_FRAMEBUFFER, glFrameBuffer)
 
   // attach the texture as the first color attachment
-  gl_framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, prerenderedTexture, 0)
+  gl.framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, prerenderedTexture, 0)
 
-  gl_bindFramebuffer(GL_FRAMEBUFFER, null)
+  gl.bindFramebuffer(GL_FRAMEBUFFER, null)
 
   debug_timeEnd(initPrerenderedTexture)
 }
 
 export const renderToPrerenderedTexture = () => {
-  gl_bindFramebuffer(GL_FRAMEBUFFER, prerenderedFrameBuffer)
-  glDrawFullScreenTriangle()
-  gl_bindFramebuffer(GL_FRAMEBUFFER, null)
+  gl.bindFramebuffer(GL_FRAMEBUFFER, glFrameBuffer)
+  gl.drawArrays(GL_TRIANGLES, 0, 3)
+  gl.bindFramebuffer(GL_FRAMEBUFFER, null)
 }

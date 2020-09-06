@@ -10,7 +10,7 @@ interface Animation {
   _max: float
   _running: int
   _onComplete?: Function
-  _rumble?: boolean //should rumble during this animation
+  _rumble?: (animValue: float) => boolean //function that is passed the value and returns true/false whether it should be rumbling
 }
 
 const ANIMATIONS = {
@@ -38,7 +38,7 @@ const ANIMATIONS = {
       //Set the key location so it can be picked up:
       GAME_OBJECTS._antennaKey._location = vec3New(46.4, 4.6, 29.4)
     },
-    _rumble: true
+    _rumble: () => true
   },
   _oilrigRamp: {
     _value: 0,
@@ -46,7 +46,7 @@ const ANIMATIONS = {
     _initial: 0,
     _max: 19,
     _running: 0,
-    _rumble: true
+    _rumble: (v: number) => v < 0.5 || v > 18.8
   },
   _oilrigWheel: {
     _value: 0,
@@ -71,7 +71,7 @@ const ANIMATIONS = {
     _max: 1,
     _speed: 4,
     _running: 0,
-    _rumble: true
+    _rumble: (v: number) => v < -19 || v > 0.8
   },
   _afterFloppyInsert: {
     _value: 0,
@@ -98,26 +98,25 @@ let RUMBLING: boolean = false
 function updateAnimations(dt: float) {
   RUMBLING = false
   for (const anim of ANIMATIONS_LIST) {
-    if (anim._running === 0) {
-      continue
-    }
-    if (anim._rumble) {
-      RUMBLING = true
-    }
-    anim._value += anim._speed * dt * anim._running
-    if (anim._value > anim._max || anim._value < anim._initial) {
-      anim._value = anim._running > 0 ? anim._max : anim._initial
-      if (anim._onComplete) {
-        anim._onComplete()
+    if (anim._running) {
+      if (anim._rumble) {
+        RUMBLING = anim._rumble(anim._value)
       }
-      anim._running = 0
+      anim._value += anim._speed * dt * anim._running
+      if (anim._value > anim._max || anim._value < anim._initial) {
+        anim._value = anim._running > 0 ? anim._max : anim._initial
+        if (anim._onComplete) {
+          anim._onComplete()
+        }
+        anim._running = 0
+      }
     }
   }
 }
 
-function runAnimation(anim: Animation, forwards = true) {
-  anim._value = forwards ? anim._initial : anim._max
-  anim._running = forwards ? 1 : -1
+function runAnimation(anim: Animation, direction = 1) {
+  anim._value = direction > 0 ? anim._initial : anim._max
+  anim._running = direction
 }
 
 export { ANIMATIONS, RUMBLING, runAnimation, updateAnimations }

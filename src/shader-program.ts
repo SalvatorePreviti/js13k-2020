@@ -1,155 +1,167 @@
-import { loadShaderProgram, glNewUniformLocationGetter } from './gl/gl-utils'
-
 import { code as vertexShaderCode } from './shaders/vertex.vert'
 import { code as fragmentShaderCode } from './shaders/fragment.frag'
-import { debug_time, debug_timeEnd, debug_mode, debug_exec } from './debug'
 import {
-  gl_deleteProgram,
-  gl_uniform1i,
-  gl_useProgram,
-  gl_uniform1f,
-  gl_uniform3f,
-  gl_uniform2f,
-  gl_uniformMatrix3fv,
-  gl_viewport
-} from './gl/gl-context'
-import { cameraPos, cameraDir, cameraEuler, cameraMat3 } from './camera'
+  debug_time,
+  debug_timeEnd,
+  debug_mode,
+  debug_exec,
+  debug_reportClear,
+  debug_checkShaderProgramLinkStatus,
+  debug_checkShaderCompileStatus
+} from './debug'
+import { cameraPos, cameraDir, cameraMat3 } from './camera'
 
 import { GAME_OBJECTS } from './state/objects'
 import { ANIMATIONS } from './state/animations'
-import { MINIGAME, MINIGAME_COMPLETE } from './state/minigame'
+import { sin, cos } from './math/scalar'
+import { vec3Normalize, vec3Temp0, vec3Set } from './math/vec3'
+import { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER } from './gl/gl-constants'
+import { gl } from './page'
 
 export const loadMainShaderProgram = (mainFunction: string) => {
   debug_time(`${loadMainShaderProgram.name} ${mainFunction}`)
 
-  const program = loadShaderProgram(
-    vertexShaderCode,
-    fragmentShaderCode.replace('\n', `\n#define main_${mainFunction} main\n${debug_mode ? '#line 2 0\n' : ''}`),
-    mainFunction
-  )
+  // A new program
 
-  const {
-    iNoise,
-    iHeightmap,
-    iPrerendered,
-    iScreens,
-    iResolution,
-    iTime,
-    iCameraPos,
-    iCameraDir,
-    iCameraEuler,
-    iCameraMat3,
-    iGOKeyVisible,
-    iGOFlashlightVisible,
-    iGOAntennaKeyVisible,
-    iGOFloppyDiskVisible,
-    iAnimPrisonDoor,
-    iAnimAntennaDoor,
-    iAnimMonumentDescend,
-    iAnimOilrigRamp,
-    iAnimOilrigWheel,
-    iAnimAntennaRotation,
-    iAnimElevatorHeight,
-    iFlashlightOn,
-    iSubmarineHeight
-  } = glNewUniformLocationGetter(program)
+  const program = gl.createProgram()
 
-  // Texture 0
-  gl_uniform1i(iNoise, 0)
+  debug_reportClear(`compile-shader-${name}`, import.meta.url)
 
-  // Texture 1
-  gl_uniform1i(iHeightmap, 1)
+  const loadShaderCode = (type: number, sourceCode: string) => {
+    const shader = gl.createShader(type)
+    gl.shaderSource(shader, sourceCode)
+    gl.compileShader(shader)
 
-  // Texture 2
-  gl_uniform1i(iPrerendered, 2)
+    debug_checkShaderCompileStatus(gl, shader, {
+      title: type === GL_VERTEX_SHADER ? 'vertex shader' : 'fragment shader',
+      context: `compile-shader-${mainFunction}`,
+      file: import.meta.url
+    })
 
-  // Texture 3
-  gl_uniform1i(iScreens, 3)
-
-  const _use = (time: number, width: number, height: number) => {
-    gl_viewport(0, 0, width, height)
-    gl_useProgram(program)
-
-    // Render output resolution
-    gl_uniform2f(iResolution, width, height)
-
-    // Time in seconds
-    gl_uniform1f(iTime, time)
-
-    // Camera position
-    gl_uniform3f(iCameraPos, cameraPos.x, cameraPos.y, cameraPos.z) // If game is not started we should use gl_uniform3f(iCameraPos, 8, 28, 34)
-
-    // Camera direction
-    gl_uniform3f(iCameraDir, cameraDir.x, cameraDir.y, cameraDir.z)
-
-    // Camera rotation, x is yaw and y is pitch
-    gl_uniform2f(iCameraEuler, cameraEuler.x, cameraEuler.y)
-
-    // Camera rotation matrix
-    gl_uniformMatrix3fv(iCameraMat3, false, cameraMat3)
-
-    //Key visibility
-    gl_uniform1i(iGOKeyVisible, GAME_OBJECTS._key._visible ? 1 : 0)
-    //Torch visibility
-    gl_uniform1i(iGOFlashlightVisible, GAME_OBJECTS._flashlight._visible ? 1 : 0)
-    //Antenna Key visibility
-    gl_uniform1i(iGOAntennaKeyVisible, GAME_OBJECTS._antennaKey._visible ? 1 : 0)
-    //Floppy Disk visibility
-    gl_uniform1i(iGOFloppyDiskVisible, GAME_OBJECTS._floppyDisk._visible ? 1 : 0)
-    //prison door, open-closed
-    gl_uniform1f(iAnimPrisonDoor, ANIMATIONS._prisonDoor._value)
-
-    //antenna door, open-closed
-    gl_uniform1f(iAnimAntennaDoor, ANIMATIONS._antennaDoor._value)
-
-    //monument Descend
-    gl_uniform1f(iAnimMonumentDescend, ANIMATIONS._monumentDescend._value)
-
-    //ramp to oil rig
-    gl_uniform1f(iAnimOilrigRamp, ANIMATIONS._oilrigRamp._value)
-
-    //wheel on oil rig
-    gl_uniform1f(iAnimOilrigWheel, ANIMATIONS._oilrigWheel._value)
-    //antenna rotation
-    gl_uniform1f(iAnimAntennaRotation, ANIMATIONS._antennaRotation._value)
-    //elevator height
-    gl_uniform1f(iAnimElevatorHeight, ANIMATIONS._elevatorHeight._value)
-
-    gl_uniform1i(iFlashlightOn, GAME_OBJECTS._flashlight._active ? 1 : 0)
-
-    gl_uniform1f(iSubmarineHeight, ANIMATIONS._submarine._value)
+    gl.attachShader(program, shader)
+    return shader
   }
 
-  const result = {
-    _program: program,
-    _use
+  // Compile vertex and pixel shader
+
+  const vertexShader = loadShaderCode(GL_VERTEX_SHADER, vertexShaderCode)
+  const fragmentShader = loadShaderCode(GL_FRAGMENT_SHADER, fragmentShaderCode.replace(`main_${mainFunction}`, 'main'))
+
+  // Link them together
+
+  gl.linkProgram(program)
+
+  debug_checkShaderProgramLinkStatus(gl, program, {
+    title: 'shader program',
+    context: `compile-shader-${name}`,
+    file: import.meta.url
+  })
+
+  // Activate the program
+
+  gl.useProgram(program)
+
+  const iNoise = gl.getUniformLocation(program, 'tN')
+  const iHeightmap = gl.getUniformLocation(program, 'tH')
+  const iPrerendered = gl.getUniformLocation(program, 'tP')
+  const iScreens = gl.getUniformLocation(program, 'tS')
+  const iResolution = gl.getUniformLocation(program, 'iR')
+  const iCameraMat3 = gl.getUniformLocation(program, 'iM')
+  const iSunDirection = gl.getUniformLocation(program, 'iS')
+  const iP = gl.getUniformLocation(program, 'iP')
+  const iD = gl.getUniformLocation(program, 'iD')
+  const iF = gl.getUniformLocation(program, 'iF')
+  const iA = gl.getUniformLocation(program, 'iA')
+  const iB = gl.getUniformLocation(program, 'iB')
+
+  ;[iNoise, iHeightmap, iPrerendered, iScreens].map((t, i) => gl.uniform1i(t, i))
+
+  const useShader = (time: number, width: number, height: number) => {
+    gl.viewport(0, 0, width, height)
+    gl.useProgram(program)
+
+    // Render output resolution
+    gl.uniform2f(iResolution, width, height)
+
+    // Sun directiom
+    const waterLevel = sin(time * 2 + 3) * 0.2
+    vec3Normalize(vec3Set(vec3Temp0, cos(time * 0.02), sin(time * 0.02) * 0.5 + 0.8, sin(time * 0.02)))
+    gl.uniform4f(iSunDirection, vec3Temp0.x, vec3Temp0.y, vec3Temp0.z, waterLevel)
+
+    // Camera position and time
+    gl.uniform3f(iP, cameraPos.x, cameraPos.y, cameraPos.z)
+
+    // Camera direction and water level
+    gl.uniform4f(iD, cameraDir.x, cameraDir.y, cameraDir.z, time)
+
+    // Camera rotation matrix
+    gl.uniformMatrix3fv(iCameraMat3, false, cameraMat3)
+
+    gl.uniform1i(
+      iF,
+      (GAME_OBJECTS._flashlight._active && 0x01) |
+        (GAME_OBJECTS._key._visible && 0x02) |
+        (GAME_OBJECTS._flashlight._visible && 0x04) |
+        (GAME_OBJECTS._antennaKey._visible && 0x08) |
+        (GAME_OBJECTS._floppyDisk._visible && 0x10)
+    )
+
+    gl.uniform4f(
+      iA,
+      // prison door, open-closed
+      ANIMATIONS._prisonDoor._value,
+      // antenna door, open-closed
+      ANIMATIONS._antennaDoor._value,
+      // monument Descend
+      ANIMATIONS._monumentDescend._value,
+      // ramp to oil rig
+      ANIMATIONS._oilrigRamp._value
+    )
+
+    gl.uniform4f(
+      iB,
+      // wheel on oil rig
+      ANIMATIONS._oilrigWheel._value,
+      // antenna rotation
+      ANIMATIONS._antennaRotation._value,
+      // elevator height
+      ANIMATIONS._elevatorHeight._value,
+      // submarine position
+      ANIMATIONS._submarine._value
+    )
+  }
+
+  if (debug_mode) {
+    gl.deleteShader(vertexShader)
+    gl.deleteShader(fragmentShader)
+    useShader._program = program
   }
 
   debug_timeEnd(`${loadMainShaderProgram.name} ${mainFunction}`)
-  return result
+  return useShader
 }
 
-export type MainShaderProgram = ReturnType<typeof loadMainShaderProgram>
+export type UseShaderFunction = ReturnType<typeof loadMainShaderProgram>
 
-export let mainShader: MainShaderProgram
+export let mainShader: UseShaderFunction
 
-export let collisionShader: MainShaderProgram
+export let collisionShader: UseShaderFunction
 
-export let prerenderedShader: MainShaderProgram
+export let prerenderedShader: UseShaderFunction
 
 export const loadMainShader = () => {
   debug_exec(() => {
     if (mainShader) {
-      gl_deleteProgram(mainShader._program)
+      gl.deleteProgram(mainShader._program)
     }
     if (collisionShader) {
-      gl_deleteProgram(collisionShader._program)
+      gl.deleteProgram(collisionShader._program)
     }
     if (prerenderedShader) {
-      gl_deleteProgram(prerenderedShader._program)
+      gl.deleteProgram(prerenderedShader._program)
     }
   })
-  mainShader = loadMainShaderProgram('')
+  mainShader = loadMainShaderProgram('m')
   collisionShader = loadMainShaderProgram('c')
   prerenderedShader = loadMainShaderProgram('p')
 }

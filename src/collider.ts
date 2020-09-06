@@ -1,34 +1,25 @@
-import { glDrawFullScreenTriangle } from './gl/gl-utils'
 import {
   GL_UNSIGNED_BYTE,
   GL_RGBA,
   GL_TEXTURE_2D,
   GL_FRAMEBUFFER,
   GL_COLOR_ATTACHMENT0,
-  GL_TEXTURE5
+  GL_TEXTURE5,
+  GL_TRIANGLES
 } from './gl/gl-constants'
-import {
-  gl_createTexture,
-  gl_bindTexture,
-  gl_texImage2D,
-  gl_bindFramebuffer,
-  gl_framebufferTexture2D,
-  gl_createFramebuffer,
-  gl_readPixels,
-  gl_activeTexture
-} from './gl/gl-context'
 import { collisionShader } from './shader-program'
 import { debug_collisionBufferCanvasPrepare } from './debug'
 import { PI, cos, sin, abs, unpackFloatBytes4, max } from './math/scalar'
 import { cameraPos } from './camera'
 import { vec3Length } from './math/vec3'
+import { gl } from './page'
 
 const CAMERA_MAX_DISTANCE_FROM_CENTER = 100
 
 const COLLIDER_SIZE = 128
 
-const colliderTexture: WebGLTexture = gl_createTexture()
-const colliderFrameBuffer = gl_createFramebuffer()
+const colliderTexture: WebGLTexture = gl.createTexture()
+const colliderFrameBuffer = gl.createFramebuffer()
 
 const colliderBuffer = new Uint8Array(COLLIDER_SIZE * COLLIDER_SIZE * 4)
 
@@ -47,20 +38,20 @@ const readDist = (x: number, y: number): number => {
 const getAngleFromIdx = (x: number): number => -((PI * (x - 64)) / 64) - PI / 2
 
 export const initCollider = () => {
-  gl_activeTexture(GL_TEXTURE5)
-  gl_bindTexture(GL_TEXTURE_2D, colliderTexture)
-  gl_texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, COLLIDER_SIZE, COLLIDER_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, null)
-  gl_bindFramebuffer(GL_FRAMEBUFFER, colliderFrameBuffer)
-  gl_framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colliderTexture, 0)
+  gl.activeTexture(GL_TEXTURE5)
+  gl.bindTexture(GL_TEXTURE_2D, colliderTexture)
+  gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, COLLIDER_SIZE, COLLIDER_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, null)
+  gl.bindFramebuffer(GL_FRAMEBUFFER, colliderFrameBuffer)
+  gl.framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colliderTexture, 0)
 }
 
 export const updateCollider = (time: number) => {
-  collisionShader._use(time, COLLIDER_SIZE, COLLIDER_SIZE)
+  collisionShader(time, COLLIDER_SIZE, COLLIDER_SIZE)
 
-  gl_bindFramebuffer(GL_FRAMEBUFFER, colliderFrameBuffer)
-  glDrawFullScreenTriangle()
-  gl_readPixels(0, 0, COLLIDER_SIZE, COLLIDER_SIZE, GL_RGBA, GL_UNSIGNED_BYTE, colliderBuffer)
-  gl_bindFramebuffer(GL_FRAMEBUFFER, null)
+  gl.bindFramebuffer(GL_FRAMEBUFFER, colliderFrameBuffer)
+  gl.drawArrays(GL_TRIANGLES, 0, 3)
+  gl.readPixels(0, 0, COLLIDER_SIZE, COLLIDER_SIZE, GL_RGBA, GL_UNSIGNED_BYTE, colliderBuffer)
+  gl.bindFramebuffer(GL_FRAMEBUFFER, null)
 
   //Ground Collision:
   let totalY = 0

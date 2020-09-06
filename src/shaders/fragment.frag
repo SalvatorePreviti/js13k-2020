@@ -9,7 +9,8 @@ precision highp float;
 // Sub materials of MATERIAL_BUILDINGS
 #define SUBMATERIAL_CONCRETE 0
 #define SUBMATERIAL_METAL 1
-#define SUBMATERIAL_RED 2
+#define SUBMATERIAL_BRIGHT_RED 2
+#define SUBMATERIAL_DARK_RED 3
 
 const float PI = 3.14159265359;
 
@@ -31,84 +32,117 @@ const float FIELD_OF_VIEW = radians(45.0);
 // Projection matrix
 const float PROJECTION_LEN = 1. / tan(.5 * FIELD_OF_VIEW);
 
+in vec2 FC;
+
+uniform vec2 iR;
+uniform vec3 iP;
+uniform vec4 iD;
+uniform vec4 iA;
+uniform vec4 iB;
+uniform vec4 iC;
+uniform vec4 iS;
+uniform mat3 iM;
+uniform lowp int iF;
+
+///// I/O /////
+
 // Screen position, in pixels. Bottom left is (0, 0), top right is (iResolution.x-1, iResolution.y-1).
-in vec2 fragCoord;
+#define fragCoord FC
+
+// Output color
+#define oColor oC
+out vec4 oColor;
+
+///// Core uniforms /////
 
 // Screen resolution in pixels.
-uniform vec2 iResolution;
-
-// Time in seconds
-uniform float iTime;
+#define iResolution iR
 
 // Camera position
-uniform vec3 iCameraPos;
+#define iCameraPos iP
 
 // Camera directiom
-uniform vec3 iCameraDir;
+#define iCameraDir iD.xyz
 
-// Camera rotation x is yaw, y is pitch.
-uniform vec2 iCameraEuler;
+// Time in seconds
+#define iTime iD.w
+
+// Sunlight direction
+#define iSunDirection iS.xyz
+
+// Current level of water
+#define iWaterLevel iS.w
 
 // Camera rotation matrix
-uniform mat3 iCameraMat3;
+#define iCameraMat3 iM
+
+///// Game object uniforms /////
+
+// Flashlight on
+#define iFlashlightOn ((iF & 0x01) != 0)
+
+// Prison Key
+#define iGOKeyVisible ((iF & 0x02) != 0)
+
+// Flashlight
+#define iGOFlashlightVisible ((iF & 0x04) != 0)
+
+// Antenna key
+#define iGOAntennaKeyVisible ((iF & 0x08) != 0)
+
+// Floppy Disk
+#define iGOFloppyDiskVisible ((iF & 0x10) != 0)
+
+///// Animation uniforms /////
+
+// Prison Door 0 - closed, 1 - open
+#define iAnimPrisonDoor iA.x
+
+// Antenna Door 0-1
+#define iAnimAntennaDoor iA.y
+
+// Monument Descend
+#define iAnimMonumentDescend iA.z
+
+// Oil Rig Ramp (and lever in antenna room for 0-1 of it)
+#define iAnimOilrigRamp iA.w
+
+// the wheel on the rig
+#define iAnimOilrigWheel iB.x
+
+// antenna rotation
+#define iAnimAntennaRotation iB.y
+
+// elevator height
+#define iAnimElevatorHeight iB.z
+
+// submarine position
+#define iSubmarineHeight iB.w
+
+///// Textures /////
 
 // Noise texture
+#define iNoise tN
 uniform sampler2D iNoise;
 
 // Heightmap texture
+#define iHeightmap tH
 uniform sampler2D iHeightmap;
 
 // Prerendered texture
+#define iPrerendered tP
 uniform sampler2D iPrerendered;
 
 // Screens texture
+#define iScreens tS
 uniform sampler2D iScreens;
 
-// Game object uniforms
-// Prison Key
-uniform bool iGOKeyVisible;
-// Flashlight
-uniform bool iGOFlashlightVisible;
-
-// Antenna key
-uniform bool iGOAntennaKeyVisible;
-// Floppy Disk
-uniform bool iGOFloppyDiskVisible;
-
-// Animation uniforms
-// Prison Door 0 - closed, 1 - open
-uniform float iAnimPrisonDoor;
-// Antenna Door 0-1
-uniform float iAnimAntennaDoor;
-// Monument Descend
-uniform float iAnimMonumentDescend;
-// Oil Rig Ramp (and lever in antenna room for 0-1 of it)
-uniform float iAnimOilrigRamp;
-// the wheel on the rig
-uniform float iAnimOilrigWheel;
-// antenna rotation
-uniform float iAnimAntennaRotation;
-// elevator height
-uniform float iAnimElevatorHeight;
-
-uniform bool iFlashlightOn;
-
-uniform float iSubmarineHeight;
-
-// Output color
-out vec4 oColor;
-
 //=== STATE ===
-
-// Current level of water
-float WaterLevel;
 
 // Keep the current epsilon global
 float epsilon;
 
 //=== COLORS ===
-
-vec3 SUNLIGHT_DIRECTION = normalize(vec3(1, 1, 0));
 
 const vec3 COLOR_SKY = vec3(.4, .8, 1);
 const vec3 COLOR_SUN = vec3(1.1, .9, .85);
@@ -285,9 +319,10 @@ float antennaConsole(vec3 p) {
   float r = cuboid(q + vec3(.2, .25, 0), vec3(.25, .5, .5)) - 0.01;
   q -= vec3(-.13, .25, 0);
   pModInterval(q.z, .04, -10., 10.);
-  pModInterval(q.x, .03, -5., 5.);
-  r = min(r, cuboid(q, vec3(.01)) - .005);
-  r = min(r, cuboid(p - vec3(-.45, .2, 0), vec3(.2, .8, .5)) - 0.01);
+  pModInterval(q.x, .04, -3., 3.);
+  float keys = cuboid(q, vec3(.01)) - .005;
+  updateSubMaterial(SUBMATERIAL_METAL, keys);
+  r = min(min(r,keys), cuboid(p - vec3(-.45, .2, 0), vec3(.2, .8, .5)) - 0.01);
   return r;
 }
 
@@ -363,8 +398,9 @@ float antenna(vec3 p, vec2 rotation) {
   p -= vec3(7, -2.85, 0);
   p.xy *= rot(-.5);
   structure = min(structure, cuboid(p, vec3(1, 1, .8)) - .01);
-  float metalThings = min(dish, min(door, console));
-  updateSubMaterial(SUBMATERIAL_RED, oilrigLever);
+  float metalThings = min(dish, door);
+  updateSubMaterial(SUBMATERIAL_BRIGHT_RED, oilrigLever);
+  updateSubMaterial(SUBMATERIAL_DARK_RED, console);
   updateSubMaterial(SUBMATERIAL_METAL, metalThings);
 
   return min(min(console, structure), min(metalThings, oilrigLever));
@@ -386,21 +422,22 @@ float monument(vec3 p) {
   float bounds = length(p.xz) - 2.;
   if (bounds > 3.)
     return bounds;
-  float button = cylinder(p.xzy + vec3(0, 0, clamp(iAnimMonumentDescend, 0., .02)), .05, .53);
-  updateSubMaterial(SUBMATERIAL_METAL, button);
-  float r = min(cylinder(p.xzy, .2, .5), button);  // the button mount and the button
+  float metals = cylinder(p.xzy + vec3(0, 0, clamp(iAnimMonumentDescend, 0., .02)), .05, .53);  // the button
+  float r = cylinder(p.xzy, .2, .5);  // the button mount
 
   p.y += iAnimMonumentDescend * 4.;
   if (iGOAntennaKeyVisible) {
     float key = gameObjectKey(p - vec3(-1.05, 5.05, -1.05));
-    updateSubMaterial(SUBMATERIAL_RED, key);
+    updateSubMaterial(SUBMATERIAL_BRIGHT_RED, key);
     r = min(r, key);
   }
   vec3 q = p;
   pModPolar(p.xz, 8.);
   p.x -= 1.5;
+  metals = min(metals, cuboid(p, vec3(.1, 5, .2)));  // the actual monument
+  updateSubMaterial(SUBMATERIAL_METAL, metals);
 
-  return min(r, cuboid(p, vec3(.1, 5, .2)));
+  return min(metals, r);
 }
 
 float prison(vec3 p) {
@@ -452,6 +489,7 @@ float submarine(vec3 p) {
     ),
     0.3
   );
+  updateSubMaterial(SUBMATERIAL_DARK_RED, sub);
   return min(dock, sub);
   // clang-format on
 }
@@ -487,7 +525,7 @@ float oilrig(vec3 p) {
   // rotate wheel around xz based on animation uniform:
   t.xz *= rot(iAnimOilrigWheel);
   float wheel = length(t) - 1.;
-  if (wheel < 2.) { 
+  if (wheel < 2.) {
     wheel = torus(t, vec2(.5, .02));
     wheel = min(wheel, cylinder(t.xzy + vec3(0, 0, .5), .02, .5));  // center-column of spokes
     pModPolar(t.xz, 5.);
@@ -497,7 +535,7 @@ float oilrig(vec3 p) {
   p.zy *= rot(-PI / 4.);
   platforms = min(platforms, cuboid(p, vec3(1, 5.1, .1)) - .05);  // ramp from lower platform to upper
   updateSubMaterial(SUBMATERIAL_METAL, metal);
-  updateSubMaterial(SUBMATERIAL_RED, wheel);
+  updateSubMaterial(SUBMATERIAL_BRIGHT_RED, wheel);
   return min(platforms, min(metal, wheel));
 }
 
@@ -514,7 +552,7 @@ float guardTower(vec3 p) {
   if (bounds > 4.) {
     return bounds;
   }
-  vec3 q = p, z, y = p;
+  vec3 q = p, z, y = p, l=p;
   pModPolar(q.xz, 6.);
   z = q;
   pModInterval(z.y, 1.5, -3., 7.);
@@ -534,7 +572,13 @@ float guardTower(vec3 p) {
       ),
       -cuboid(p+vec3(0,7,1), vec3(.8,1.2,.8))  //cut doorway out
   );
-  float elevator = cylinder(p.xzy-vec3(0,0,iAnimElevatorHeight),1.,11.);  //elevator
+  l.y-=iAnimElevatorHeight;
+  float elevator = cylinder(l.xzy,1.,11.);  //elevator
+  pModInterval(l.y, 1.5, -7., 7.);
+  elevator = max(
+    elevator,
+    -torus(l,vec2(1.,.01))
+  );
   y -= vec3(.8, 12.7, -.9);
   pModInterval(y.y, 20.5, -1., 0.);
 
@@ -593,7 +637,7 @@ float nonTerrain(vec3 p) {
           iGOFloppyDiskVisible ? gameObjectFloppy(p - vec3(12.15, 22.31, 38.65)) : MAX_DIST));
 
   updateSubMaterial(SUBMATERIAL_METAL, aoc);
-  updateSubMaterial(SUBMATERIAL_RED, gameObjects);
+  updateSubMaterial(SUBMATERIAL_BRIGHT_RED, gameObjects);
   updateSubMaterial(SUBMATERIAL_CONCRETE, structures);
 
   return min(min(structures, gameObjects), aoc);
@@ -680,11 +724,11 @@ float shadowR = 0.;
 
 #define SHADOW_ITERATIONS 50
 float getShadow(vec3 p, float camDistance, vec3 n) {
-  if (abs(p.x) >= TERRAIN_SIZE.x * 3. || abs(p.z) >= TERRAIN_SIZE.z * 3. || p.y < WaterLevel - 0.01) {
+  if (abs(p.x) >= TERRAIN_SIZE.x * 3. || abs(p.z) >= TERRAIN_SIZE.z * 3. || p.y < iWaterLevel - 0.01) {
     return 1.;  // Skip objects outsite the island and skip underwater
   }
 
-  if (dot(n, SUNLIGHT_DIRECTION) < -0.1) {
+  if (dot(n, iSunDirection) < -0.1) {
     return 0.;  // Skip faces behind the sun
   }
 
@@ -693,7 +737,7 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
   p = p + n * dist;  // Jump out of the surface by the normal * that dist
 
   for (int i = 0; dist < 100. && i < SHADOW_ITERATIONS; i++) {
-    float nearest = nonTerrain(p + SUNLIGHT_DIRECTION * dist);
+    float nearest = nonTerrain(p + iSunDirection * dist);
 
     shadowR += 1. / float(SHADOW_ITERATIONS);
 
@@ -713,7 +757,7 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
 }
 
 float rayTraceWater(vec3 p, vec3 dir) {
-  float t = (WaterLevel - p.y) / dir.y;
+  float t = (iWaterLevel - p.y) / dir.y;
   return min(t >= 0. ? t : MAX_DIST, MAX_DIST);
 }
 
@@ -742,7 +786,7 @@ vec3 applyFog(vec3 rgb, float dist, vec3 rayDir) {
   float dRatio = dist / MAX_DIST;
 
   float fogAmount = clamp01(pow(dRatio, 3.5) + 1.0 - exp(-dist * 0.005));
-  float sunAmount = max(dot(rayDir, SUNLIGHT_DIRECTION), 0.0);
+  float sunAmount = max(dot(rayDir, iSunDirection), 0.0);
   vec3 fogColor = mix(COLOR_SKY, COLOR_SUN, pow(sunAmount, 10.0));
   return mix(rgb, fogColor, fogAmount);
 }
@@ -765,8 +809,10 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat, int subMat) {
                 texture(iNoise, hit.xz * .3).x * normal.y - 0.5);
       if (subMat == SUBMATERIAL_METAL)
         color = vec3(1);  // extra bright
-      if (subMat == SUBMATERIAL_RED)
+      if (subMat == SUBMATERIAL_BRIGHT_RED)
         color = vec3(1, 0, 0);
+      if (subMat == SUBMATERIAL_DARK_RED)
+        color = vec3(0.5, 0, 0);
     default: break;
   }
   return color;
@@ -800,7 +846,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
 
     vec3 waterhit = p + dir * wdist;
     vec3 waterXYD = mix(vec3(0),
-        waterFBM(waterhit.xz * (.7 - WaterLevel * .02)) * (1. - length(waterhit) / (.9 * MAX_DIST)), waterOpacity);
+        waterFBM(waterhit.xz * (.7 - iWaterLevel * .02)) * (1. - length(waterhit) / (.9 * MAX_DIST)), waterOpacity);
 
     normal = normalize(vec3(waterXYD.x, 1., waterXYD.y));
 
@@ -811,7 +857,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   }
 
   if (material == MATERIAL_SKY) {
-    color = COLOR_SKY;  // mix(COLOR_SKY, COLOR_SUN, pow(clamp(dot(dir, SUNLIGHT_DIRECTION),0.,1.),10.));
+    color = COLOR_SKY;  // mix(COLOR_SKY, COLOR_SUN, pow(clamp(dot(dir, iSunDirection),0.,1.),10.));
   } else {
     vec3 hitNormal = material == MATERIAL_TERRAIN ? computeTerrainNormal(hit) : computeNonTerrainNormal(hit);
     color = getColorAt(hit, hitNormal, material, subMaterial);
@@ -819,12 +865,11 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
     normal = normalize(mix(hitNormal, normal, waterOpacity));
   }
 
-  float specular = isWater ||
-          (material == MATERIAL_BUILDINGS && (subMaterial == SUBMATERIAL_METAL || subMaterial == SUBMATERIAL_RED))
-      ? pow(clamp01(dot(SUNLIGHT_DIRECTION, reflect(dir, normal))), 50.)
+  float specular = isWater || (material == MATERIAL_BUILDINGS && subMaterial > SUBMATERIAL_CONCRETE)
+      ? pow(clamp01(dot(iSunDirection, reflect(dir, normal))), 50.)
       : 0.;
 
-  lightIntensity = computeLambert(normal, SUNLIGHT_DIRECTION);
+  lightIntensity = computeLambert(normal, iSunDirection);
 
   // Flashlight
   if (iFlashlightOn && dist < 20.) {
@@ -872,10 +917,7 @@ void main_p() {
 /**********************************************************************/
 
 // Main shader
-void main_() {
-  SUNLIGHT_DIRECTION = normalize(vec3(cos(iTime * .02), sin(iTime * .02) * 0.5 + 0.8, sin(iTime * .02)));
-  WaterLevel = sin(iTime * 2. + 3.) * .2;
-
+void main_m() {
   vec2 screen = fragCoord / (iResolution * .5) - 1.;
 
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
