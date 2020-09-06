@@ -51,14 +51,14 @@ setTimeout(() => {
 
       // Prerender
 
-      prerenderedShader._use(time, PRERENDERED_TEXTURE_SIZE, PRERENDERED_TEXTURE_SIZE)
+      prerenderedShader(time, PRERENDERED_TEXTURE_SIZE, PRERENDERED_TEXTURE_SIZE)
       renderToPrerenderedTexture()
 
       // Render main scene
 
       bindScreenTexture(MINIGAME._state >= MINIGAME_ACTIVE ? 3 : MINIGAME._state === MINIGAME_LOADING ? 2 : time & 1)
 
-      mainShader._use(time, renderWidth, renderHeight)
+      mainShader(time, renderWidth, renderHeight)
 
       glDrawFullScreenTriangle()
 

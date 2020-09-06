@@ -9,7 +9,7 @@ import { updateMinigameTexture } from './texture-screen'
 
 const data = [GAME_OBJECTS, INVENTORY, ANIMATIONS, MINIGAME, GAME_OPTIONS, cameraPos, cameraEuler]
 
-function deepMerge(original, item) {
+function deepMerge(original: any, item: any) {
   for (const key in item) {
     if (typeof item[key] === 'object') {
       deepMerge(original[key], item[key])
