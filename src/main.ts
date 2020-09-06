@@ -77,6 +77,7 @@ if (import.meta.hot) {
     debug_log('reloading main shader')
     loadMainShader()
     buildHeightmapTexture()
+    initPrerenderedTexture()
   }
 
   import.meta.hot.on('/src/shaders/vertex.vert', reloadMainShader)
