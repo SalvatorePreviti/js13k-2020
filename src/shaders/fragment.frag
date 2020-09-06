@@ -572,7 +572,7 @@ float guardTower(vec3 p) {
   );
   l.y-=iAnimElevatorHeight;
   float elevator = cylinder(l.xzy,1.,11.);  //elevator
-  pModInterval(l.y, .5, -21., 21.);
+  pModInterval(l.y, 1.5, -7., 7.);
   elevator = max(
     elevator,
     -torus(l,vec2(1.,.01))
