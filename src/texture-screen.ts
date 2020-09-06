@@ -2,7 +2,7 @@ import { debug_time, debug_timeEnd } from './debug'
 import { gl_createTexture, gl_bindTexture, gl_texImage2D, gl_activeTexture } from './gl/gl-context'
 import { GL_TEXTURE3, GL_TEXTURE_2D, GL_RGBA, GL_UNSIGNED_BYTE, GL_CLAMP_TO_EDGE } from './gl/gl-constants'
 import { glSetTextureSampling } from './gl/gl-utils'
-import { createElement } from './page'
+//import { createElement } from './page'
 import { sin, TWO_PI, clamp } from './math/scalar'
 import { KeyFunctions, KEY_FORWARD, KEY_BACKWARD, KEY_STRAFE_LEFT, KEY_STRAFE_RIGHT } from './keyboard'
 import { MINIGAME, MINIGAME_COMPLETE, MINIGAME_ACTIVE } from './state/minigame'
@@ -24,7 +24,7 @@ export const bindScreenTexture = (index: number) => {
   return texture
 }
 
-const canvas = createElement('canvas')
+const canvas = document.createElement('canvas')
 canvas.width = 512
 canvas.height = 512
 const context = canvas.getContext('2d')

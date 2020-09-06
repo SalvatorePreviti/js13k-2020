@@ -20,7 +20,7 @@ import {
   gl_uniform3f,
   gl_createProgram,
   gl_linkProgram,
-  gl_context,
+  gl,
   gl_deleteShader,
   gl_attachShader,
   gl_createShader,
@@ -51,7 +51,7 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     gl_shaderSource(shader, sourceCode)
     gl_compileShader(shader)
 
-    debug_checkShaderCompileStatus(gl_context, shader, {
+    debug_checkShaderCompileStatus(gl, shader, {
       title: type === GL_VERTEX_SHADER ? 'vertex shader' : 'fragment shader',
       context: `compile-shader-${mainFunction}`,
       file: import.meta.url
@@ -70,7 +70,7 @@ export const loadMainShaderProgram = (mainFunction: string) => {
 
   gl_linkProgram(program)
 
-  debug_checkShaderProgramLinkStatus(gl_context, program, {
+  debug_checkShaderProgramLinkStatus(gl, program, {
     title: 'shader program',
     context: `compile-shader-${name}`,
     file: import.meta.url

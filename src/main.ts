@@ -3,6 +3,7 @@ import { glDrawFullScreenTriangle } from './gl/gl-utils'
 import { resumeGame, mainMenuVisible, renderHeight, renderWidth } from './page'
 import { debug_beginFrame, debug_endFrame, debug_trycatch_wrap, debug_log, debug_updateCameraPosition } from './debug'
 
+import { min } from './math/scalar'
 import { updateCamera, cameraPos } from './camera'
 import { buildHeightmapTexture } from './texture-heightmap'
 import { buildNoiseTexture } from './texture-noise'
@@ -13,9 +14,8 @@ import { loadMainShader, mainShader, prerenderedShader } from './shader-program'
 import { updateCollider, initCollider } from './collider'
 import { buildScreenTextures, bindScreenTexture } from './texture-screen'
 import { initPrerenderedTexture, renderToPrerenderedTexture, PRERENDERED_TEXTURE_SIZE } from './texture-prerendered'
-import { MINIGAME_LOADING, MINIGAME, MINIGAME_ACTIVE } from './state/minigame'
+import { MINIGAME } from './state/minigame'
 import './save-load'
-import { min, max } from './math/scalar'
 
 let prevTime = 0
 let time = 0

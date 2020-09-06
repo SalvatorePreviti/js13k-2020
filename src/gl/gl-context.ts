@@ -2,7 +2,7 @@ import { canvasElement } from '../page'
 
 import { newProxyBinder } from '../core/objects'
 
-export const gl_context = canvasElement.getContext('webgl2', {
+export const gl = canvasElement.getContext('webgl2', {
   /** Boolean that indicates if the canvas contains an alpha buffer. */
   alpha: false,
   /** Boolean that hints the user agent to reduce the latency by desynchronizing the canvas paint cycle from the event loop */
@@ -21,7 +21,7 @@ export const gl_context = canvasElement.getContext('webgl2', {
   stencil: false
 })
 
-const _functions = newProxyBinder(gl_context)
+const _functions = newProxyBinder(gl)
 
 /** Selects the active texture unit. */
 export const gl_activeTexture = _functions.activeTexture

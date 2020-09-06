@@ -1,15 +1,14 @@
 import { min } from './math/scalar'
 import { newProxyBinder, objectAssign } from './core/objects'
-import { GAME_OPTIONS } from './state/options'
 import { KEY_MAIN_MENU, KeyFunctions } from './keyboard'
 
 export const { body } = document
 
-export const { getElementById, getElementsByTagName, exitPointerLock, createElement } = newProxyBinder(document)
+//export const { getElementById, getElementsByTagName, exitPointerLock, createElement } = newProxyBinder(document)
 
-export const canvasElement = getElementById('C') as HTMLCanvasElement
+export const canvasElement = document.getElementById('C') as HTMLCanvasElement
 
-export const gameTextElement = getElementById('T')
+export const gameTextElement = document.getElementById('T')
 
 /** Total horizontal and vertical padding to apply to the main element */
 const MAIN_ELEMENT_PADDING = 30
@@ -26,8 +25,13 @@ export let renderWidth = 0
 
 export let renderHeight = 0
 
+export let mouseYInversion = 1
+
 /** The main element that holds the canvas and the main menu. */
-const mainElement = getElementById('M') as HTMLDivElement
+const mainElement = document.getElementById('M') as HTMLDivElement
+
+const highQualityCheckbox = document.getElementById('Q') as HTMLInputElement
+const invertYCheckbox = document.getElementById('Y') as HTMLInputElement
 
 /** Handle resize event to update canvas size. */
 const handleResize = () => {
@@ -39,15 +43,12 @@ const handleResize = () => {
     cw = ch * MAIN_ELEMENT_ASPECT_RATIO
   }
 
-  const whStyles = { width: cw | 0, height: ch | 0 }
+  const whStyles = { width: cw | 0, height: ch | 0, fontSize: `${(ch / 23) | 0}px` }
   objectAssign(mainElement.style, whStyles)
   objectAssign(canvasElement.style, whStyles)
 
-  mainElement.style.fontSize = `${(ch / 23) | 0}px`
-
   let { clientWidth: w, clientHeight: h } = mainElement
-  const highQuality = GAME_OPTIONS._highQuality
-  if (!highQuality) {
+  if (!highQualityCheckbox.checked) {
     w = (w / 2) | 0
     h = (h / 2) | 0
   }
@@ -61,20 +62,13 @@ const handleResize = () => {
 onresize = handleResize
 handleResize()
 
-const invertYCheckbox = getElementById('Y') as HTMLInputElement
-invertYCheckbox.onchange = () => (GAME_OPTIONS._invertY = invertYCheckbox.checked)
-
-const highQualityCheckbox = getElementById('Q') as HTMLInputElement
-highQualityCheckbox.onchange = () => {
-  const value = highQualityCheckbox.checked
-  GAME_OPTIONS._highQuality = value
-  handleResize()
-}
+highQualityCheckbox.onchange = handleResize
+invertYCheckbox.onchange = () => (mouseYInversion = invertYCheckbox.checked ? -1 : 1)
 
 export const showMainMenu = () => {
   mainMenuVisible = true
   body.className = 'N'
-  exitPointerLock()
+  document.exitPointerLock()
 }
 
 const canvasRequestPointerLock = (e?: MouseEvent) =>
@@ -90,6 +84,6 @@ const startOrResumeClick = () => {
   canvasRequestPointerLock()
 }
 
-getElementById('R').onclick = startOrResumeClick
+document.getElementById('R').onclick = startOrResumeClick
 KeyFunctions[KEY_MAIN_MENU] = showMainMenu
 canvasElement.onmousedown = canvasRequestPointerLock
