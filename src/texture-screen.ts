@@ -1,14 +1,7 @@
 import { debug_time, debug_timeEnd } from './debug'
-import { gl_createTexture, gl_bindTexture, gl_texImage2D, gl_pixelStorei, gl_activeTexture } from './gl/gl-context'
+import { gl_createTexture, gl_bindTexture, gl_texImage2D, gl_activeTexture } from './gl/gl-context'
 import { newProxyBinder } from './core/objects'
-import {
-  GL_TEXTURE3,
-  GL_TEXTURE_2D,
-  GL_RGBA,
-  GL_UNSIGNED_BYTE,
-  GL_UNPACK_ALIGNMENT,
-  GL_CLAMP_TO_EDGE
-} from './gl/gl-constants'
+import { GL_TEXTURE3, GL_TEXTURE_2D, GL_RGBA, GL_UNSIGNED_BYTE, GL_CLAMP_TO_EDGE } from './gl/gl-constants'
 import { glSetTextureSampling } from './gl/gl-utils'
 import { createElement } from './page'
 import { sin, TWO_PI, clamp } from './math/scalar'
@@ -47,7 +40,6 @@ const setFillColor = (color: string) => {
 const captureScreenTexture = (index: number) => {
   bindScreenTexture(index)
   const imageData = getImageData(0, 0, SCREEN_TEXTURE_SIZE, SCREEN_TEXTURE_SIZE)
-  gl_pixelStorei(GL_UNPACK_ALIGNMENT, 1)
   gl_texImage2D(
     GL_TEXTURE_2D,
     0,

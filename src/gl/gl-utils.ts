@@ -8,7 +8,10 @@ import {
   GL_TEXTURE_WRAP_S,
   GL_REPEAT
 } from './gl-constants'
-import { gl_drawArrays, gl_texParameteri } from './gl-context'
+import { gl_drawArrays, gl_texParameteri, gl_createFramebuffer } from './gl-context'
+
+/** Main framebuffer used for pregenerating the heightmap and to render the collision shader */
+export const glFrameBuffer: WebGLFramebuffer = gl_createFramebuffer()
 
 export const glDrawFullScreenTriangle = () => {
   gl_drawArrays(GL_TRIANGLES, 0, 3)

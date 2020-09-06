@@ -6,7 +6,7 @@ import { KEY_ACTION, KEY_FLASHLIGHT_TOGGLE, KeyFunctions, PressedKeys } from '..
 import { objectValues } from '../core/objects'
 import { MINIGAME, MINIGAME_LOADING, MINIGAME_INACTIVE } from './minigame'
 import { vec2Set } from '../math/vec2'
-import { DEG_TO_RAD, PI } from '../math/scalar'
+import { DEG_TO_RAD } from '../math/scalar'
 
 interface GameObject {
   _location: Vec3

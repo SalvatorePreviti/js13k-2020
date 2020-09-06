@@ -1,4 +1,4 @@
-import { glDrawFullScreenTriangle, glSetTextureSampling } from './gl/gl-utils'
+import { glDrawFullScreenTriangle, glSetTextureSampling, glFrameBuffer } from './gl/gl-utils'
 
 import { debug_time, debug_timeEnd } from './debug'
 import {
@@ -14,10 +14,8 @@ import {
   gl_createTexture,
   gl_bindTexture,
   gl_texImage2D,
-  gl_deleteFramebuffer,
   gl_bindFramebuffer,
   gl_framebufferTexture2D,
-  gl_createFramebuffer,
   gl_activeTexture
 } from './gl/gl-context'
 import { loadMainShaderProgram } from './shader-program'
@@ -45,26 +43,14 @@ export const buildHeightmapTexture = () => {
 
   glSetTextureSampling(GL_CLAMP_TO_EDGE)
 
-  // Create and bind the framebuffer
-
-  const fb = gl_createFramebuffer()
-  gl_bindFramebuffer(GL_FRAMEBUFFER, fb)
-
-  // attach the texture as the first color attachment
+  gl_bindFramebuffer(GL_FRAMEBUFFER, glFrameBuffer)
   gl_framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, heightmapTexture, 0)
-
-  // Load the shader
 
   loadMainShaderProgram('h')(0, HEIGHTMAP_TETURE_SIZE, HEIGHTMAP_TETURE_SIZE)
 
-  // Render
-
   glDrawFullScreenTriangle()
 
-  // Deallocate stuff
-  gl_framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, null, 0)
   gl_bindFramebuffer(GL_FRAMEBUFFER, null)
-  gl_deleteFramebuffer(fb)
 
   debug_timeEnd(buildHeightmapTexture)
 }

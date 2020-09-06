@@ -95,17 +95,7 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     iB
   } = newProxyGetter((uniform: string) => gl_getUniformLocation(program, uniform))
 
-  // Texture 0
-  gl_uniform1i(iNoise, 0)
-
-  // Texture 1
-  gl_uniform1i(iHeightmap, 1)
-
-  // Texture 2
-  gl_uniform1i(iPrerendered, 2)
-
-  // Texture 3
-  gl_uniform1i(iScreens, 3)
+  ;[iNoise, iHeightmap, iPrerendered, iScreens].map(gl_uniform1i)
 
   const useShader = (time: number, width: number, height: number) => {
     gl_viewport(0, 0, width, height)
