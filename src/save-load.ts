@@ -2,12 +2,11 @@ import { GAME_OBJECTS, INVENTORY } from './state/objects'
 import { ANIMATIONS } from './state/animations'
 import { cameraPos, cameraEuler } from './camera'
 import { setText } from './text'
-import { resumeGame, getElementById } from './page'
+import { resumeGame } from './page'
 import { MINIGAME } from './state/minigame'
-import { GAME_OPTIONS } from './state/options'
 import { updateMinigameTexture } from './texture-screen'
 
-const data = [GAME_OBJECTS, INVENTORY, ANIMATIONS, MINIGAME, GAME_OPTIONS, cameraPos, cameraEuler]
+const data = [GAME_OBJECTS, INVENTORY, ANIMATIONS, MINIGAME, cameraPos, cameraEuler]
 
 function deepMerge(original: any, item: any) {
   for (const key in item) {
@@ -30,5 +29,5 @@ const LOAD_GAME = () => {
   resumeGame()
 }
 
-getElementById('S').onclick = SAVE_GAME
-getElementById('L').onclick = LOAD_GAME
+document.getElementById('S').onclick = SAVE_GAME
+document.getElementById('L').onclick = LOAD_GAME

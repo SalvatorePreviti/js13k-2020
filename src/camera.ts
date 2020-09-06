@@ -15,7 +15,7 @@ import {
   debug_updateCameraDirection,
   debug_updateCameraEulerAngles
 } from './debug'
-import { canvasElement } from './page'
+import { canvasElement, mouseYInversion } from './page'
 import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD } from './math/scalar'
 import {
   vec3Temp0,
@@ -32,7 +32,6 @@ import {
 import { vec2New } from './math/vec2'
 import { typedArraySet } from './core/arrays'
 import { RUMBLING } from './state/animations'
-import { GAME_OPTIONS } from './state/options'
 import { MINIGAME, MINIGAME_LOADING, MINIGAME_ACTIVE } from './state/minigame'
 import { GAME_OBJECTS } from './state/objects'
 
@@ -150,7 +149,7 @@ onmousemove = (e) => {
     cameraEuler.x = wrapAngleInRadians(cameraEuler.x - e.movementX * MOUSE_ROTATION_SENSITIVITY_X)
 
     cameraEuler.y = clamp(
-      cameraEuler.y + e.movementY * MOUSE_ROTATION_SENSITIVITY_Y * (GAME_OPTIONS._invertY ? -1 : 1),
+      cameraEuler.y + e.movementY * mouseYInversion * MOUSE_ROTATION_SENSITIVITY_Y,
       -87 * DEG_TO_RAD,
       87 * DEG_TO_RAD
     )
