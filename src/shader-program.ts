@@ -74,22 +74,7 @@ export const loadMainShaderProgram = (mainFunction: string) => {
   const iA = gl.getUniformLocation(program, 'iA')
   const iB = gl.getUniformLocation(program, 'iB')
 
-  /*const {
-    tN: iNoise,
-    tH: iHeightmap,
-    tP: iPrerendered,
-    tS: iScreens,
-    iR: iResolution,
-    iM: iCameraMat3,
-    iS: iSunDirection,
-    iP,
-    iD,
-    iF,
-    iA,
-    iB
-  } = newProxyGetter((uniform: string) => gl.getUniformLocation(program, uniform))*/
-
-  ;[iNoise, iHeightmap, iPrerendered, iScreens].map(gl.uniform1i)
+  ;[iNoise, iHeightmap, iPrerendered, iScreens].map((t, i) => gl.uniform1i(t, i))
 
   const useShader = (time: number, width: number, height: number) => {
     gl.viewport(0, 0, width, height)
