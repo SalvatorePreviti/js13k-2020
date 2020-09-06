@@ -2,7 +2,7 @@ import { min } from './math/scalar'
 import { objectAssign } from './core/objects'
 import { KEY_MAIN_MENU, KeyFunctions } from './keyboard'
 
-export const { body } = document
+export const body = document.body
 
 //export const { getElementById, getElementsByTagName, exitPointerLock, createElement } = newProxyBinder(document)
 
