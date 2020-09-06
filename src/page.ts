@@ -78,12 +78,13 @@ const startOrResumeClick = () => {
   canvasRequestPointerLock()
 }
 
-document.getElementById('R').onclick = startOrResumeClick
-KeyFunctions[KEY_MAIN_MENU] = showMainMenu
-canvasElement.onmousedown = canvasRequestPointerLock
-
-highQualityCheckbox.onchange = handleResize
-invertYCheckbox.onchange = () => (mouseYInversion = invertYCheckbox.checked ? -1 : 1)
-
 handleResize()
 onresize = handleResize
+
+document.getElementById('R').onclick = startOrResumeClick
+
+KeyFunctions[KEY_MAIN_MENU] = showMainMenu
+
+canvasElement.onmousedown = canvasRequestPointerLock
+highQualityCheckbox.onchange = handleResize
+invertYCheckbox.onchange = () => (mouseYInversion = invertYCheckbox.checked ? -1 : 1)
