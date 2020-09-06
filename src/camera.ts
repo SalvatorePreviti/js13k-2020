@@ -26,7 +26,8 @@ import {
   VEC3_UNIT_Y,
   vec3New,
   vec3NewValue,
-  vec3Set
+  vec3Set,
+  vec3Temp1
 } from './math/vec3'
 import { vec2New } from './math/vec2'
 import { typedArraySet } from './core/arrays'
@@ -54,14 +55,11 @@ export const cameraDir: Vec3 = vec3NewValue()
 /** Camera rotation matrix */
 export const cameraMat3: Mat3 = new Float32Array(9)
 
-export const cameraMoveForward = (amount: number) => {
-  cameraPos.x += amount * cameraDir.x
-  cameraPos.z += amount * cameraDir.z
-}
+export const movementForward = (direction: number) =>
+  vec3Add(vec3Temp0, vec3ScalarMultiply(vec3Normalize(vec3Set(vec3Temp1, cameraDir.x, 0, cameraDir.z)), direction))
 
-export const cameraStrafe = (amount: number) => {
-  vec3Add(cameraPos, vec3ScalarMultiply(vec3Normalize(vec3Cross(vec3Temp0, cameraDir, VEC3_UNIT_Y)), amount))
-}
+export const movementStrafe = (direction: number) =>
+  vec3Add(vec3Temp0, vec3ScalarMultiply(vec3Normalize(vec3Cross(vec3Temp1, cameraDir, VEC3_UNIT_Y)), direction))
 
 export const cameraMoveDown = (amount: number) => {
   cameraPos.y += amount
@@ -111,17 +109,21 @@ export const updateCamera = (timeDelta: number, time: number) => {
     MINIGAME._state !== MINIGAME_ACTIVE &&
     !GAME_OBJECTS._submarine._gameEnded
   ) {
+    vec3Set(vec3Temp0, 0, 0, 0)
     if (PressedKeys[KEY_FORWARD]) {
-      cameraMoveForward(speed)
+      movementForward(1)
     }
     if (PressedKeys[KEY_BACKWARD]) {
-      cameraMoveForward(-speed)
+      movementForward(-1)
     }
     if (PressedKeys[KEY_STRAFE_LEFT]) {
-      cameraStrafe(-speed)
+      movementStrafe(-1)
     }
     if (PressedKeys[KEY_STRAFE_RIGHT]) {
-      cameraStrafe(speed)
+      movementStrafe(1)
+    }
+    if (vec3Temp0.x || vec3Temp0.z) {
+      vec3Add(cameraPos, vec3ScalarMultiply(vec3Normalize(vec3Temp0), speed))
     }
     if (debug_mode) {
       if (PressedKeys[KEY_FLY_UP]) {
