@@ -229,19 +229,19 @@ float torus(vec3 p, vec2 t) {
 //=== OPERATIONS ===
 // hg_sdf: http://mercury.sexy/hg_sdf/
 // splits world up with limits
-void pModInterval(inout float p, float size, float start, float stop) {
+float pModInterval(inout float p, float size, float start, float stop) {
   float halfsize = size * 0.5;
   float c = floor((p + halfsize) / size);
   p = mod(p + halfsize, size) - halfsize;
   if (c > stop) {
     p += size * (c - stop);
-    // c = stop;
+    c = stop;
   }
   if (c < start) {
     p += size * (c - start);
-    // c = start;
+    c = start;
   }
-  // return c;
+  return c;
 }
 
 // Repeat around the origin a number of times
@@ -407,15 +407,19 @@ float antenna(vec3 p, vec2 rotation) {
 }
 
 float ruinedBuildings(vec3 p) {
-  float bounds = length(p) - 95.;
-  if (bounds > 15.)
+  
+  float index = pModInterval(p.x, 60., -5.,5.);
+  float bounds = length(p) - 46.;
+  if (bounds > 10.)
     return bounds;
-  p.y += p.x * p.x * 0.001;  // slight bend
-  p.xy *= rot(PI / 3.);
-  float r = cuboid(p - vec3(16, 0, 0), vec3(15, 74, 15));
-  float r2 = cuboid(p - vec3(-16, 20, 0), vec3(15, 74, 15));
+  //p.y += p.x * p.x * 0.001;  // slight bend
+
+  p.xy *= rot(fract(sin(index * 2435.345234)) - 0.5);
+  //p.x = abs(p.x - 20.);
+  float r = cuboid(p - vec3(0, -20, 0), vec3(15, 46, 15));
+  //float r2 = cuboid(p - vec3(-20, -12, 0), vec3(15, 46, 15));
   vec3 q = mod(p + 2., 4.) - 2.;
-  return max(min(r, r2), -cuboid(q, vec3(1.5)));
+  return max(r, -cuboid(q, vec3(1.5)));
 }
 
 float monument(vec3 p) {
@@ -623,7 +627,7 @@ float nonTerrain(vec3 p) {
   float a = antenna(p - vec3(2, 10, 2), vec2(0.5, iAnimAntennaRotation));
   float m = monument(p - vec3(47.5, 3.5, 30.5));
   float pr = prison(p.zyx - vec3(11, 1.25, -44));
-  float r = ruinedBuildings(p - vec3(100, 10, 300));
+  float r = ruinedBuildings(p - vec3(0, 10, 300));
   vec3 oilrigCoords = p - vec3(26, 5, -58);
   oilrigCoords.xz *= rot(PI / 2. + 0.4);
   float o = oilrig(oilrigCoords);
