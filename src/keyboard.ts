@@ -25,7 +25,7 @@ export const KEY_FLY_DOWN = 11
 /* List of pressed keys */
 export let PressedKeys: boolean[] = []
 
-export const KeyFunctions: Record<number, () => void> = {}
+export const KeyFunctions: Record<number, (repeat?: boolean) => void> = {}
 
 const _keyMap: Record<string, number> = {
   w: KEY_FORWARD,
@@ -76,8 +76,8 @@ const _setKeyPressed = (e: KeyboardEvent, value: boolean) => {
     PressedKeys = [] // Clear pressed status to prevent key sticking when alt+tabbing or showing the menu
   } else {
     const keyId = _keyMap[e.key] || 0
-    if (!e.repeat && !PressedKeys[keyId] && KeyFunctions[keyId]) {
-      KeyFunctions[keyId]()
+    if (value && KeyFunctions[keyId]) {
+      KeyFunctions[keyId](e.repeat)
     }
     PressedKeys[keyId] = value
   }

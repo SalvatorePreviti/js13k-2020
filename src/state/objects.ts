@@ -78,7 +78,7 @@ const GAME_OBJECTS = {
       INVENTORY._antennaKey = true
       this._visible = false
       GAME_OBJECTS._monumentButton._visible = true
-      runAnimation(ANIMATIONS._monumentDescend, false) //play monumentDescend in reverse
+      runAnimation(ANIMATIONS._monumentDescend, -1) //play monumentDescend in reverse
     },
     _onLookAt: () => 'A key'
   },
@@ -189,7 +189,7 @@ const GAME_OBJECTS = {
         runAnimation(ANIMATIONS._elevatorHeight)
       }
       if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._max) {
-        runAnimation(ANIMATIONS._elevatorHeight, false) //run it backwards
+        runAnimation(ANIMATIONS._elevatorHeight, -1) //run it backwards
       }
     },
     _onLookAt() {
@@ -228,7 +228,7 @@ const GAME_OBJECTS = {
     _gameEnded: false,
     _onInteract() {
       this._gameEnded = true
-      runAnimation(ANIMATIONS._submarine, false)
+      runAnimation(ANIMATIONS._submarine, -1)
       vec3Set(cameraPos, -42, 12, -47)
       vec2Set(cameraEuler, -12.7 * DEG_TO_RAD, 33.7 * DEG_TO_RAD)
       setText('<h1>The End</h1><h2>Game by Salvatore Previti & Ben Clark</h2>Thank you for playing!', 10000)
@@ -243,8 +243,7 @@ const getVisibleObject = (): GameObject => {
     if (gameObject._visible) {
       const objectLocation = gameObject._location
       if (vec3Distance(objectLocation, cameraPos) <= gameObject._lookAtDistance) {
-        const dotToObject = vec3Dot(cameraDir, vec3Direction(vec3Temp0, cameraPos, objectLocation))
-        if (dotToObject > 0.9) {
+        if (vec3Dot(cameraDir, vec3Direction(vec3Temp0, cameraPos, objectLocation)) > 0.9) {
           return gameObject
         }
       }
@@ -255,18 +254,13 @@ const getVisibleObject = (): GameObject => {
 
 const updateGameObjects = () => {
   const visibleObject = getVisibleObject()
-  if (visibleObject) {
-    setText(visibleObject._onLookAt() || '')
-    if (PressedKeys[KEY_ACTION]) {
-      visibleObject._onInteract()
-    }
-  } else {
-    setText('')
+  setText((visibleObject && visibleObject._onLookAt()) || '')
+  if (visibleObject && PressedKeys[KEY_ACTION]) {
+    visibleObject._onInteract()
   }
 }
 
 export { GAME_OBJECTS, INVENTORY, updateGameObjects }
 
-KeyFunctions[KEY_FLASHLIGHT_TOGGLE] = () => {
-  GAME_OBJECTS._flashlight._active = INVENTORY._flashlight && !GAME_OBJECTS._flashlight._active
-}
+KeyFunctions[KEY_FLASHLIGHT_TOGGLE] = (repeat: boolean) =>
+  !repeat && (GAME_OBJECTS._flashlight._active = INVENTORY._flashlight && !GAME_OBJECTS._flashlight._active)
