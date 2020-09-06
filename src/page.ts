@@ -107,3 +107,6 @@ export const gl = canvasElement.getContext('webgl2', {
   /** Boolean that indicates that the drawing buffer has a stencil buffer of at least 8 bits. */
   stencil: false
 })
+
+/** Main framebuffer used for pregenerating the heightmap and to render the collision shader */
+export const glFrameBuffer: WebGLFramebuffer = gl.createFramebuffer()

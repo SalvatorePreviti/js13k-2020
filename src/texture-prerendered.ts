@@ -1,4 +1,4 @@
-import { glSetTextureSampling, glFrameBuffer } from './gl/gl-utils'
+import { glSetTextureSampling } from './gl/gl-utils'
 
 import { debug_time, debug_timeEnd } from './debug'
 import {
@@ -12,7 +12,7 @@ import {
   GL_NEAREST,
   GL_TRIANGLES
 } from './gl/gl-constants'
-import { gl } from './page'
+import { gl, glFrameBuffer } from './page'
 
 export const PRERENDERED_TEXTURE_SIZE = 256
 

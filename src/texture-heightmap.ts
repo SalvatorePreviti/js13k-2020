@@ -1,4 +1,4 @@
-import { glSetTextureSampling, glFrameBuffer } from './gl/gl-utils'
+import { glSetTextureSampling } from './gl/gl-utils'
 
 import { debug_time, debug_timeEnd } from './debug'
 import {
@@ -12,7 +12,7 @@ import {
   GL_TRIANGLES
 } from './gl/gl-constants'
 import { loadMainShaderProgram } from './shader-program'
-import { gl } from './page'
+import { gl, glFrameBuffer } from './page'
 
 export const HEIGHTMAP_TETURE_SIZE = 2048
 
