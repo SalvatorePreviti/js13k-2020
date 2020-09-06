@@ -17,7 +17,7 @@ const textQueue: Text[] = []
 //        replacing any other text with negative timeout at the back of the queue.
 //        This text will show until another setText is called
 function setText(text: string, timeout: number = -1) {
-  const textObject = { _text: text, _timeout: timeout }
+  const textObject = text || timeout > 0 ? { _text: text, _timeout: timeout } : EMPTY
   //If the last item in the queue (we pop from the end of the queue, so last one is [0]) has a timeout of -1
   if (textQueue[0]) {
     //if the item we're adding also has a timeout of -1 then replace it:
