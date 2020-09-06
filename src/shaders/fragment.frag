@@ -550,7 +550,7 @@ float guardTower(vec3 p) {
   if (bounds > 4.) {
     return bounds;
   }
-  vec3 q = p, z, y = p;
+  vec3 q = p, z, y = p, l=p;
   pModPolar(q.xz, 6.);
   z = q;
   pModInterval(z.y, 1.5, -3., 7.);
@@ -570,7 +570,13 @@ float guardTower(vec3 p) {
       ),
       -cuboid(p+vec3(0,7,1), vec3(.8,1.2,.8))  //cut doorway out
   );
-  float elevator = cylinder(p.xzy-vec3(0,0,iAnimElevatorHeight),1.,11.);  //elevator
+  l.y-=iAnimElevatorHeight;
+  float elevator = cylinder(l.xzy,1.,11.);  //elevator
+  pModInterval(l.y, .5, -21., 21.);
+  elevator = max(
+    elevator,
+    -torus(l,vec2(1.,.01))
+  );
   y -= vec3(.8, 12.7, -.9);
   pModInterval(y.y, 20.5, -1., 0.);
 
