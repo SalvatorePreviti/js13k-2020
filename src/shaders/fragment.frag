@@ -319,9 +319,10 @@ float antennaConsole(vec3 p) {
   float r = cuboid(q + vec3(.2, .25, 0), vec3(.25, .5, .5)) - 0.01;
   q -= vec3(-.13, .25, 0);
   pModInterval(q.z, .04, -10., 10.);
-  pModInterval(q.x, .03, -5., 5.);
-  r = min(r, cuboid(q, vec3(.01)) - .005);
-  r = min(r, cuboid(p - vec3(-.45, .2, 0), vec3(.2, .8, .5)) - 0.01);
+  pModInterval(q.x, .04, -3., 3.);
+  float keys = cuboid(q, vec3(.01)) - .005;
+  updateSubMaterial(SUBMATERIAL_METAL, keys);
+  r = min(min(r,keys), cuboid(p - vec3(-.45, .2, 0), vec3(.2, .8, .5)) - 0.01);
   return r;
 }
 
@@ -397,8 +398,9 @@ float antenna(vec3 p, vec2 rotation) {
   p -= vec3(7, -2.85, 0);
   p.xy *= rot(-.5);
   structure = min(structure, cuboid(p, vec3(1, 1, .8)) - .01);
-  float metalThings = min(dish, min(door, console));
+  float metalThings = min(dish, door);
   updateSubMaterial(SUBMATERIAL_BRIGHT_RED, oilrigLever);
+  updateSubMaterial(SUBMATERIAL_DARK_RED, console);
   updateSubMaterial(SUBMATERIAL_METAL, metalThings);
 
   return min(min(console, structure), min(metalThings, oilrigLever));
