@@ -21,14 +21,13 @@ let prevTime = 0
 let time = 0
 
 setTimeout(() => {
-  showMainMenu()
-
   buildNoiseTexture()
   buildHeightmapTexture()
   buildScreenTextures()
   initPrerenderedTexture()
   initCollider()
   loadMainShader()
+  showMainMenu()
 
   const animationFrame = debug_trycatch_wrap(
     (timeMilliseconds: number) => {
