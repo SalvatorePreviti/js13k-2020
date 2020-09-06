@@ -71,14 +71,9 @@ export const showMainMenu = () => {
 const canvasRequestPointerLock = (e?: MouseEvent) =>
   (!e || !e.button) && !mainMenuVisible && canvasElement.requestPointerLock()
 
-export const resumeGame = () => {
-  mainMenuVisible = false
-  body.className = ''
-}
-
 let started: Boolean
 
-const startOrResumeClick = () => {
+export const startOrResumeClick = () => {
   if (!started) {
     //set camera pos
     document.getElementById('R').innerText = 'Resume Game'
@@ -88,7 +83,8 @@ const startOrResumeClick = () => {
 
     started = true
   }
-  resumeGame()
+  mainMenuVisible = false
+  body.className = ''
   canvasRequestPointerLock()
 }
 
