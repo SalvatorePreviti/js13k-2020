@@ -19,11 +19,11 @@ const MAIN_ELEMENT_ASPECT_RATIO = 1.5
 /** The maximum width of the main element, and the canvas. */
 const MAIN_ELEMENT_MAX_WIDTH = 1200
 
-export let mainMenuVisible = false
+export let mainMenuVisible: boolean
 
-export let renderWidth = 0
+export let renderWidth: number
 
-export let renderHeight = 0
+export let renderHeight: number
 
 export let mouseYInversion = 1
 
