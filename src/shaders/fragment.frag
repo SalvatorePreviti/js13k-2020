@@ -322,7 +322,7 @@ float antennaConsole(vec3 p) {
   pModInterval(q.x, .04, -3., 3.);
   float keys = cuboid(q, vec3(.01)) - .005;
   updateSubMaterial(SUBMATERIAL_METAL, keys);
-  r = min(min(r,keys), cuboid(p - vec3(-.45, .2, 0), vec3(.2, .8, .5)) - 0.01);
+  r = min(min(r, keys), cuboid(p - vec3(-.45, .2, 0), vec3(.2, .8, .5)) - 0.01);
   return r;
 }
 
@@ -747,10 +747,6 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
 
     res = min(res, 32. * nearest / dist);  // soft shadows
 
-    if (res < 0.01) {
-      break;  // Quite dark already.
-    }
-
     dist += nearest;
   }
   return res;
@@ -861,8 +857,8 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   } else {
     vec3 hitNormal = material == MATERIAL_TERRAIN ? computeTerrainNormal(hit) : computeNonTerrainNormal(hit);
     color = getColorAt(hit, hitNormal, material, subMaterial);
-    shadow = getShadow(p + dir * mdist, mdist, normal);
     normal = normalize(mix(hitNormal, normal, waterOpacity));
+    shadow = getShadow(p + dir * mdist, mdist, normal);
   }
 
   float specular = isWater || (material == MATERIAL_BUILDINGS && subMaterial > SUBMATERIAL_CONCRETE)
