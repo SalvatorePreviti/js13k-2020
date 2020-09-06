@@ -1,6 +1,5 @@
 import { debug_mode } from './debug'
 import { mainMenuVisible } from './page'
-import { objectAssign } from './core/objects'
 
 export const KEY_FORWARD = 1
 
@@ -60,7 +59,7 @@ const _keyMap: Record<string, number> = {
 }
 
 if (debug_mode) {
-  objectAssign(_keyMap, {
+  Object.assign(_keyMap, {
     f: KEY_FLY_UP,
     F: KEY_FLY_UP,
     '+': KEY_FLY_UP,

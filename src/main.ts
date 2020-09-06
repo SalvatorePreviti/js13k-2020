@@ -15,7 +15,7 @@ import { buildScreenTextures, bindScreenTexture } from './texture-screen'
 import { initPrerenderedTexture, renderToPrerenderedTexture, PRERENDERED_TEXTURE_SIZE } from './texture-prerendered'
 import { MINIGAME_LOADING, MINIGAME, MINIGAME_ACTIVE } from './state/minigame'
 import './save-load'
-import { min } from './math/scalar'
+import { min, max } from './math/scalar'
 
 let prevTime = 0
 let time = 0
@@ -56,7 +56,7 @@ setTimeout(() => {
 
       // Render main scene
 
-      bindScreenTexture(MINIGAME._state >= MINIGAME_ACTIVE ? 3 : MINIGAME._state === MINIGAME_LOADING ? 2 : time & 1)
+      bindScreenTexture(min(MINIGAME._state || time & 1, 3))
 
       mainShader(time, renderWidth, renderHeight)
 
