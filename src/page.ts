@@ -1,5 +1,5 @@
 import { min } from './math/scalar'
-import { newProxyBinder, objectAssign } from './core/objects'
+import { objectAssign } from './core/objects'
 import { KEY_MAIN_MENU, KeyFunctions } from './keyboard'
 
 export const { body } = document
@@ -8,7 +8,7 @@ export const { body } = document
 
 export const canvasElement = document.getElementById('C') as HTMLCanvasElement
 
-export const gameTextElement = document.getElementById('T')
+export const gameTextElement = document.getElementById('T') as HTMLDivElement
 
 /** Total horizontal and vertical padding to apply to the main element */
 const MAIN_ELEMENT_PADDING = 30
@@ -59,12 +59,6 @@ const handleResize = () => {
   canvasElement.height = h
 }
 
-onresize = handleResize
-handleResize()
-
-highQualityCheckbox.onchange = handleResize
-invertYCheckbox.onchange = () => (mouseYInversion = invertYCheckbox.checked ? -1 : 1)
-
 export const showMainMenu = () => {
   mainMenuVisible = true
   body.className = 'N'
@@ -72,7 +66,7 @@ export const showMainMenu = () => {
 }
 
 const canvasRequestPointerLock = (e?: MouseEvent) =>
-  (!e || e.button === 0) && !mainMenuVisible && canvasElement.requestPointerLock()
+  (!e || !e.button) && !mainMenuVisible && canvasElement.requestPointerLock()
 
 export const resumeGame = () => {
   mainMenuVisible = false
@@ -87,3 +81,9 @@ const startOrResumeClick = () => {
 document.getElementById('R').onclick = startOrResumeClick
 KeyFunctions[KEY_MAIN_MENU] = showMainMenu
 canvasElement.onmousedown = canvasRequestPointerLock
+
+highQualityCheckbox.onchange = handleResize
+invertYCheckbox.onchange = () => (mouseYInversion = invertYCheckbox.checked ? -1 : 1)
+
+handleResize()
+onresize = handleResize
