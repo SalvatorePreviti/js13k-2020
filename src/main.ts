@@ -1,5 +1,5 @@
 import './css/styles.css'
-import { resumeGame, mainMenuVisible, renderHeight, renderWidth, gl } from './page'
+import { mainMenuVisible, renderHeight, renderWidth, gl, showMainMenu } from './page'
 import { debug_beginFrame, debug_endFrame, debug_trycatch_wrap, debug_log, debug_updateCameraPosition } from './debug'
 
 import { min } from './math/scalar'
@@ -21,7 +21,7 @@ let prevTime = 0
 let time = 0
 
 setTimeout(() => {
-  resumeGame() //showMainMenu()
+  showMainMenu()
 
   buildNoiseTexture()
   buildHeightmapTexture()
