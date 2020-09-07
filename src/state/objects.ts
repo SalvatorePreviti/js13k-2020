@@ -231,6 +231,7 @@ const GAME_OBJECTS = {
       runAnimation(ANIMATIONS._submarine, -1)
       vec3Set(cameraPos, -42, 12, -47)
       vec2Set(cameraEuler, -12.7 * DEG_TO_RAD, 33.7 * DEG_TO_RAD)
+      setText('', 3) //3 seconds delay
       setText('<h1>The End</h1><h2>Game by Salvatore Previti & Ben Clark</h2>Thank you for playing!', 10000)
     }
   }

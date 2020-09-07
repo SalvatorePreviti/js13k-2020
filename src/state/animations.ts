@@ -86,7 +86,7 @@ const ANIMATIONS = {
   _submarine: {
     _value: -10,
     _initial: -10,
-    _max: 0,
+    _max: 4,
     _speed: 1,
     _running: 0
   }
