@@ -839,16 +839,18 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
     waterColor = mix(vec3(.15, .42, .63), vec3(.15, .62, .83), abs(waterXYD.z));
   }
 
+  int mat = material;
+  int submat = subMaterial;
   if (material == MATERIAL_SKY) {
     color = COLOR_SKY;  // mix(COLOR_SKY, COLOR_SUN, pow(clamp(dot(dir, iSunDirection),0.,1.),10.));
   } else {
     vec3 hitNormal = material == MATERIAL_TERRAIN ? computeTerrainNormal(hit) : computeNonTerrainNormal(hit);
-    color = getColorAt(hit, hitNormal, material, subMaterial);
+    color = getColorAt(hit, hitNormal, mat, submat);
     normal = normalize(mix(hitNormal, normal, waterOpacity));
     shadow = getShadow(p + dir * mdist, mdist, normal);
   }
 
-  float specular = isWater || (material == MATERIAL_BUILDINGS && subMaterial > SUBMATERIAL_CONCRETE)
+  float specular = isWater || (mat == MATERIAL_BUILDINGS && submat > SUBMATERIAL_CONCRETE)
       ? pow(clamp01(dot(iSunDirection, reflect(dir, normal))), 50.)
       : 0.;
 
