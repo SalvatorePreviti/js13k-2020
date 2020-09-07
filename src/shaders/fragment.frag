@@ -123,19 +123,19 @@ out vec4 oColor;
 
 // Noise texture
 #define iNoise tN
-uniform sampler2D iNoise;
+uniform highp sampler2D iNoise;
 
 // Heightmap texture
 #define iHeightmap tH
-uniform sampler2D iHeightmap;
+uniform highp sampler2D iHeightmap;
 
 // Prerendered texture
 #define iPrerendered tP
-uniform sampler2D iPrerendered;
+uniform highp sampler2D iPrerendered;
 
 // Screens texture
 #define iScreens tS
-uniform sampler2D iScreens;
+uniform highp sampler2D iScreens;
 
 //=== STATE ===
 
@@ -145,7 +145,7 @@ float epsilon;
 //=== COLORS ===
 
 const vec3 COLOR_SKY = vec3(.4, .8, 1);
-const vec3 COLOR_SUN = vec3(1.1, .9, .85);
+const vec3 COLOR_SUN = vec3(1.16, .95, .85);
 
 const vec3 TERRAIN_SIZE = vec3(120., 19., 80.);
 const float TERRAIN_OFFSET = 3.;
