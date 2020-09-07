@@ -786,10 +786,11 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat, int subMat) {
       ;
       break;
     case MATERIAL_BUILDINGS:
-      if (subMat == SUBMATERIAL_CONCRETE)
-        color += 0.1 *
-            (texture(iNoise, hit.xy * .3).x * normal.z + texture(iNoise, hit.yz * .3).x * normal.x +
-                texture(iNoise, hit.xz * .3).x * normal.y - 0.5);
+      if (subMat == SUBMATERIAL_CONCRETE) {
+        vec4 concrete = (texture(iNoise, hit.xy * .3) * normal.z + texture(iNoise, hit.yz * .3) * normal.x +
+            texture(iNoise, hit.xz * .3) * normal.y - 0.5);
+        color += 0.18 * (concrete.x - concrete.y + concrete.z - concrete.w);
+      }
       if (subMat == SUBMATERIAL_METAL)
         color = vec3(1);  // extra bright
       if (subMat == SUBMATERIAL_BRIGHT_RED)
