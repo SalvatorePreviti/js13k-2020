@@ -4,6 +4,7 @@ import { KEY_MAIN_MENU, KeyFunctions } from './keyboard'
 import { vec3Set } from './math/vec3'
 import { vec2Set } from './math/vec2'
 import { cameraPos, cameraEuler } from './camera'
+import { playMusic } from './music'
 
 export const body = document.body
 
@@ -82,6 +83,7 @@ export const startOrResumeClick = () => {
     vec2Set(cameraEuler, 70 * DEG_TO_RAD, 0 * DEG_TO_RAD)
 
     started = true
+    playMusic()
   }
   mainMenuVisible = false
   body.className = ''
