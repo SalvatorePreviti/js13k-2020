@@ -4,6 +4,7 @@ import { KEY_MAIN_MENU, KeyFunctions } from './keyboard'
 import { vec3Set } from './math/vec3'
 import { vec2Set } from './math/vec2'
 import { cameraPos, cameraEuler } from './camera'
+import { setText } from './text'
 
 export const body = document.body
 
@@ -73,8 +74,11 @@ const canvasRequestPointerLock = (e?: MouseEvent) =>
 
 let started: Boolean
 
-export const startOrResumeClick = () => {
+export const startOrResumeClick = (newGame = true) => {
   if (!started) {
+    if (newGame) {
+      setText('Where am I? How did I get here?', 2)
+    }
     //set camera pos
     document.getElementById('R').innerText = 'Resume Game'
     //start positions:
