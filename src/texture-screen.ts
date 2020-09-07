@@ -64,29 +64,31 @@ export const updateMinigameTexture = () => {
   context.fillStyle = '#000015'
   context.fillRect(0, 0, SCREEN_TEXTURE_SIZE, SCREEN_TEXTURE_SIZE)
 
-  if (MINIGAME._state < MINIGAME_COMPLETE) {
-    context.strokeStyle = '#f00'
-    drawFreq(70, 300)
-    context.globalCompositeOperation = 'lighter'
-    context.strokeStyle = '#0ff'
-    drawFreq(MINIGAME._frequency, MINIGAME._phase)
-    context.globalCompositeOperation = 'source-over'
-    context.fillStyle = '#ff0'
-    context.fillText('Adjust Satellite Frequency Alignment', 10, 20)
-    context.fillText('Frequency', 7, 260)
-    context.fillText('Phase', 280, 380)
-    context.strokeStyle = '#0a0'
-    context.strokeRect(130, 170, 370, 180)
-    context.beginPath()
-    context.arc(135 + MINIGAME._phase, 175 + MINIGAME._frequency, 8, 0, TWO_PI)
-    context.fill()
-  } else {
+  context.strokeStyle = '#f00'
+  drawFreq(70, 300)
+  context.globalCompositeOperation = 'lighter'
+  context.strokeStyle = '#0ff'
+  drawFreq(MINIGAME._frequency, MINIGAME._phase)
+  context.globalCompositeOperation = 'source-over'
+  context.fillStyle = '#ff0'
+  context.fillText('Satellite Frequency Alignment', 10, 20)
+  context.fillText('Frequency', 7, 260)
+  context.fillText('Phase', 280, 380)
+  context.strokeStyle = '#0a0'
+  context.strokeRect(130, 170, 370, 180)
+  context.beginPath()
+  context.arc(135 + MINIGAME._phase, 175 + MINIGAME._frequency, 8, 0, TWO_PI)
+  context.fill()
+
+  if (MINIGAME._state === MINIGAME_COMPLETE) {
     context.fillStyle = '#000015'
-    context.fillRect(0, 0, SCREEN_TEXTURE_SIZE, SCREEN_TEXTURE_SIZE)
+    context.fillRect(0, 160, SCREEN_TEXTURE_SIZE, SCREEN_TEXTURE_SIZE)
+    context.strokeRect(20, 180, 472, 120)
     context.fillStyle = '#ff0'
-    context.fillText('Signal sent', 10, 20)
-    context.fillText('Submarine has been called', 10, 40)
+    context.fillText('🛰️ Satellite Frequency Found', 80, 230)
+    context.fillText('Autonomous Submarine Activated', 75, 260)
   }
+
   captureScreenTexture(3)
 }
 
@@ -120,7 +122,7 @@ export const buildScreenTextures = () => {
   context.font = '17px monospace'
 
   context.fillStyle = '#aee'
-  context.fillText('Memory Core: 131072K', 10, 100)
+  context.fillText('Memory Core: 132020K', 10, 100)
   context.fillText('Launching xx142-b2.exe', 10, 124)
   context.fillText('Antenna self test', 10, 146)
   context.fillText('Activating radio', 10, 170)

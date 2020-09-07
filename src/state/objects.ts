@@ -112,7 +112,7 @@ const GAME_OBJECTS = {
         ? INVENTORY._floppy
           ? 'Insert the floppy disk'
           : 'Damn, I need to find this floppy disk'
-        : 'There is no electricity, there must be a generator somewhere in this damn island'
+        : 'There is no electricity, there must be a generator somewhere on this damn island'
   },
   _monumentButton: {
     _location: vec3New(47.5, 4, 30.5),
