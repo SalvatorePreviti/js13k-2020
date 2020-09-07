@@ -123,19 +123,19 @@ out vec4 oColor;
 
 // Noise texture
 #define iNoise tN
-uniform sampler2D iNoise;
+uniform highp sampler2D iNoise;
 
 // Heightmap texture
 #define iHeightmap tH
-uniform sampler2D iHeightmap;
+uniform highp sampler2D iHeightmap;
 
 // Prerendered texture
 #define iPrerendered tP
-uniform sampler2D iPrerendered;
+uniform highp sampler2D iPrerendered;
 
 // Screens texture
 #define iScreens tS
-uniform sampler2D iScreens;
+uniform highp sampler2D iScreens;
 
 //=== STATE ===
 
@@ -145,7 +145,7 @@ float epsilon;
 //=== COLORS ===
 
 const vec3 COLOR_SKY = vec3(.4, .8, 1);
-const vec3 COLOR_SUN = vec3(1.1, .9, .85);
+const vec3 COLOR_SUN = vec3(1.16, .95, .85);
 
 const vec3 TERRAIN_SIZE = vec3(120., 19., 80.);
 const float TERRAIN_OFFSET = 3.;
@@ -322,7 +322,7 @@ float antennaConsole(vec3 p) {
   pModInterval(q.x, .04, -3., 3.);
   float keys = cuboid(q, vec3(.01)) - .005;
   updateSubMaterial(SUBMATERIAL_METAL, keys);
-  r = min(min(r,keys), cuboid(p - vec3(-.45, .2, 0), vec3(.2, .8, .5)) - 0.01);
+  r = min(min(r, keys), cuboid(p - vec3(-.45, .2, 0), vec3(.2, .8, .5)) - 0.01);
   return r;
 }
 
@@ -404,18 +404,6 @@ float antenna(vec3 p, vec2 rotation) {
   updateSubMaterial(SUBMATERIAL_METAL, metalThings);
 
   return min(min(console, structure), min(metalThings, oilrigLever));
-}
-
-float ruinedBuildings(vec3 p) {
-  float bounds = length(p) - 95.;
-  if (bounds > 15.)
-    return bounds;
-  p.y += p.x * p.x * 0.001;  // slight bend
-  p.xy *= rot(PI / 3.);
-  float r = cuboid(p - vec3(16, 0, 0), vec3(15, 74, 15));
-  float r2 = cuboid(p - vec3(-16, 20, 0), vec3(15, 74, 15));
-  vec3 q = mod(p + 2., 4.) - 2.;
-  return max(min(r, r2), -cuboid(q, vec3(1.5)));
 }
 
 float monument(vec3 p) {
@@ -623,7 +611,6 @@ float nonTerrain(vec3 p) {
   float a = antenna(p - vec3(2, 10, 2), vec2(0.5, iAnimAntennaRotation));
   float m = monument(p - vec3(47.5, 3.5, 30.5));
   float pr = prison(p.zyx - vec3(11, 1.25, -44));
-  float r = ruinedBuildings(p - vec3(100, 10, 300));
   vec3 oilrigCoords = p - vec3(26, 5, -58);
   oilrigCoords.xz *= rot(PI / 2. + 0.4);
   float o = oilrig(oilrigCoords);
@@ -631,7 +618,7 @@ float nonTerrain(vec3 p) {
   float aoc = antennaCable(oilrigCoords.zyx - vec3(-2, 9.7, 32.5));
   float guardTower = guardTower(p - vec3(8.7, 9.3, 37));
   float submarine = submarine(p - vec3(-46, -.5, -30));
-  float structures = min(min(min(b, a), min(m, pr)), min(min(r, o), min(ob, min(guardTower, submarine))));
+  float structures = min(min(min(b, a), min(m, pr)), min(o, min(ob, min(guardTower, submarine))));
   float gameObjects = min(iGOKeyVisible ? gameObjectKey(p.yzx - vec3(2., 7.4, -45.5)) : MAX_DIST,
       min(iGOFlashlightVisible ? gameObjectFlashlight(p - vec3(-42, 3, 11.2)) : MAX_DIST,
           iGOFloppyDiskVisible ? gameObjectFloppy(p - vec3(12.15, 22.31, 38.65)) : MAX_DIST));
@@ -747,10 +734,6 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
 
     res = min(res, 32. * nearest / dist);  // soft shadows
 
-    if (res < 0.01) {
-      break;  // Quite dark already.
-    }
-
     dist += nearest;
   }
   return res;
@@ -861,8 +844,8 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   } else {
     vec3 hitNormal = material == MATERIAL_TERRAIN ? computeTerrainNormal(hit) : computeNonTerrainNormal(hit);
     color = getColorAt(hit, hitNormal, material, subMaterial);
-    shadow = getShadow(p + dir * mdist, mdist, normal);
     normal = normalize(mix(hitNormal, normal, waterOpacity));
+    shadow = getShadow(p + dir * mdist, mdist, normal);
   }
 
   float specular = isWater || (material == MATERIAL_BUILDINGS && subMaterial > SUBMATERIAL_CONCRETE)

@@ -43,11 +43,6 @@ input {
   backdrop-filter: blur(15px) contrast(300%) brightness(35%);
 }
 
-#G,
-#R {
-  cursor: pointer;
-}
-
 b {
   cursor: pointer;
 }

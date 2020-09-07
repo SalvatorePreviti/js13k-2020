@@ -1,6 +1,9 @@
-import { min } from './math/scalar'
+import { min, DEG_TO_RAD } from './math/scalar'
 import { objectAssign } from './core/objects'
 import { KEY_MAIN_MENU, KeyFunctions } from './keyboard'
+import { vec3Set } from './math/vec3'
+import { vec2Set } from './math/vec2'
+import { cameraPos, cameraEuler } from './camera'
 
 export const body = document.body
 
@@ -68,13 +71,20 @@ export const showMainMenu = () => {
 const canvasRequestPointerLock = (e?: MouseEvent) =>
   (!e || !e.button) && !mainMenuVisible && canvasElement.requestPointerLock()
 
-export const resumeGame = () => {
+let started: Boolean
+
+export const startOrResumeClick = () => {
+  if (!started) {
+    //set camera pos
+    document.getElementById('R').innerText = 'Resume Game'
+    //start positions:
+    vec3Set(cameraPos, -44, 4, 11)
+    vec2Set(cameraEuler, 70 * DEG_TO_RAD, 0 * DEG_TO_RAD)
+
+    started = true
+  }
   mainMenuVisible = false
   body.className = ''
-}
-
-const startOrResumeClick = () => {
-  resumeGame()
   canvasRequestPointerLock()
 }
 
