@@ -21,10 +21,10 @@ function deepMerge(original: any, item: any) {
 const SAVE_GAME = () => {
   localStorage.setItem('ISLAND404', JSON.stringify(data))
   setText('Saved', 2)
-  startOrResumeClick()
+  startOrResumeClick(false)
 }
 const LOAD_GAME = () => {
-  startOrResumeClick() //call this first to update the "started" state before actually setting the load game state:
+  startOrResumeClick(false) //call this first to update the "started" state before actually setting the load game state:
   deepMerge(data, JSON.parse(localStorage.getItem('ISLAND404')))
   updateMinigameTexture()
 }
