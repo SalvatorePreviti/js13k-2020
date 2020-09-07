@@ -13,7 +13,7 @@ import { cameraPos, cameraDir, cameraMat3 } from './camera'
 
 import { GAME_OBJECTS } from './state/objects'
 import { ANIMATIONS } from './state/animations'
-import { sin, cos } from './math/scalar'
+import { sin, cos, min } from './math/scalar'
 import { vec3Normalize, vec3Temp0, vec3Set } from './math/vec3'
 import { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER } from './gl/gl-constants'
 import { gl } from './page'
@@ -127,7 +127,7 @@ export const loadMainShaderProgram = (mainFunction: string) => {
       // elevator height
       ANIMATIONS._elevatorHeight._value,
       // submarine position
-      ANIMATIONS._submarine._value
+      min(0, ANIMATIONS._submarine._value) + waterLevel
     )
   }
 
