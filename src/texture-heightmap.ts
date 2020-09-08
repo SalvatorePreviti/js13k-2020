@@ -36,8 +36,6 @@ export const buildHeightmapTexture = () => {
     null
   )
 
-  //glSetTextureSampling(GL_CLAMP_TO_EDGE)
-
   gl.bindFramebuffer(GL_FRAMEBUFFER, glFrameBuffer)
   gl.framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, heightmapTexture, 0)
 
