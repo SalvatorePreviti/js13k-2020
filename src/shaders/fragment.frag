@@ -8,10 +8,11 @@ precision highp float;
 
 // Sub materials of MATERIAL_BUILDINGS
 #define SUBMATERIAL_WOOD -1
-#define SUBMATERIAL_CONCRETE 0
-#define SUBMATERIAL_METAL 1
+#define SUBMATERIAL_CONCRETE 0  //0 and below have concrete texture.
+#define SUBMATERIAL_METAL 1 //>0 is smooth and has specular
 #define SUBMATERIAL_BRIGHT_RED 2
 #define SUBMATERIAL_DARK_RED 3
+#define SUBMATERIAL_BLACK_PURPLE 4
 
 const float PI = 3.14159265359;
 
@@ -416,6 +417,7 @@ float monument(vec3 p) {
   if (bounds > 3.)
     return bounds;
   float metals = cylinder(p.xzy + vec3(0, 0, clamp(iAnimMonumentDescend, 0., .02)), .05, .53);  // the button
+  updateSubMaterial(SUBMATERIAL_METAL, metals);
   float r = cylinder(p.xzy, .2, .5);  // the button mount
 
   p.y += iAnimMonumentDescend * 4.;
@@ -428,7 +430,7 @@ float monument(vec3 p) {
   pModPolar(p.xz, 8.);
   p.x -= 1.5;
   metals = min(metals, cuboid(p, vec3(.1, 5, .2)));  // the actual monument
-  updateSubMaterial(SUBMATERIAL_METAL, metals);
+  updateSubMaterial(SUBMATERIAL_BLACK_PURPLE, metals);
 
   return min(metals, r);
 }
@@ -812,6 +814,8 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat, int subMat) {
         color = vec3(1, 0, 0);
       if (subMat == SUBMATERIAL_DARK_RED)
         color = vec3(0.5, 0, 0);
+      if (subMat == SUBMATERIAL_BLACK_PURPLE)
+        color = vec3(.2, .1, .2);
     default: break;
   }
   return color;
