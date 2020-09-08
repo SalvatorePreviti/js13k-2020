@@ -4,6 +4,7 @@ import { KEY_MAIN_MENU, KeyFunctions } from './keyboard'
 import { vec3Set } from './math/vec3'
 import { vec2Set } from './math/vec2'
 import { cameraPos, cameraEuler } from './camera'
+import { playMusic, pauseMusic } from './music'
 import { setText } from './text'
 
 export const body = document.body
@@ -36,6 +37,7 @@ const mainElement = document.getElementById('M') as HTMLDivElement
 
 const highQualityCheckbox = document.getElementById('Q') as HTMLInputElement
 const invertYCheckbox = document.getElementById('Y') as HTMLInputElement
+const playMusicCheckbox = document.getElementById('U') as HTMLInputElement
 
 /** Handle resize event to update canvas size. */
 const handleResize = () => {
@@ -64,6 +66,7 @@ const handleResize = () => {
 }
 
 export const showMainMenu = () => {
+  pauseMusic()
   mainMenuVisible = true
   body.className = 'N'
   document.exitPointerLock()
@@ -93,6 +96,9 @@ export const startOrResumeClick = (newGame = true) => {
     vec2Set(cameraEuler, 70 * DEG_TO_RAD, 0 * DEG_TO_RAD)
 
     started = true
+  }
+  if (playMusicCheckbox.checked) {
+    playMusic()
   }
   mainMenuVisible = false
   body.className = ''
