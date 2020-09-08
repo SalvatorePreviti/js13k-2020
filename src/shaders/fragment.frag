@@ -13,6 +13,7 @@ precision highp float;
 #define SUBMATERIAL_BRIGHT_RED 2
 #define SUBMATERIAL_DARK_RED 3
 #define SUBMATERIAL_BLACK_PURPLE 4
+#define SUBMATERIAL_YELLOW 5
 
 const float PI = 3.14159265359;
 
@@ -584,10 +585,10 @@ float guardTower(vec3 p) {
       sphere(y-vec3(0, .5, 0), .06)
     )
   );
-  float metalThings = min(elevator, liftButton);
-  updateSubMaterial(SUBMATERIAL_METAL, metalThings);
+  updateSubMaterial(SUBMATERIAL_METAL, liftButton);
+  updateSubMaterial(SUBMATERIAL_YELLOW, elevator);
   return min(
-    min(structure, metalThings),
+    min(structure, min(liftButton, elevator)),
     cuboid(p+vec3(0,10.3,3), vec3(1.1,2.,3.)) //the platform to the bottom lift section
   );
   // clang-format on
@@ -816,6 +817,8 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat, int subMat) {
         color = vec3(0.5, 0, 0);
       if (subMat == SUBMATERIAL_BLACK_PURPLE)
         color = vec3(.2, .1, .2);
+      if (subMat == SUBMATERIAL_YELLOW)
+        color = vec3(1, 1, .8);
     default: break;
   }
   return color;
