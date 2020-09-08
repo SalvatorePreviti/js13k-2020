@@ -725,7 +725,7 @@ float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
 
 float shadowR = 0.;
 
-#define SHADOW_ITERATIONS 40
+#define SHADOW_ITERATIONS 50
 float getShadow(vec3 p, float camDistance, vec3 n) {
   if (abs(p.x) >= TERRAIN_SIZE.x * 3. || abs(p.z) >= TERRAIN_SIZE.z * 3. || p.y < iWaterLevel - 0.01) {
     return 1.;  // Skip objects outsite the island and skip underwater
