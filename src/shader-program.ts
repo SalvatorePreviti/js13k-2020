@@ -85,7 +85,8 @@ export const loadMainShaderProgram = (mainFunction: string) => {
 
     // Sun directiom
     const waterLevel = sin(time * 2 + 3) * 0.2
-    vec3Normalize(vec3Set(vec3Temp0, cos(time * 0.02), sin(time * 0.02) * 0.5 + 0.8, sin(time * 0.02)))
+    const SUN_TTIME = 2386
+    vec3Normalize(vec3Set(vec3Temp0, cos(SUN_TTIME * 0.02), sin(SUN_TTIME * 0.02) * 0.5 + 0.8, sin(SUN_TTIME * 0.02)))
     gl.uniform4f(iSunDirection, vec3Temp0.x, vec3Temp0.y, vec3Temp0.z, waterLevel)
 
     // Camera position and time

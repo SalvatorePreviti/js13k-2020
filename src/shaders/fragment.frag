@@ -673,13 +673,17 @@ float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
   float stepLen = min_epsilon;
 
   for (int i = 0;; i++) {
-    vec3 hit = p + dir * dist;
-
-    if (dist >= MAX_DIST || hit.y > 80.) {
-      break;  // Nothing to render after MAX_DIST or higher than 80 meters.
+    if (dist >= MAX_DIST) {
+      break;  // Nothing to render after MAX_DIST.
     }
 
-    epsilon = dist * min_epsilon;
+    vec3 hit = p + dir * dist;
+
+    if (hit.y > 80.) {
+      break;  // Nothing to render higher than 80 meters.
+    }
+
+    epsilon = min_epsilon * max(dist, 1.);
     float hitUnderwater = hit.y + TERRAIN_OFFSET * .5;
     if (hitUnderwater < -0.01) {
       if (hitUnderwater < -TERRAIN_OFFSET) {
@@ -721,12 +725,18 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
     return 0.;  // Skip faces behind the sun
   }
 
+  float initialY = p.y;
   float res = 1.;
   float dist = clamp(camDistance * 0.005, 0.01, .1);  // start further out from the surface if the camera is far away
   p = p + n * dist;  // Jump out of the surface by the normal * that dist
 
-  for (int i = 0; dist < 100. && i < SHADOW_ITERATIONS; i++) {
-    float nearest = nonTerrain(p + iSunDirection * dist);
+  for (int i = 0; dist < 100. && camDistance + dist < 130. && i < SHADOW_ITERATIONS; i++) {
+    vec3 hit = p + iSunDirection * dist;
+    if (hit.y - initialY > 20.) {
+      return res;  // Nothing that casts shadows at those distances
+    }
+
+    float nearest = nonTerrain(hit);
 
     shadowR += 1. / float(SHADOW_ITERATIONS);
 
@@ -781,10 +791,10 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat, int subMat) {
   switch (mat) {
     case MATERIAL_TERRAIN:
       color = mix(vec3(.93, .8, .64),
-                  mix(vec3(.69 + textureLod(iNoise, hit.xz * 0.0001, 0.).x, .67, .65), vec3(.38, .52, .23),
+                  mix(vec3(.69 + texture(iNoise, hit.xz * 0.0001).x, .67, .65), vec3(.38, .52, .23),
                       dot(normal, vec3(0, 1, 0))),
                   clamp01(hit.y * .5 - 1.)) +
-          textureLod(iNoise, hit.xz * 0.15, 0.).x * 0.1 + textureLod(iNoise, hit.xz * 0.01, 0.).x * 0.1;
+          texture(iNoise, hit.xz * 0.15).x * 0.1 + texture(iNoise, hit.xz * 0.01).y * 0.1;
       ;
       break;
     case MATERIAL_BUILDINGS:
@@ -925,8 +935,12 @@ void main_m() {
   // vec3 pixelColour = clamp(intersectWithWorld(iCameraPos, ray), 0., 1.);
   // oColor = vec4(pixelColour, 1);
 
-  // oColor.x = iterationsR * 4.;
-  // oColor.y = iterationsR * 1.5;
+  oColor.x = shadowR * 2.;
+  // oColor.y = shadowR;
+  // oColor.z = shadowR;
+
+  // oColor.x = iterationsR * 2.;
+  // oColor.y = iterationsR;
   // oColor.z = iterationsR;
 }
 
