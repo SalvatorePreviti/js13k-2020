@@ -4,7 +4,7 @@ import { KEY_MAIN_MENU, KeyFunctions } from './keyboard'
 import { vec3Set } from './math/vec3'
 import { vec2Set } from './math/vec2'
 import { cameraPos, cameraEuler } from './camera'
-import { playMusic, pauseMusic } from './music'
+import { playMusic, pauseMusic, setVolume } from './music'
 import { setText } from './text'
 
 export const body = document.body
@@ -39,7 +39,7 @@ const mainElement = document.getElementById('M') as HTMLDivElement
 
 const highQualityCheckbox = document.getElementById('Q') as HTMLInputElement
 const invertYCheckbox = document.getElementById('Y') as HTMLInputElement
-const playMusicCheckbox = document.getElementById('U') as HTMLInputElement
+const musicVolumeSlider = document.getElementById('V') as HTMLInputElement
 const headBobCheckbox = document.getElementById('H') as HTMLInputElement
 
 /** Handle resize event to update canvas size. */
@@ -100,9 +100,7 @@ export const startOrResumeClick = (newGame = true) => {
 
     started = true
   }
-  if (playMusicCheckbox.checked) {
-    playMusic()
-  }
+  playMusic()
   mainMenuVisible = false
   body.className = ''
   canvasRequestPointerLock()
@@ -119,6 +117,7 @@ canvasElement.onmousedown = canvasRequestPointerLock
 highQualityCheckbox.onchange = handleResize
 invertYCheckbox.onchange = () => (mouseYInversion = invertYCheckbox.checked ? -1 : 1)
 headBobCheckbox.onchange = () => (headBobEnabled = headBobCheckbox.checked ? true : false)
+musicVolumeSlider.onchange = () => setVolume(musicVolumeSlider.value / 100)
 
 export const gl = canvasElement.getContext('webgl2', {
   /** Boolean that indicates if the canvas contains an alpha buffer. */

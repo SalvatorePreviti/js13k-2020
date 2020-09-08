@@ -12,7 +12,7 @@ const loadMusic = () => {
 
   mAudio.loop = true
   mAudio.src = URL.createObjectURL(new Blob([musicWave], { type: 'audio/wav' }))
-  mAudio.volume = 0.4
+  mAudio.volume = 0.5 //must be the same as the default slider %
 }
 
 const playMusic = (): void => {
@@ -24,4 +24,8 @@ const pauseMusic = (): void => {
   mAudio.pause()
 }
 
-export { loadMusic, playMusic, pauseMusic }
+const setVolume = (v): void => {
+  mAudio.volume = v
+}
+
+export { loadMusic, playMusic, pauseMusic, setVolume }
