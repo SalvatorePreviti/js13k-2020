@@ -13,6 +13,7 @@ precision highp float;
 #define SUBMATERIAL_BRIGHT_RED 2
 #define SUBMATERIAL_DARK_RED 3
 #define SUBMATERIAL_BLACK_PURPLE 4
+#define SUBMATERIAL_YELLOW 5
 
 const float PI = 3.14159265359;
 
@@ -508,10 +509,10 @@ float oilrig(vec3 p) {
   platforms = max(platforms, -cuboid(p - vec3(2, 7, 2), vec3(1.5)));  // hole in upper platform
   platforms = max(platforms, -cuboid(p - vec3(5.7, 0, 4), vec3(.52)));  // hole in lower platform for the bridge
   e.z = abs(e.z + 2.);  // mirror around z=2
-  metal = min(metal, cylinder(e.xzy - vec3(-6, 1.1, 8.7), 1., 1.75));  // tanks
-  metal = min(metal, cylinder(e.xzy - vec3(-6.5, 1.1, 0), .2, 8.));  // pipes from tanks to sea
+  float pipes = cylinder(e.xzy - vec3(-6, 1.1, 8.7), 1., 1.75);
+  pipes = min(pipes, cylinder(e.xzy - vec3(-6.5, 1.1, 0), .2, 8.));  // pipes from tanks to sea
   o.y = abs(o.y - 7.6);
-  metal = min(metal, cylinder(o.zyx - vec3(-3, .2, 0), .1, 5.));  // pipes from console to tank
+  pipes = min(pipes, cylinder(o.zyx - vec3(-3, .2, 0), .1, 5.));  // pipes from console to tank
   // r = min(r, cylinder(o-vec3(-6,.2,-2),.1,1.));    //pipes between tanks
   u = p - vec3(5, 7.6, -2);
   u.xy *= rot(.3);  // rotate the console towards player
@@ -529,9 +530,10 @@ float oilrig(vec3 p) {
   p -= vec3(2, 3.53, -.05);
   p.zy *= rot(-PI / 4.);
   platforms = min(platforms, cuboid(p, vec3(1, 5.1, .1)) - .05);  // ramp from lower platform to upper
+  updateSubMaterial(SUBMATERIAL_YELLOW, pipes);
   updateSubMaterial(SUBMATERIAL_METAL, metal);
   updateSubMaterial(SUBMATERIAL_BRIGHT_RED, wheel);
-  return min(platforms, min(metal, wheel));
+  return min(platforms, min(min(pipes,metal), wheel));
 }
 
 float oilrigBridge(vec3 p) {
@@ -577,17 +579,19 @@ float guardTower(vec3 p) {
   y -= vec3(.8, 12.7, -.9);
   pModInterval(y.y, 20.5, -1., 0.);
 
-  float liftButton = min(
+  float elevatorButton = sphere(y-vec3(0, .5, 0), .06);
+  float buttonPost = min(
     cylinder(y.xzy, .05, .5),
     min(
       cuboid(y-vec3(0, .5, 0), vec3(.05,.1,.1)),
-      sphere(y-vec3(0, .5, 0), .06)
+      elevatorButton
     )
   );
-  float metalThings = min(elevator, liftButton);
-  updateSubMaterial(SUBMATERIAL_METAL, metalThings);
+  updateSubMaterial(SUBMATERIAL_BRIGHT_RED, elevatorButton);
+  updateSubMaterial(SUBMATERIAL_METAL, buttonPost);
+  updateSubMaterial(SUBMATERIAL_YELLOW, elevator);
   return min(
-    min(structure, metalThings),
+    min(structure, min(buttonPost, elevator)),
     cuboid(p+vec3(0,10.3,3), vec3(1.1,2.,3.)) //the platform to the bottom lift section
   );
   // clang-format on
@@ -816,6 +820,8 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat, int subMat) {
         color = vec3(0.5, 0, 0);
       if (subMat == SUBMATERIAL_BLACK_PURPLE)
         color = vec3(.2, .1, .2);
+      if (subMat == SUBMATERIAL_YELLOW)
+        color = vec3(1, 1, .8);
     default: break;
   }
   return color;
