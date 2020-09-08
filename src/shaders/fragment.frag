@@ -7,6 +7,7 @@ precision highp float;
 #define MATERIAL_SCREEN 3
 
 // Sub materials of MATERIAL_BUILDINGS
+#define SUBMATERIAL_WOOD -1
 #define SUBMATERIAL_CONCRETE 0
 #define SUBMATERIAL_METAL 1
 #define SUBMATERIAL_BRIGHT_RED 2
@@ -292,7 +293,9 @@ float gameObjectKey(vec3 p) {
 }
 
 float gameObjectFloppy(vec3 p) {
-  return min(cuboid(p, vec3(.06, .005, .06)), cuboid(p - vec3(.03, 0, 0), vec3(.03, .006, .03)));
+  float clip = cuboid(p - vec3(.03, 0, 0), vec3(.03, .006, .03));
+  updateSubMaterial(SUBMATERIAL_METAL, clip);
+  return min(cuboid(p, vec3(.06, .005, .06)), clip);
 }
 
 // s is number of segments (*2 + 1, so 5 = 11 segments)
@@ -306,7 +309,9 @@ float bridge(vec3 p, float s, float bend) {
   float ropes = cylinder(p - vec3(.5, 1., 0), .02, s * .55);
   pModInterval(p.z, .55, -s, s);
   ropes = min(ropes, cylinder(p.xzy - vec3(.5, 0, .5), .02, .5));
+  updateSubMaterial(SUBMATERIAL_METAL, ropes);
   boards = min(boards, cuboid(p, vec3(.5, .05, .2)));
+  updateSubMaterial(SUBMATERIAL_WOOD, boards);
   return min(boards, ropes);
 }
 
@@ -598,8 +603,6 @@ float screen(vec3 p, vec3 screenPosition, vec2 size, float angle) {
   return screen;
 }
 
-float iterations = 0.;
-
 float terrain(vec3 p) {
   float height = unpackFloat(textureLod(iHeightmap, p.xz / TERRAIN_SIZE.xz + .5, 0.)) * TERRAIN_SIZE.y;
   vec2 d = abs(vec2(length(p.xz), p.y + 3. + TERRAIN_OFFSET)) - vec2(TERRAIN_SIZE.x * .5 * sqrt(2.), height + 3.);
@@ -634,18 +637,19 @@ int material = MATERIAL_SKY;
 
 float distanceToNearestSurface(vec3 p) {
   float t = terrain(p);
-  float n = nonTerrain(p);
-  float s = screen(p, vec3(4.76, 14.42, 4), vec2(.45, .29), PI / 2.);
-  if (t < min(s, n)) {
+  if (t <= epsilon) {
     material = MATERIAL_TERRAIN;
     return t;
   }
-  if (s < n) {
-    material = MATERIAL_SCREEN;
-    return s;
+  float n = nonTerrain(p);
+  float s = screen(p, vec3(4.76, 14.42, 4), vec2(.45, .29), PI / 2.);
+  float sn = min(s, n);
+  if (t < sn) {
+    material = MATERIAL_TERRAIN;
+    return t;
   }
-  material = MATERIAL_BUILDINGS;
-  return n;
+  material = s <= n ? MATERIAL_SCREEN : MATERIAL_BUILDINGS;
+  return sn;
 }
 
 vec3 computeNonTerrainNormal(vec3 p) {
@@ -671,7 +675,24 @@ float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
   float stepLen = min_epsilon;
 
   for (int i = 0;; i++) {
+    if (dist >= MAX_DIST) {
+      break;  // Nothing to render after MAX_DIST.
+    }
+
     vec3 hit = p + dir * dist;
+
+    if (hit.y > 80.) {
+      break;  // Nothing to render higher than 80 meters.
+    }
+
+    epsilon = min_epsilon * max(dist, 1.);
+    float hitUnderwater = hit.y + TERRAIN_OFFSET * .5;
+    if (hitUnderwater < -0.01) {
+      if (hitUnderwater < -TERRAIN_OFFSET) {
+        break;  // Nothing to render underwater
+      }
+      epsilon -= hitUnderwater * .5;  // Decrease resolution under water
+    }
 
     float nearest = distanceToNearestSurface(hit);
 
@@ -681,19 +702,6 @@ float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
     }
 
     dist += nearest;
-    epsilon = dist * min_epsilon;
-
-    if (dist >= MAX_DIST || hit.y > 80.) {
-      break;  // Nothing to render after MAX_DIST or higher than 80 meters.
-    }
-
-    float hitUnderwater = hit.y + TERRAIN_OFFSET * .5;
-    if (hitUnderwater < -0.01) {
-      if (hitUnderwater < -TERRAIN_OFFSET) {
-        break;  // Nothing to render underwater
-      }
-      epsilon -= hitUnderwater;  // Decrease resolution under water
-    }
 
     if (nearest <= epsilon || i >= MAX_ITERATIONS) {
       return dist;
@@ -719,12 +727,18 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
     return 0.;  // Skip faces behind the sun
   }
 
+  float initialY = p.y;
   float res = 1.;
   float dist = clamp(camDistance * 0.005, 0.01, .1);  // start further out from the surface if the camera is far away
   p = p + n * dist;  // Jump out of the surface by the normal * that dist
 
-  for (int i = 0; dist < 100. && i < SHADOW_ITERATIONS; i++) {
-    float nearest = nonTerrain(p + iSunDirection * dist);
+  for (int i = 0; dist < 100. && camDistance + dist < 130. && i < SHADOW_ITERATIONS; i++) {
+    vec3 hit = p + iSunDirection * dist;
+    if (abs(hit.y - initialY) > 20.) {
+      return res;  // Nothing that casts shadows at those distances
+    }
+
+    float nearest = nonTerrain(hit);
 
     shadowR += 1. / float(SHADOW_ITERATIONS);
 
@@ -779,18 +793,20 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat, int subMat) {
   switch (mat) {
     case MATERIAL_TERRAIN:
       color = mix(vec3(.93, .8, .64),
-                  mix(vec3(.69 + textureLod(iNoise, hit.xz * 0.0001, 0.).x, .67, .65), vec3(.38, .52, .23),
+                  mix(vec3(.69 + texture(iNoise, hit.xz * 0.0001).x, .67, .65), vec3(.38, .52, .23),
                       dot(normal, vec3(0, 1, 0))),
                   clamp01(hit.y * .5 - 1.)) +
-          textureLod(iNoise, hit.xz * 0.15, 0.).x * 0.1 + textureLod(iNoise, hit.xz * 0.01, 0.).x * 0.1;
+          texture(iNoise, hit.xz * 0.15).x * 0.1 + texture(iNoise, hit.xz * 0.01).y * 0.1;
       ;
       break;
     case MATERIAL_BUILDINGS:
-      if (subMat == SUBMATERIAL_CONCRETE) {
-        vec4 concrete = (texture(iNoise, hit.xy * .3) * normal.z + texture(iNoise, hit.yz * .3) * normal.x +
-            texture(iNoise, hit.xz * .3) * normal.y - 0.5);
-        color += 0.18 * (concrete.x - concrete.y + concrete.z - concrete.w);
+      if (subMat <= SUBMATERIAL_CONCRETE) {
+        vec4 concrete = (texture(iNoise, hit.xy * .35) * normal.z + texture(iNoise, hit.yz * .35) * normal.x +
+            texture(iNoise, hit.xz * .35) * normal.y - 0.5);
+        color += 0.125 * (concrete.x - concrete.y + concrete.z - concrete.w);
       }
+      if (subMat == SUBMATERIAL_WOOD)
+        color *= vec3(.8,.6,.4);
       if (subMat == SUBMATERIAL_METAL)
         color = vec3(1);  // extra bright
       if (subMat == SUBMATERIAL_BRIGHT_RED)
@@ -807,7 +823,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   float unpacked = uintBitsToFloat(
       (uint(packed.x * 255.) << 24 | uint(packed.y * 255.) << 16 | uint(packed.z * 255.) << 8 | uint(packed.z * 255.)));
 
-  float dist = unpacked < MAX_DIST ? rayMarch(p, dir, 0.001, unpacked) : MAX_DIST;
+  float dist = rayMarch(p, dir, 0.001, unpacked);
   float wdist = rayTraceWater(p, dir);
   float lightIntensity;
 
@@ -887,7 +903,7 @@ void main_c() {
 /**********************************************************************/
 
 void main_p() {
-  vec2 screen = fragCoord / (iResolution * .5) - 1.;
+  vec2 screen = fragCoord / (PRERENDERED_TEXTURE_SIZE * .5) - 1. + .5 / PRERENDERED_TEXTURE_SIZE;
 
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
 
@@ -923,7 +939,11 @@ void main_m() {
   // vec3 pixelColour = clamp(intersectWithWorld(iCameraPos, ray), 0., 1.);
   // oColor = vec4(pixelColour, 1);
 
-  // oColor.x = shadowR;
+  // oColor.x = shadowR * 2.;
+  // oColor.y = shadowR;
+  // oColor.z = shadowR;
+
+  // oColor.x = iterationsR * 2.;
   // oColor.y = iterationsR;
   // oColor.z = iterationsR;
 }
