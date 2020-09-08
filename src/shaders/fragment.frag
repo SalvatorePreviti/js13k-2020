@@ -605,7 +605,7 @@ float screen(vec3 p, vec3 screenPosition, vec2 size, float angle) {
 
 float terrain(vec3 p) {
   float height = unpackFloat(textureLod(iHeightmap, p.xz / TERRAIN_SIZE.xz + .5, 0.)) * TERRAIN_SIZE.y;
-  vec2 d = abs(vec2(length(p.xz), p.y + 3. + TERRAIN_OFFSET)) - vec2(TERRAIN_SIZE.x * .5 * sqrt(2.), height + 3.);
+  vec2 d = abs(vec2(length(p.xz), p.y + 3. + TERRAIN_OFFSET)) - vec2(TERRAIN_SIZE.x, height + 3.);
   return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
 }
 
@@ -725,7 +725,7 @@ float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
 
 float shadowR = 0.;
 
-#define SHADOW_ITERATIONS 50
+#define SHADOW_ITERATIONS 40
 float getShadow(vec3 p, float camDistance, vec3 n) {
   if (abs(p.x) >= TERRAIN_SIZE.x * 3. || abs(p.z) >= TERRAIN_SIZE.z * 3. || p.y < iWaterLevel - 0.01) {
     return 1.;  // Skip objects outsite the island and skip underwater
@@ -735,34 +735,26 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
     return 0.;  // Skip faces behind the sun
   }
 
-  vec4 concrete =
-      (texture(iNoise, p.xy * .35) * n.z + texture(iNoise, p.yz * .35) * n.x + texture(iNoise, p.xz * .35) * n.y - 0.5);
-  float noise = (concrete.x - concrete.y + concrete.z - concrete.w);
-
   float res = 1.;
   float dist = clamp(camDistance * 0.005, 0.01, .1);  // start further out from the surface if the camera is far away
 
   p = p + n * dist;  // Jump out of the surface by the normal * that dist
 
-  float cumulativeNoise = 0.;
-  for (int i = 1; dist < 100. && camDistance + dist < 200. && i < SHADOW_ITERATIONS; i++) {
-    vec3 hit = p + iSunDirection * dist;
+  for (int i = 1; dist < 50. && camDistance + dist < 200. && i < SHADOW_ITERATIONS; i++) {
+    float nearest = nonTerrain(p + iSunDirection * dist);
 
-    float nearest = nonTerrain(hit);
-    nearest = nearest + nearest * concrete.x * res * .08;
-
-    // float shadowEpsilon = clamp(float(i) / float(SHADOW_ITERATIONS * 8), 0.001, .1);
-
-    if (nearest < 0.0001) {
+    if (nearest < max(epsilon, 0.01 * min(1., dist))) {
       return 0.;
     }
 
     shadowR += 1. / float(SHADOW_ITERATIONS);
 
-    res = min(res, 32. * (nearest) / dist);  // soft shadows
+    // res = min(res, 32. * nearest / dist);  // soft shadows
 
-    if (res < 0.05) {
-      return res * res;
+    res = min(res, smoothstep(0., .04, nearest / dist));
+
+    if (res < 0.07) {
+      return 0.;
     }
 
     dist += nearest;
@@ -823,7 +815,7 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat, int subMat) {
         color += 0.125 * (concrete.x - concrete.y + concrete.z - concrete.w);
       }
       if (subMat == SUBMATERIAL_WOOD)
-        color *= vec3(.8,.6,.4);
+        color *= vec3(.8, .6, .4);
       if (subMat == SUBMATERIAL_METAL)
         color = vec3(1);  // extra bright
       if (subMat == SUBMATERIAL_BRIGHT_RED)
@@ -960,10 +952,10 @@ void main_m() {
   // oColor.y = shadowR;
   // oColor.z = shadowR;
 
-  // oColor.x = epsilon;
-  // oColor.x = iterationsR;
-  // oColor.y = iterationsR;
-  // oColor.z = iterationsR;
+  // oColor.x = shadowR;
+  // oColor.x = shadowR;
+  // oColor.y = shadowR;
+  // oColor.z = shadowR;
 }
 
 /**********************************************************************/
