@@ -8,8 +8,8 @@ precision highp float;
 
 // Sub materials of MATERIAL_BUILDINGS
 #define SUBMATERIAL_WOOD -1
-#define SUBMATERIAL_CONCRETE 0  //0 and below have concrete texture.
-#define SUBMATERIAL_METAL 1 //>0 is smooth and has specular
+#define SUBMATERIAL_CONCRETE 0  // 0 and below have concrete texture.
+#define SUBMATERIAL_METAL 1  //>0 is smooth and has specular
 #define SUBMATERIAL_BRIGHT_RED 2
 #define SUBMATERIAL_DARK_RED 3
 #define SUBMATERIAL_BLACK_PURPLE 4
@@ -533,7 +533,7 @@ float oilrig(vec3 p) {
   updateSubMaterial(SUBMATERIAL_YELLOW, pipes);
   updateSubMaterial(SUBMATERIAL_METAL, metal);
   updateSubMaterial(SUBMATERIAL_BRIGHT_RED, wheel);
-  return min(platforms, min(min(pipes,metal), wheel));
+  return min(platforms, min(min(pipes, metal), wheel));
 }
 
 float oilrigBridge(vec3 p) {
@@ -678,7 +678,6 @@ float iterationsR;
 float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
   float result = MAX_DIST;
   float prevNear = min_epsilon;
-  float stepLen = min_epsilon;
 
   for (int i = 0;; i++) {
     if (dist >= MAX_DIST) {
