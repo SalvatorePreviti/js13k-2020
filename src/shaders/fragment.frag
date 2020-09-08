@@ -7,6 +7,7 @@ precision highp float;
 #define MATERIAL_SCREEN 3
 
 // Sub materials of MATERIAL_BUILDINGS
+#define SUBMATERIAL_WOOD -1
 #define SUBMATERIAL_CONCRETE 0
 #define SUBMATERIAL_METAL 1
 #define SUBMATERIAL_BRIGHT_RED 2
@@ -292,7 +293,9 @@ float gameObjectKey(vec3 p) {
 }
 
 float gameObjectFloppy(vec3 p) {
-  return min(cuboid(p, vec3(.06, .005, .06)), cuboid(p - vec3(.03, 0, 0), vec3(.03, .006, .03)));
+  float clip = cuboid(p - vec3(.03, 0, 0), vec3(.03, .006, .03));
+  updateSubMaterial(SUBMATERIAL_METAL, clip);
+  return min(cuboid(p, vec3(.06, .005, .06)), clip);
 }
 
 // s is number of segments (*2 + 1, so 5 = 11 segments)
@@ -306,7 +309,9 @@ float bridge(vec3 p, float s, float bend) {
   float ropes = cylinder(p - vec3(.5, 1., 0), .02, s * .55);
   pModInterval(p.z, .55, -s, s);
   ropes = min(ropes, cylinder(p.xzy - vec3(.5, 0, .5), .02, .5));
+  updateSubMaterial(SUBMATERIAL_METAL, ropes);
   boards = min(boards, cuboid(p, vec3(.5, .05, .2)));
+  updateSubMaterial(SUBMATERIAL_WOOD, boards);
   return min(boards, ropes);
 }
 
@@ -795,11 +800,13 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat, int subMat) {
       ;
       break;
     case MATERIAL_BUILDINGS:
-      if (subMat == SUBMATERIAL_CONCRETE) {
+      if (subMat <= SUBMATERIAL_CONCRETE) {
         vec4 concrete = (texture(iNoise, hit.xy * .35) * normal.z + texture(iNoise, hit.yz * .35) * normal.x +
             texture(iNoise, hit.xz * .35) * normal.y - 0.5);
         color += 0.125 * (concrete.x - concrete.y + concrete.z - concrete.w);
       }
+      if (subMat == SUBMATERIAL_WOOD)
+        color *= vec3(.8,.6,.4);
       if (subMat == SUBMATERIAL_METAL)
         color = vec3(1);  // extra bright
       if (subMat == SUBMATERIAL_BRIGHT_RED)
