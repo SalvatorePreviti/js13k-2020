@@ -661,8 +661,8 @@ vec3 computeTerrainNormal(vec3 p, float dist) {
 
   // vec4 v = texture(iNoise, p.xz * .2 + p.y * .1);
 
-  vec2 S = vec2(0.08, 0);
-  // vec2 S = vec2(mix(0.03, 0.001, min(dist / TERRAIN_SIZE.x, 1.)), 0);
+  // vec2 S = vec2(0.08, 0);
+  vec2 S = vec2(mix(0.03, 0.001, min(dist / TERRAIN_SIZE.x, 1.)), 0);
   return normalize(vec3(terrain(p + S.xyy), terrain(p + S.yxy), terrain(p + S.yyx)) - terrain(p));
 }
 
@@ -954,6 +954,7 @@ void main_m() {
   // oColor.z = shadowR;
 
   // oColor.x = epsilon;
+  // oColor.x = iterationsR;
   // oColor.y = iterationsR;
   // oColor.z = iterationsR;
 }
