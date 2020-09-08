@@ -643,10 +643,7 @@ float distanceToNearestSurface(vec3 p) {
     material = MATERIAL_TERRAIN;
     return t;
   }
-  if (s < n) {
-    material = MATERIAL_SCREEN;
-  }
-  material = MATERIAL_BUILDINGS;
+  material = s <= n ? MATERIAL_SCREEN : MATERIAL_BUILDINGS;
   return sn;
 }
 
