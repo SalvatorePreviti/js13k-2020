@@ -725,28 +725,44 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
     return 0.;  // Skip faces behind the sun
   }
 
-  float initialY = p.y;
+  float prevNear = 0.001;
+
+  vec4 concrete =
+      (texture(iNoise, p.xy * .35) * n.z + texture(iNoise, p.yz * .35) * n.x + texture(iNoise, p.xz * .35) * n.y - 0.5);
+  float noise = (concrete.x - concrete.y + concrete.z - concrete.w);
+
   float res = 1.;
   float dist = clamp(camDistance * 0.005, 0.01, .1);  // start further out from the surface if the camera is far away
-  p = p + n * dist;  // Jump out of the surface by the normal * that dist
 
-  for (int i = 0; dist < 100. && camDistance + dist < 130. && i < SHADOW_ITERATIONS; i++) {
+  p = p + n * dist + noise * .001;  // Jump out of the surface by the normal * that dist
+
+  float cumulativeNoise = 0.;
+  for (int i = 1; dist < 100. && camDistance + dist < 200. && i < SHADOW_ITERATIONS; i++) {
     vec3 hit = p + iSunDirection * dist;
-    if (abs(hit.y - initialY) > 20.) {
-      return res;  // Nothing that casts shadows at those distances
-    }
 
     float nearest = nonTerrain(hit);
 
+    float shadowEpsilon = clamp(float(i) / float(SHADOW_ITERATIONS * 8), 0.001, .1);
+
+    /*if (nearest < 0.001) {
+      return 0.;
+      break;  // Hit!
+    }*/
+
+    nearest = nearest + cumulativeNoise;
+
     shadowR += 1. / float(SHADOW_ITERATIONS);
 
-    if (nearest < clamp(float(i) / float(SHADOW_ITERATIONS * 8), 0.001, .1)) {
+    res = min(res, 32. * (nearest) / dist);  // soft shadows
+
+    if (res < 0.01) {
       return 0.;
     }
 
-    res = min(res, 32. * nearest / dist);  // soft shadows
-
     dist += nearest;
+    prevNear = nearest;
+
+    cumulativeNoise += noise * nearest * .01;
   }
   return res;
 }
@@ -939,7 +955,7 @@ void main_m() {
   // oColor.y = shadowR;
   // oColor.z = shadowR;
 
-  // oColor.x = iterationsR * 2.;
+  // oColor.x = epsilon;
   // oColor.y = iterationsR;
   // oColor.z = iterationsR;
 }
