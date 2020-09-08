@@ -32,12 +32,15 @@ export let renderHeight: number
 
 export let mouseYInversion = 1
 
+export let headBobEnabled = 1
+
 /** The main element that holds the canvas and the main menu. */
 const mainElement = document.getElementById('M') as HTMLDivElement
 
 const highQualityCheckbox = document.getElementById('Q') as HTMLInputElement
 const invertYCheckbox = document.getElementById('Y') as HTMLInputElement
 const playMusicCheckbox = document.getElementById('U') as HTMLInputElement
+const headBobCheckbox = document.getElementById('H') as HTMLInputElement
 
 /** Handle resize event to update canvas size. */
 const handleResize = () => {
@@ -115,6 +118,7 @@ KeyFunctions[KEY_MAIN_MENU] = showMainMenu
 canvasElement.onmousedown = canvasRequestPointerLock
 highQualityCheckbox.onchange = handleResize
 invertYCheckbox.onchange = () => (mouseYInversion = invertYCheckbox.checked ? -1 : 1)
+headBobCheckbox.onchange = () => (headBobEnabled = headBobCheckbox.checked ? true : false)
 
 export const gl = canvasElement.getContext('webgl2', {
   /** Boolean that indicates if the canvas contains an alpha buffer. */

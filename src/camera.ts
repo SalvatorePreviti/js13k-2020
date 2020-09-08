@@ -15,7 +15,7 @@ import {
   debug_updateCameraDirection,
   debug_updateCameraEulerAngles
 } from './debug'
-import { canvasElement, mouseYInversion } from './page'
+import { canvasElement, mouseYInversion, headBobEnabled } from './page'
 import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD } from './math/scalar'
 import {
   vec3Temp0,
@@ -128,7 +128,7 @@ export const updateCamera = (timeDelta: number, time: number) => {
     }
     if (vec3Temp0.x || vec3Temp0.z) {
       timeMoving += timeDelta
-      headBob = sin(timeMoving * 10) * 0.03
+      headBob = headBobEnabled ? sin(timeMoving * 10) * 0.03 : 0
       vec3Add(cameraPos, vec3ScalarMultiply(vec3Normalize(vec3Temp0), speed))
     }
     if (debug_mode) {
