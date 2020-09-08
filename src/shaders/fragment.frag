@@ -732,7 +732,7 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
 
   for (int i = 0; dist < 100. && camDistance + dist < 130. && i < SHADOW_ITERATIONS; i++) {
     vec3 hit = p + iSunDirection * dist;
-    if (hit.y - initialY > 20.) {
+    if (abs(hit.y - initialY) > 20.) {
       return res;  // Nothing that casts shadows at those distances
     }
 
