@@ -10,7 +10,6 @@ import {
   GL_CLAMP_TO_EDGE,
   GL_TEXTURE1,
   GL_TRIANGLES,
-  GL_REPEAT,
   GL_LINEAR_MIPMAP_LINEAR
 } from './gl/gl-constants'
 import { loadMainShaderProgram } from './shader-program'

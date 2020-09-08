@@ -740,7 +740,7 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
 
   p = p + n * dist;  // Jump out of the surface by the normal * that dist
 
-  for (int i = 1; dist < 50. && camDistance + dist < 200. && i < SHADOW_ITERATIONS; i++) {
+  for (int i = 1; dist < 60. && camDistance + dist < 190. && i < SHADOW_ITERATIONS; i++) {
     float nearest = nonTerrain(p + iSunDirection * dist);
 
     if (nearest < max(epsilon, 0.01 * min(1., dist))) {
@@ -749,11 +749,9 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
 
     shadowR += 1. / float(SHADOW_ITERATIONS);
 
-    // res = min(res, 32. * nearest / dist);  // soft shadows
-
     res = min(res, smoothstep(0., .04, nearest / dist));
 
-    if (res < 0.07) {
+    if (res < 0.08) {
       return 0.;
     }
 
