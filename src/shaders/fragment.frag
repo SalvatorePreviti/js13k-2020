@@ -578,17 +578,19 @@ float guardTower(vec3 p) {
   y -= vec3(.8, 12.7, -.9);
   pModInterval(y.y, 20.5, -1., 0.);
 
-  float liftButton = min(
+  float elevatorButton = sphere(y-vec3(0, .5, 0), .06);
+  float buttonPost = min(
     cylinder(y.xzy, .05, .5),
     min(
       cuboid(y-vec3(0, .5, 0), vec3(.05,.1,.1)),
-      sphere(y-vec3(0, .5, 0), .06)
+      elevatorButton
     )
   );
-  updateSubMaterial(SUBMATERIAL_METAL, liftButton);
+  updateSubMaterial(SUBMATERIAL_BRIGHT_RED, elevatorButton);
+  updateSubMaterial(SUBMATERIAL_METAL, buttonPost);
   updateSubMaterial(SUBMATERIAL_YELLOW, elevator);
   return min(
-    min(structure, min(liftButton, elevator)),
+    min(structure, min(buttonPost, elevator)),
     cuboid(p+vec3(0,10.3,3), vec3(1.1,2.,3.)) //the platform to the bottom lift section
   );
   // clang-format on
