@@ -9,12 +9,13 @@ import {
   GL_COLOR_ATTACHMENT0,
   GL_CLAMP_TO_EDGE,
   GL_TEXTURE1,
-  GL_TRIANGLES
+  GL_TRIANGLES,
+  GL_LINEAR_MIPMAP_LINEAR
 } from './gl/gl-constants'
 import { loadMainShaderProgram } from './shader-program'
 import { gl, glFrameBuffer } from './page'
 
-export const HEIGHTMAP_TETURE_SIZE = 2048
+export const HEIGHTMAP_TETURE_SIZE = 4096
 
 export const heightmapTexture: WebGLTexture = gl.createTexture()
 
@@ -35,14 +36,16 @@ export const buildHeightmapTexture = () => {
     null
   )
 
-  glSetTextureSampling(GL_CLAMP_TO_EDGE)
-
   gl.bindFramebuffer(GL_FRAMEBUFFER, glFrameBuffer)
   gl.framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, heightmapTexture, 0)
 
   loadMainShaderProgram('h')(0, HEIGHTMAP_TETURE_SIZE, HEIGHTMAP_TETURE_SIZE)
 
   gl.drawArrays(GL_TRIANGLES, 0, 3)
+
+  gl.generateMipmap(GL_TEXTURE_2D)
+
+  glSetTextureSampling(GL_CLAMP_TO_EDGE, GL_LINEAR_MIPMAP_LINEAR)
 
   gl.bindFramebuffer(GL_FRAMEBUFFER, null)
 

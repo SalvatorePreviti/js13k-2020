@@ -148,7 +148,7 @@ float epsilon;
 const vec3 COLOR_SKY = vec3(.4, .8, 1);
 const vec3 COLOR_SUN = vec3(1.16, .95, .85);
 
-const vec3 TERRAIN_SIZE = vec3(120., 19., 80.);
+const vec3 TERRAIN_SIZE = vec3(120., 19., 78.);
 const float TERRAIN_OFFSET = 3.;
 
 // maximums
@@ -605,7 +605,7 @@ float screen(vec3 p, vec3 screenPosition, vec2 size, float angle) {
 
 float terrain(vec3 p) {
   float height = unpackFloat(textureLod(iHeightmap, p.xz / TERRAIN_SIZE.xz + .5, 0.)) * TERRAIN_SIZE.y;
-  vec2 d = abs(vec2(length(p.xz), p.y + 3. + TERRAIN_OFFSET)) - vec2(TERRAIN_SIZE.x * .5 * sqrt(2.), height + 3.);
+  vec2 d = abs(vec2(length(p.xz), p.y + 3. + TERRAIN_OFFSET)) - vec2(TERRAIN_SIZE.x, height + 3.);
   return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
 }
 
@@ -658,8 +658,8 @@ vec3 computeNonTerrainNormal(vec3 p) {
   return normalize(vec3(nonTerrain(p + S.xyy), nonTerrain(p + S.yxy), nonTerrain(p + S.yyx)) - nonTerrain(p));
 }
 
-vec3 computeTerrainNormal(vec3 p) {
-  const vec2 S = vec2(0.08, 0);
+vec3 computeTerrainNormal(vec3 p, float dist) {
+  vec2 S = vec2(mix(0.03, 0.001, min(dist / TERRAIN_SIZE.x, 1.)), 0);
   return normalize(vec3(terrain(p + S.xyy), terrain(p + S.yxy), terrain(p + S.yyx)) - terrain(p));
 }
 
@@ -727,26 +727,25 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
     return 0.;  // Skip faces behind the sun
   }
 
-  float initialY = p.y;
   float res = 1.;
   float dist = clamp(camDistance * 0.005, 0.01, .1);  // start further out from the surface if the camera is far away
+
   p = p + n * dist;  // Jump out of the surface by the normal * that dist
 
-  for (int i = 0; dist < 100. && camDistance + dist < 130. && i < SHADOW_ITERATIONS; i++) {
-    vec3 hit = p + iSunDirection * dist;
-    if (abs(hit.y - initialY) > 20.) {
-      return res;  // Nothing that casts shadows at those distances
-    }
+  for (int i = 1; dist < 60. && camDistance + dist < 190. && i < SHADOW_ITERATIONS; i++) {
+    float nearest = nonTerrain(p + iSunDirection * dist);
 
-    float nearest = nonTerrain(hit);
-
-    shadowR += 1. / float(SHADOW_ITERATIONS);
-
-    if (nearest < clamp(float(i) / float(SHADOW_ITERATIONS * 8), 0.001, .1)) {
+    if (nearest < max(epsilon, 0.01 * min(1., dist))) {
       return 0.;
     }
 
-    res = min(res, 32. * nearest / dist);  // soft shadows
+    shadowR += 1. / float(SHADOW_ITERATIONS);
+
+    res = min(res, smoothstep(0., .04, nearest / dist));
+
+    if (res < 0.08) {
+      return 0.;
+    }
 
     dist += nearest;
   }
@@ -806,7 +805,7 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat, int subMat) {
         color += 0.125 * (concrete.x - concrete.y + concrete.z - concrete.w);
       }
       if (subMat == SUBMATERIAL_WOOD)
-        color *= vec3(.8,.6,.4);
+        color *= vec3(.8, .6, .4);
       if (subMat == SUBMATERIAL_METAL)
         color = vec3(1);  // extra bright
       if (subMat == SUBMATERIAL_BRIGHT_RED)
@@ -861,7 +860,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   if (material == MATERIAL_SKY) {
     color = COLOR_SKY;  // mix(COLOR_SKY, COLOR_SUN, pow(clamp(dot(dir, iSunDirection),0.,1.),10.));
   } else {
-    vec3 hitNormal = material == MATERIAL_TERRAIN ? computeTerrainNormal(hit) : computeNonTerrainNormal(hit);
+    vec3 hitNormal = material == MATERIAL_TERRAIN ? computeTerrainNormal(hit, dist) : computeNonTerrainNormal(hit);
     color = getColorAt(hit, hitNormal, mat, submat);
     normal = normalize(mix(hitNormal, normal, waterOpacity));
     shadow = getShadow(p + dir * mdist, mdist, normal);
@@ -943,9 +942,10 @@ void main_m() {
   // oColor.y = shadowR;
   // oColor.z = shadowR;
 
-  // oColor.x = iterationsR * 2.;
-  // oColor.y = iterationsR;
-  // oColor.z = iterationsR;
+  // oColor.x = shadowR;
+  // oColor.x = shadowR;
+  // oColor.y = shadowR;
+  // oColor.z = shadowR;
 }
 
 /**********************************************************************/
