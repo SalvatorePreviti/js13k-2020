@@ -20,4 +20,8 @@ const playMusic = (): void => {
   mAudio.play()
 }
 
-export { loadMusic, playMusic }
+const pauseMusic = (): void => {
+  mAudio.pause()
+}
+
+export { loadMusic, playMusic, pauseMusic }

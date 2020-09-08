@@ -786,10 +786,11 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat, int subMat) {
       ;
       break;
     case MATERIAL_BUILDINGS:
-      if (subMat == SUBMATERIAL_CONCRETE)
-        color += 0.1 *
-            (texture(iNoise, hit.xy * .3).x * normal.z + texture(iNoise, hit.yz * .3).x * normal.x +
-                texture(iNoise, hit.xz * .3).x * normal.y - 0.5);
+      if (subMat == SUBMATERIAL_CONCRETE) {
+        vec4 concrete = (texture(iNoise, hit.xy * .3) * normal.z + texture(iNoise, hit.yz * .3) * normal.x +
+            texture(iNoise, hit.xz * .3) * normal.y - 0.5);
+        color += 0.18 * (concrete.x - concrete.y + concrete.z - concrete.w);
+      }
       if (subMat == SUBMATERIAL_METAL)
         color = vec3(1);  // extra bright
       if (subMat == SUBMATERIAL_BRIGHT_RED)
@@ -839,16 +840,18 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
     waterColor = mix(vec3(.15, .42, .63), vec3(.15, .62, .83), abs(waterXYD.z));
   }
 
+  int mat = material;
+  int submat = subMaterial;
   if (material == MATERIAL_SKY) {
     color = COLOR_SKY;  // mix(COLOR_SKY, COLOR_SUN, pow(clamp(dot(dir, iSunDirection),0.,1.),10.));
   } else {
     vec3 hitNormal = material == MATERIAL_TERRAIN ? computeTerrainNormal(hit) : computeNonTerrainNormal(hit);
-    color = getColorAt(hit, hitNormal, material, subMaterial);
+    color = getColorAt(hit, hitNormal, mat, submat);
     normal = normalize(mix(hitNormal, normal, waterOpacity));
     shadow = getShadow(p + dir * mdist, mdist, normal);
   }
 
-  float specular = isWater || (material == MATERIAL_BUILDINGS && subMaterial > SUBMATERIAL_CONCRETE)
+  float specular = isWater || (mat == MATERIAL_BUILDINGS && submat > SUBMATERIAL_CONCRETE)
       ? pow(clamp01(dot(iSunDirection, reflect(dir, normal))), 50.)
       : 0.;
 

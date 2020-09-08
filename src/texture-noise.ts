@@ -1,5 +1,14 @@
 import { debug_time, debug_timeEnd } from './debug'
-import { GL_TEXTURE_2D, GL_RGBA, GL_UNSIGNED_BYTE, GL_TEXTURE0 } from './gl/gl-constants'
+import {
+  GL_TEXTURE_2D,
+  GL_RGBA,
+  GL_UNSIGNED_BYTE,
+  GL_TEXTURE0,
+  GL_GENERATE_MIPMAP_HINT,
+  GL_NICEST,
+  GL_REPEAT,
+  GL_LINEAR_MIPMAP_LINEAR
+} from './gl/gl-constants'
 import { glSetTextureSampling } from './gl/gl-utils'
 import { gl } from './page'
 
@@ -50,7 +59,10 @@ export const buildNoiseTexture = () => {
 
   gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, NOISE_TEXTURE_SIZE, NOISE_TEXTURE_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
 
-  glSetTextureSampling()
+  gl.hint(GL_GENERATE_MIPMAP_HINT, GL_NICEST)
+  gl.generateMipmap(GL_TEXTURE_2D)
+
+  glSetTextureSampling(GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR)
 
   debug_timeEnd(buildNoiseTexture)
 }
