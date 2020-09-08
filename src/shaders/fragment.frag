@@ -598,8 +598,6 @@ float screen(vec3 p, vec3 screenPosition, vec2 size, float angle) {
   return screen;
 }
 
-float iterations = 0.;
-
 float terrain(vec3 p) {
   float height = unpackFloat(textureLod(iHeightmap, p.xz / TERRAIN_SIZE.xz + .5, 0.)) * TERRAIN_SIZE.y;
   vec2 d = abs(vec2(length(p.xz), p.y + 3. + TERRAIN_OFFSET)) - vec2(TERRAIN_SIZE.x * .5 * sqrt(2.), height + 3.);
@@ -634,18 +632,22 @@ int material = MATERIAL_SKY;
 
 float distanceToNearestSurface(vec3 p) {
   float t = terrain(p);
+  if (t <= epsilon) {
+    material = MATERIAL_TERRAIN;
+    return t;
+  }
   float n = nonTerrain(p);
   float s = screen(p, vec3(4.76, 14.42, 4), vec2(.45, .29), PI / 2.);
-  if (t < min(s, n)) {
+  float sn = min(s, n);
+  if (t < sn) {
     material = MATERIAL_TERRAIN;
     return t;
   }
   if (s < n) {
     material = MATERIAL_SCREEN;
-    return s;
   }
   material = MATERIAL_BUILDINGS;
-  return n;
+  return sn;
 }
 
 vec3 computeNonTerrainNormal(vec3 p) {
@@ -673,6 +675,19 @@ float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
   for (int i = 0;; i++) {
     vec3 hit = p + dir * dist;
 
+    if (dist >= MAX_DIST || hit.y > 80.) {
+      break;  // Nothing to render after MAX_DIST or higher than 80 meters.
+    }
+
+    epsilon = dist * min_epsilon;
+    float hitUnderwater = hit.y + TERRAIN_OFFSET * .5;
+    if (hitUnderwater < -0.01) {
+      if (hitUnderwater < -TERRAIN_OFFSET) {
+        break;  // Nothing to render underwater
+      }
+      epsilon -= hitUnderwater * .5;  // Decrease resolution under water
+    }
+
     float nearest = distanceToNearestSurface(hit);
 
     if (nearest < 0.) {
@@ -681,19 +696,6 @@ float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
     }
 
     dist += nearest;
-    epsilon = dist * min_epsilon;
-
-    if (dist >= MAX_DIST || hit.y > 80.) {
-      break;  // Nothing to render after MAX_DIST or higher than 80 meters.
-    }
-
-    float hitUnderwater = hit.y + TERRAIN_OFFSET * .5;
-    if (hitUnderwater < -0.01) {
-      if (hitUnderwater < -TERRAIN_OFFSET) {
-        break;  // Nothing to render underwater
-      }
-      epsilon -= hitUnderwater;  // Decrease resolution under water
-    }
 
     if (nearest <= epsilon || i >= MAX_ITERATIONS) {
       return dist;
@@ -787,9 +789,9 @@ vec3 getColorAt(vec3 hit, vec3 normal, int mat, int subMat) {
       break;
     case MATERIAL_BUILDINGS:
       if (subMat == SUBMATERIAL_CONCRETE) {
-        vec4 concrete = (texture(iNoise, hit.xy * .3) * normal.z + texture(iNoise, hit.yz * .3) * normal.x +
-            texture(iNoise, hit.xz * .3) * normal.y - 0.5);
-        color += 0.18 * (concrete.x - concrete.y + concrete.z - concrete.w);
+        vec4 concrete = (texture(iNoise, hit.xy * .35) * normal.z + texture(iNoise, hit.yz * .35) * normal.x +
+            texture(iNoise, hit.xz * .35) * normal.y - 0.5);
+        color += 0.125 * (concrete.x - concrete.y + concrete.z - concrete.w);
       }
       if (subMat == SUBMATERIAL_METAL)
         color = vec3(1);  // extra bright
@@ -807,7 +809,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   float unpacked = uintBitsToFloat(
       (uint(packed.x * 255.) << 24 | uint(packed.y * 255.) << 16 | uint(packed.z * 255.) << 8 | uint(packed.z * 255.)));
 
-  float dist = unpacked < MAX_DIST ? rayMarch(p, dir, 0.001, unpacked) : MAX_DIST;
+  float dist = rayMarch(p, dir, 0.001, unpacked);
   float wdist = rayTraceWater(p, dir);
   float lightIntensity;
 
@@ -887,7 +889,7 @@ void main_c() {
 /**********************************************************************/
 
 void main_p() {
-  vec2 screen = fragCoord / (iResolution * .5) - 1.;
+  vec2 screen = fragCoord / (PRERENDERED_TEXTURE_SIZE * .5) - 1. + .5 / PRERENDERED_TEXTURE_SIZE;
 
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
 
@@ -923,8 +925,8 @@ void main_m() {
   // vec3 pixelColour = clamp(intersectWithWorld(iCameraPos, ray), 0., 1.);
   // oColor = vec4(pixelColour, 1);
 
-  // oColor.x = shadowR;
-  // oColor.y = iterationsR;
+  // oColor.x = iterationsR * 4.;
+  // oColor.y = iterationsR * 1.5;
   // oColor.z = iterationsR;
 }
 
