@@ -35,11 +35,11 @@ const CPlayer = function () {
   var osc_sin = function (value) {
     return Math.sin(value * 6.283184)
   }
-
+  /*
   var osc_saw = function (value) {
     return 2 * (value % 1) - 1
   }
-
+*/
   var osc_square = function (value) {
     return value % 1 < 0.5 ? 1 : -1
   }
@@ -132,7 +132,7 @@ const CPlayer = function () {
   //--------------------------------------------------------------------------
 
   // Array of oscillator functions
-  var mOscillators = [osc_sin, osc_square, osc_saw, osc_tri]
+  var mOscillators = [osc_sin, osc_square /*osc_saw*/, , osc_tri]
 
   // Private variables set up by init()
   var mSong, mLastRow, mCurrentCol, mNumWords, mMixBuf
@@ -363,7 +363,7 @@ const CPlayer = function () {
     // Return the WAVE formatted typed array
     return wave
   }
-
+  /*
   // Get n samples of wave data at time t [s]. Wave data in range [-2,2].
   this.getData = function (t, n) {
     var i = 2 * Math.floor(t * 44100)
@@ -374,6 +374,7 @@ const CPlayer = function () {
     }
     return d
   }
+*/
 }
 
 export { CPlayer }
