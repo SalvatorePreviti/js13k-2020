@@ -46,7 +46,7 @@ export const initCollider = () => {
 }
 
 export const updateCollider = (time: number) => {
-  collisionShader(time, COLLIDER_SIZE, COLLIDER_SIZE)
+  collisionShader(time, COLLIDER_SIZE, COLLIDER_SIZE, true)
 
   gl.bindFramebuffer(GL_FRAMEBUFFER, colliderFrameBuffer)
   gl.drawArrays(GL_TRIANGLES, 0, 3)
