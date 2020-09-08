@@ -509,10 +509,10 @@ float oilrig(vec3 p) {
   platforms = max(platforms, -cuboid(p - vec3(2, 7, 2), vec3(1.5)));  // hole in upper platform
   platforms = max(platforms, -cuboid(p - vec3(5.7, 0, 4), vec3(.52)));  // hole in lower platform for the bridge
   e.z = abs(e.z + 2.);  // mirror around z=2
-  metal = min(metal, cylinder(e.xzy - vec3(-6, 1.1, 8.7), 1., 1.75));  // tanks
-  metal = min(metal, cylinder(e.xzy - vec3(-6.5, 1.1, 0), .2, 8.));  // pipes from tanks to sea
+  float pipes = cylinder(e.xzy - vec3(-6, 1.1, 8.7), 1., 1.75);
+  pipes = min(pipes, cylinder(e.xzy - vec3(-6.5, 1.1, 0), .2, 8.));  // pipes from tanks to sea
   o.y = abs(o.y - 7.6);
-  metal = min(metal, cylinder(o.zyx - vec3(-3, .2, 0), .1, 5.));  // pipes from console to tank
+  pipes = min(pipes, cylinder(o.zyx - vec3(-3, .2, 0), .1, 5.));  // pipes from console to tank
   // r = min(r, cylinder(o-vec3(-6,.2,-2),.1,1.));    //pipes between tanks
   u = p - vec3(5, 7.6, -2);
   u.xy *= rot(.3);  // rotate the console towards player
@@ -530,9 +530,10 @@ float oilrig(vec3 p) {
   p -= vec3(2, 3.53, -.05);
   p.zy *= rot(-PI / 4.);
   platforms = min(platforms, cuboid(p, vec3(1, 5.1, .1)) - .05);  // ramp from lower platform to upper
+  updateSubMaterial(SUBMATERIAL_YELLOW, pipes);
   updateSubMaterial(SUBMATERIAL_METAL, metal);
   updateSubMaterial(SUBMATERIAL_BRIGHT_RED, wheel);
-  return min(platforms, min(metal, wheel));
+  return min(platforms, min(min(pipes,metal), wheel));
 }
 
 float oilrigBridge(vec3 p) {
