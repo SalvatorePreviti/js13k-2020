@@ -434,7 +434,9 @@ float monument(vec3 p) {
   return min(metals, r);
 }
 
-float prison(vec3 p) {
+float prison(vec3 ip) {
+  vec3 p = ip.zyx - vec3(11, 1.25, -44);
+
   float bounds = length(p) - 8.;
   if (bounds > 5.)
     return bounds;
@@ -460,7 +462,29 @@ float prison(vec3 p) {
   updateSubMaterial(SUBMATERIAL_METAL, metalThings);
   updateSubMaterial(SUBMATERIAL_CONCRETE, structure);
 
-  return min(structure, metalThings);
+  float nearest = min(structure, metalThings);
+
+  float gameObjects = MAX_DIST;
+
+  if (iGOFlashlightVisible) {
+    gameObjects = gameObjectFlashlight(ip - vec3(-42, 3, 11.2));
+  }
+
+  if (iGOKeyVisible) {
+    gameObjects = min(gameObjects, gameObjectKey(ip.yzx - vec3(2., 7.4, -45.5)));
+  }
+
+  if (gameObjects < nearest) {
+    updateSubMaterial(SUBMATERIAL_BRIGHT_RED, gameObjects);
+    return gameObjects;
+  }
+  return nearest;
+
+  /*
+  float gameObjects = min(iGOKeyVisible ? gameObjectKey(ip.yzx - vec3(2., 7.4, -45.5)) : MAX_DIST,
+      iGOFlashlightVisible ? gameObjectFlashlight(ip - vec3(-42, 3, 11.2)) : MAX_DIST);
+  updateSubMaterial(SUBMATERIAL_BRIGHT_RED, gameObjects);
+*/
 }
 
 float submarine(vec3 p) {
@@ -629,7 +653,7 @@ float nonTerrain(vec3 p) {
   float b = bridge(p - vec3(45, 1.7, 22.4), 10., 2.);
   float a = antenna(p - vec3(2, 10, 2), vec2(0.5, iAnimAntennaRotation));
   float m = monument(p - vec3(47.5, 3.5, 30.5));
-  float pr = prison(p.zyx - vec3(11, 1.25, -44));
+  float pr = prison(p);
   vec3 oilrigCoords = p - vec3(26, 5, -58);
   oilrigCoords.xz *= rot(PI / 2. + 0.4);
   float o = oilrig(oilrigCoords);
@@ -638,14 +662,14 @@ float nonTerrain(vec3 p) {
   float guardTower = guardTower(p);
   float submarine = submarine(p - vec3(-46, -.5, -30));
   float structures = min(min(min(b, a), min(m, pr)), min(o, min(ob, min(guardTower, submarine))));
-  float gameObjects = min(iGOKeyVisible ? gameObjectKey(p.yzx - vec3(2., 7.4, -45.5)) : MAX_DIST,
-      iGOFlashlightVisible ? gameObjectFlashlight(p - vec3(-42, 3, 11.2)) : MAX_DIST);
 
-  updateSubMaterial(SUBMATERIAL_METAL, aoc);
-  updateSubMaterial(SUBMATERIAL_BRIGHT_RED, gameObjects);
+  if (aoc < structures) {
+    updateSubMaterial(SUBMATERIAL_METAL, aoc);
+    return aoc;
+  }
+
   updateSubMaterial(SUBMATERIAL_CONCRETE, structures);
-
-  return min(min(structures, gameObjects), aoc);
+  return structures;
 }
 
 int material = MATERIAL_SKY;
