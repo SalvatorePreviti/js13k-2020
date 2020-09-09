@@ -540,7 +540,9 @@ float oilrigBridge(vec3 p) {
   return min(bridge(q, 21., 0.), cylinder(q.xzy + vec3(0, 10.5, 6), 0.15, 5.));
 }
 
-float guardTower(vec3 p) {
+float guardTower(vec3 ip) {
+  vec3 p = ip - vec3(8.7, 9.3, 37);
+
   // clang-format off
   float bounds = length(p.xz) - 5.;
   if (bounds > 4.) {
@@ -587,10 +589,21 @@ float guardTower(vec3 p) {
   updateSubMaterial(SUBMATERIAL_BRIGHT_RED, elevatorButton);
   updateSubMaterial(SUBMATERIAL_METAL, buttonPost);
   updateSubMaterial(SUBMATERIAL_YELLOW, elevator);
-  return min(
+
+  float nearest = min(
     min(structure, min(buttonPost, elevator)),
     cuboid(p+vec3(0,10.3,3), vec3(1.1,2.,3.)) //the platform to the bottom lift section
   );
+
+  if (iGOFloppyDiskVisible) {
+    float floppyNearest = gameObjectFloppy(ip - vec3(12.15, 22.31, 38.65));
+    if (floppyNearest < nearest) {
+      updateSubMaterial(SUBMATERIAL_BRIGHT_RED, floppyNearest);
+      return floppyNearest;
+    }
+  }
+
+  return nearest;
   // clang-format on
 }
 
@@ -622,12 +635,11 @@ float nonTerrain(vec3 p) {
   float o = oilrig(oilrigCoords);
   float ob = oilrigBridge(oilrigCoords);
   float aoc = antennaCable(oilrigCoords.zyx - vec3(-2, 9.7, 32.5));
-  float guardTower = guardTower(p - vec3(8.7, 9.3, 37));
+  float guardTower = guardTower(p);
   float submarine = submarine(p - vec3(-46, -.5, -30));
   float structures = min(min(min(b, a), min(m, pr)), min(o, min(ob, min(guardTower, submarine))));
   float gameObjects = min(iGOKeyVisible ? gameObjectKey(p.yzx - vec3(2., 7.4, -45.5)) : MAX_DIST,
-      min(iGOFlashlightVisible ? gameObjectFlashlight(p - vec3(-42, 3, 11.2)) : MAX_DIST,
-          iGOFloppyDiskVisible ? gameObjectFloppy(p - vec3(12.15, 22.31, 38.65)) : MAX_DIST));
+      iGOFlashlightVisible ? gameObjectFlashlight(p - vec3(-42, 3, 11.2)) : MAX_DIST);
 
   updateSubMaterial(SUBMATERIAL_METAL, aoc);
   updateSubMaterial(SUBMATERIAL_BRIGHT_RED, gameObjects);
