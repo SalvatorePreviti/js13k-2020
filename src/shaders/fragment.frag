@@ -481,12 +481,6 @@ float prison(vec3 ip) {
     return gameObjects;
   }
   return nearest;
-
-  /*
-  float gameObjects = min(iGOKeyVisible ? gameObjectKey(ip.yzx - vec3(2., 7.4, -45.5)) : MAX_DIST,
-      iGOFlashlightVisible ? gameObjectFlashlight(ip - vec3(-42, 3, 11.2)) : MAX_DIST);
-  updateSubMaterial(SUBMATERIAL_BRIGHT_RED, gameObjects);
-*/
 }
 
 float submarine(vec3 p) {
@@ -645,8 +639,6 @@ float screen(vec3 p, vec3 screenPosition, vec2 size, float angle) {
   return screen;
 }
 
-float xxxDebug = 0.;
-
 float terrain(vec3 p) {
   vec3 d = abs(vec3(p.x, p.y + TERRAIN_OFFSET, p.z)) - vec3(TERRAIN_SIZE.x * .5, 0., TERRAIN_SIZE.z * .5);
   if (d.x < 0. && d.z < 0.) {
@@ -721,12 +713,6 @@ float rayTraceGround(vec3 p, vec3 dir) {
 float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
   float result = MAX_DIST;
   float prevNear = min_epsilon;
-
-  /*if (gdist <= dist) {
-    dist = gdist;
-    material = MATERIAL_TERRAIN;
-    discard;
-  }*/
 
   for (int i = 0;; i++) {
     vec3 hit = p + dir * dist;
