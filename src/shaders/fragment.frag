@@ -711,7 +711,7 @@ float rayTraceGround(vec3 p, vec3 dir) {
 }
 
 float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
-  float result = MAX_DIST;
+  float result = HORIZON_DIST;
   float prevNear = min_epsilon;
 
   for (int i = 0;; i++) {
@@ -746,7 +746,7 @@ float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
   }
 
   material = MATERIAL_SKY;
-  return MAX_DIST;
+  return HORIZON_DIST;
 }
 
 float shadowR = 0.;
@@ -790,7 +790,7 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
 
 float rayTraceWater(vec3 p, vec3 dir) {
   float t = (iWaterLevel - p.y) / dir.y;
-  return min(t >= 0. ? t : MAX_DIST, MAX_DIST);
+  return min(t >= 0. ? t : HORIZON_DIST, HORIZON_DIST);
 }
 
 vec3 waterFBM(vec2 p) {
@@ -815,7 +815,7 @@ vec3 waterFBM(vec2 p) {
 }
 
 vec3 applyFog(vec3 rgb, float dist, vec3 rayDir) {
-  float dRatio = min(dist / MAX_DIST, 1.);
+  float dRatio = min(dist / HORIZON_DIST, 1.);
 
   float fogAmount = clamp01(pow(dRatio, 3.5) + 1.0 - exp(-dist * 0.005));
   float sunAmount = max(dot(rayDir, iSunDirection), 0.0);
@@ -878,7 +878,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
 
   vec3 hit = p + dir * dist;
 
-  bool isWater = wdist < MAX_DIST && wdist < dist;
+  bool isWater = wdist < HORIZON_DIST && wdist < dist;
   vec3 waterColor;
   float waterOpacity = 0.;
   if (isWater) {
@@ -886,7 +886,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
 
     vec3 waterhit = p + dir * wdist;
     vec3 waterXYD = mix(vec3(0),
-        waterFBM(waterhit.xz * (.7 - iWaterLevel * .02)) * (1. - length(waterhit) / (.9 * MAX_DIST)), waterOpacity);
+        waterFBM(waterhit.xz * (.7 - iWaterLevel * .02)) * (1. - length(waterhit) / (.9 * HORIZON_DIST)), waterOpacity);
 
     normal = normalize(vec3(waterXYD.x, 1., waterXYD.y));
 
