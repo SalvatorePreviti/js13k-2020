@@ -370,11 +370,17 @@ float lever(vec3 p, float leverState) {
 }
 
 // rotation.x controls elevation/altitude, rotation.y controls azimuth
+float antennaMin = MAX_DIST;
 float antenna(vec3 p, vec2 rotation) {
   const float size = 9.;
   float bounds = length(p) - size * 2.;
-  if (bounds > 5.)
+  if (bounds > 5.) {
+    if (bounds > antennaMin) {
+      return MAX_DIST;
+    }
+    antennaMin = bounds;
     return bounds;
+  }
   p.y -= size;
 
   vec3 q = p;
@@ -413,10 +419,15 @@ float antenna(vec3 p, vec2 rotation) {
   return min(min(console, structure), min(metalThings, oilrigLever));
 }
 
+float monumentMin = MAX_DIST;
 float monument(vec3 p) {
   float bounds = length(p.xz) - 2.;
-  if (bounds > 3.)
+  if (bounds > 3.) {
+    if (bounds > monumentMin)
+      return MAX_DIST;
+    monumentMin = bounds;
     return bounds;
+  }
   float metals = cylinder(p.xzy + vec3(0, 0, clamp(iAnimMonumentDescend, 0., .02)), .05, .53);  // the button
   updateSubMaterial(SUBMATERIAL_METAL, metals);
   float r = cylinder(p.xzy, .2, .5);  // the button mount
@@ -436,10 +447,16 @@ float monument(vec3 p) {
   return min(metals, r);
 }
 
+float prisonMin = MAX_DIST;
 float prison(vec3 p) {
   float bounds = length(p) - 8.;
-  if (bounds > 5.)
+  if (bounds > 5.) {
+    if (bounds > prisonMin) {
+      return MAX_DIST;
+    }
+    prisonMin = bounds;
     return bounds;
+  }
   p.y -= 2.;
   float structure = max(min(opOnion(cuboid(p, vec3(4, 1.6, 2)), 0.23),  // The main box
                             cuboid(p - vec3(-3, -1, -1.3), vec3(0.3, .5, .5))  // corner box (key hides behind it)
@@ -465,10 +482,15 @@ float prison(vec3 p) {
   return min(structure, metalThings);
 }
 
+float submarineMin = MAX_DIST;
 float submarine(vec3 p) {
   // clang-format off
   float bounds = length(p)-9.;
   if (bounds > 1.) {
+    if (bounds > submarineMin) {
+      return MAX_DIST;
+    }
+    submarineMin = bounds;
     return bounds;
   }
   p.xz *= rot(-PI/4.);
@@ -490,10 +512,15 @@ float submarine(vec3 p) {
   // clang-format on
 }
 
+float oilrigMin = MAX_DIST;
 float oilrig(vec3 p) {
   float bounds = length(p) - 12.;
-  if (bounds > 2.)
+  if (bounds > 2.) {
+    if (bounds > oilrigMin)
+      return MAX_DIST;
+    oilrigMin = bounds;
     return bounds;
+  }
   vec3 q = p, w = p, e = p, o = p, t, l, u;  // copies of p for different co-ordinate systems
   q.xz = abs(q.xz);  // mirror in x & z
   float metal = cylinder(q.xzy - vec3(5, 5, 0), .5, 8.3);  // main platform cylinders
