@@ -220,13 +220,11 @@ float cuboid(vec3 p, vec3 s) {
 
 float cylinder(vec3 p, float r, float l) {
   float d = length(p.xy) - r;
-  d = max(d, abs(p.z) - l);
-  return d;
+  return max(d, abs(p.z) - l);
 }
 
 float torus(vec3 p, vec2 t) {
-  vec2 q = vec2(length(p.xz) - t.x, p.y);
-  return length(q) - t.y;
+  return length(vec2(length(p.xz) - t.x, p.y)) - t.y;
 }
 
 //=== OPERATIONS ===
