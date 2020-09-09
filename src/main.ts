@@ -39,7 +39,7 @@ setTimeout(() => {
       updateCamera(timeDelta, time)
 
       if (!mainMenuVisible && !GAME_OBJECTS._submarine._gameEnded) {
-        updateCollider(time)
+        //updateCollider(time)
       }
 
       debug_updateCameraPosition(cameraPos)

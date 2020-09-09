@@ -152,11 +152,13 @@ const vec3 COLOR_SUN = vec3(1.16, .95, .85);
 
 const vec3 TERRAIN_SIZE = vec3(120., 19., 78.);
 const float TERRAIN_OFFSET = 3.;
+const float UNDERGROUND_LEVEL = -TERRAIN_OFFSET + 0.0005;
 
 // maximums
 const int MAX_ITERATIONS = 100;
 const float MIN_DIST = 0.15;
-const float MAX_DIST = 500.;
+const float MAX_DIST = 150.;
+const float HORIZON_DIST = 500.;
 
 float clamp01(float v) {
   return clamp(v, 0., 1.);
@@ -643,10 +645,14 @@ float screen(vec3 p, vec3 screenPosition, vec2 size, float angle) {
   return screen;
 }
 
+float xxxDebug = 0.;
+
 float terrain(vec3 p) {
-  float height = unpackFloat(textureLod(iHeightmap, p.xz / TERRAIN_SIZE.xz + .5, 0.)) * TERRAIN_SIZE.y;
-  vec2 d = abs(vec2(length(p.xz), p.y + 3. + TERRAIN_OFFSET)) - vec2(TERRAIN_SIZE.x, height + 3.);
-  return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
+  vec3 d = abs(vec3(p.x, p.y + TERRAIN_OFFSET, p.z)) - vec3(TERRAIN_SIZE.x * .5, 0., TERRAIN_SIZE.z * .5);
+  if (d.x < 0. && d.z < 0.) {
+    d.y -= unpackFloat(textureLod(iHeightmap, p.xz / TERRAIN_SIZE.xz + .5, 0.)) * TERRAIN_SIZE.y;
+  }
+  return min(d.y, 0.0) + length(max(d, 0.0));
 }
 
 float nonTerrain(vec3 p) {
@@ -693,7 +699,6 @@ float distanceToNearestSurface(vec3 p) {
 
 vec3 computeNonTerrainNormal(vec3 p) {
   const vec2 S = vec2(0.001, 0);
-
   return normalize(vec3(nonTerrain(p + S.xyy), nonTerrain(p + S.yxy), nonTerrain(p + S.yyx)) - nonTerrain(p));
 }
 
@@ -708,29 +713,34 @@ float computeLambert(vec3 n, vec3 ld) {
 
 float iterationsR;
 
+float rayTraceGround(vec3 p, vec3 dir) {
+  float t = (-TERRAIN_OFFSET - p.y) / dir.y;
+  return min(t >= 0. ? t : MAX_DIST, MAX_DIST);
+}
+
 float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
   float result = MAX_DIST;
   float prevNear = min_epsilon;
 
-  for (int i = 0;; i++) {
-    if (dist >= MAX_DIST) {
-      break;  // Nothing to render after MAX_DIST.
-    }
+  /*if (gdist <= dist) {
+    dist = gdist;
+    material = MATERIAL_TERRAIN;
+    discard;
+  }*/
 
+  for (int i = 0;; i++) {
     vec3 hit = p + dir * dist;
 
-    if (hit.y > 80.) {
-      break;  // Nothing to render higher than 80 meters.
+    if (dist >= MAX_DIST || hit.y > 45. || abs(hit.x) >= MAX_DIST || abs(hit.z) >= MAX_DIST) {
+      break;  // Nothing to render so far
+    }
+
+    if (hit.y <= UNDERGROUND_LEVEL) {
+      material = MATERIAL_TERRAIN;
+      return rayTraceGround(p, dir);  // Nothing to render underwater
     }
 
     epsilon = min_epsilon * max(dist, 1.);
-    float hitUnderwater = hit.y + TERRAIN_OFFSET * .5;
-    if (hitUnderwater < -0.01) {
-      if (hitUnderwater < -TERRAIN_OFFSET) {
-        break;  // Nothing to render underwater
-      }
-      epsilon -= hitUnderwater * .5;  // Decrease resolution under water
-    }
 
     float nearest = distanceToNearestSurface(hit);
 
@@ -757,10 +767,6 @@ float shadowR = 0.;
 
 #define SHADOW_ITERATIONS 50
 float getShadow(vec3 p, float camDistance, vec3 n) {
-  if (abs(p.x) >= TERRAIN_SIZE.x * 3. || abs(p.z) >= TERRAIN_SIZE.z * 3. || p.y < iWaterLevel - 0.01) {
-    return 1.;  // Skip objects outsite the island and skip underwater
-  }
-
   if (dot(n, iSunDirection) < -0.1) {
     return 0.;  // Skip faces behind the sun
   }
@@ -771,7 +777,13 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
   p = p + n * dist;  // Jump out of the surface by the normal * that dist
 
   for (int i = 1; dist < 60. && camDistance + dist < 190. && i < SHADOW_ITERATIONS; i++) {
-    float nearest = nonTerrain(p + iSunDirection * dist);
+    vec3 hit = p + iSunDirection * dist;
+
+    if (dist >= 100. || hit.y > 45. || hit.y < iWaterLevel - 0.01) {
+      break;  // Nothing to render so far
+    }
+
+    float nearest = nonTerrain(hit);
 
     if (nearest < max(epsilon, 0.01 * min(1., dist))) {
       return 0.;
@@ -801,7 +813,7 @@ vec3 waterFBM(vec2 p) {
   float a = 1.;
 
   float flow = 0.;
-  float distToCameraRatio = (1. - length(iCameraPos.xz - p) / MAX_DIST);
+  float distToCameraRatio = (1. - length(iCameraPos.xz - p) / HORIZON_DIST);
   float octaves = 5. * distToCameraRatio * distToCameraRatio;
   for (float i = 0.; i < octaves; ++i) {
     p += iTime;
@@ -817,7 +829,7 @@ vec3 waterFBM(vec2 p) {
 }
 
 vec3 applyFog(vec3 rgb, float dist, vec3 rayDir) {
-  float dRatio = dist / MAX_DIST;
+  float dRatio = min(dist / MAX_DIST, 1.);
 
   float fogAmount = clamp01(pow(dRatio, 3.5) + 1.0 - exp(-dist * 0.005));
   float sunAmount = max(dot(rayDir, iSunDirection), 0.0);
@@ -866,6 +878,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
 
   float dist = rayMarch(p, dir, 0.001, unpacked);
   float wdist = rayTraceWater(p, dir);
+
   float lightIntensity;
 
   vec3 color;
@@ -902,9 +915,20 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   if (material == MATERIAL_SKY) {
     color = COLOR_SKY;  // mix(COLOR_SKY, COLOR_SUN, pow(clamp(dot(dir, iSunDirection),0.,1.),10.));
   } else {
-    vec3 hitNormal = material == MATERIAL_TERRAIN ? computeTerrainNormal(hit, dist) : computeNonTerrainNormal(hit);
-    color = getColorAt(hit, hitNormal, mat, submat);
-    normal = normalize(mix(hitNormal, normal, waterOpacity));
+    vec3 hitNormal;
+    if (hit.y <= UNDERGROUND_LEVEL) {
+      hitNormal = vec3(0, 1, 0);
+      color = vec3(1, 1, 1);
+    } else {
+      if (material == MATERIAL_TERRAIN) {
+        hitNormal = computeTerrainNormal(hit, dist);
+      } else {
+        hitNormal = computeNonTerrainNormal(hit);
+      }
+      color = getColorAt(hit, hitNormal, mat, submat);
+      normal = normalize(mix(hitNormal, normal, waterOpacity));
+    }
+
     shadow = getShadow(p + dir * mdist, mdist, normal);
   }
 
@@ -984,7 +1008,11 @@ void main_m() {
   // oColor.y = shadowR;
   // oColor.z = shadowR;
 
-  // oColor.x = shadowR;
+  // oColor.x = shadowR * 2.;
+  // oColor.y = iterationsR * 2.;
+  // oColor.z = iterationsR * 2.;
+  // oColor.y = xxxDebug;
+  // oColor.z = iterationsR;
   // oColor.x = shadowR;
   // oColor.y = shadowR;
   // oColor.z = shadowR;
