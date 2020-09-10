@@ -698,9 +698,6 @@ vec3 computeTerrainNormal(vec3 p, float dist) {
 
 float computeLambert(vec3 n, vec3 ld) {
   return pow(dot(ld, n) / 2. + .5, 3.) * 1.1;
-  /*return clamp01(mix(.1, 1.1, dot(ld, n)));
-  float v = clamp01((dot(ld, n) + 1.) * .5);
-  return v * v;*/
 }
 
 float rayTraceGround(vec3 p, vec3 dir) {
