@@ -8,8 +8,8 @@ precision highp float;
 
 // Sub materials of MATERIAL_BUILDINGS
 #define SUBMATERIAL_WOOD -1
-#define SUBMATERIAL_CONCRETE 0  //0 and below have concrete texture.
-#define SUBMATERIAL_METAL 1 //>0 is smooth and has specular
+#define SUBMATERIAL_CONCRETE 0  // 0 and below have concrete texture.
+#define SUBMATERIAL_METAL 1  //>0 is smooth and has specular
 #define SUBMATERIAL_BRIGHT_RED 2
 #define SUBMATERIAL_DARK_RED 3
 #define SUBMATERIAL_BLACK_PURPLE 4
@@ -220,13 +220,11 @@ float cuboid(vec3 p, vec3 s) {
 
 float cylinder(vec3 p, float r, float l) {
   float d = length(p.xy) - r;
-  d = max(d, abs(p.z) - l);
-  return d;
+  return max(d, abs(p.z) - l);
 }
 
 float torus(vec3 p, vec2 t) {
-  vec2 q = vec2(length(p.xz) - t.x, p.y);
-  return length(q) - t.y;
+  return length(vec2(length(p.xz) - t.x, p.y)) - t.y;
 }
 
 //=== OPERATIONS ===
@@ -494,10 +492,9 @@ float oilrig(vec3 p) {
   float bounds = length(p) - 12.;
   if (bounds > 2.)
     return bounds;
-  vec3 q = p, w = p, e = p, o = p, t, l, u;  // copies of p for different co-ordinate systems
+  vec3 q = p, w = p, e = p, o = p, t, u;  // copies of p for different co-ordinate systems
   q.xz = abs(q.xz);  // mirror in x & z
   float metal = cylinder(q.xzy - vec3(5, 5, 0), .5, 8.3);  // main platform cylinders
-  l = q;
   q.y = abs(w.y - 4.58);  // mirror y at y=4;
   metal = min(metal, cylinder(q.zyx - vec3(5.3, 3.5, 0), .05, 5.3));  // guard rails
   metal = min(metal,
@@ -519,9 +516,9 @@ float oilrig(vec3 p) {
   metal = min(metal, cuboid(u, vec3(.5, .6, 1.5)) - 0.05);  // console
   t = u - vec3(0, .8, 0);
   // rotate wheel around xz based on animation uniform:
-  t.xz *= rot(iAnimOilrigWheel);
   float wheel = length(t) - 1.;
   if (wheel < 2.) {
+    t.xz *= rot(iAnimOilrigWheel);
     wheel = torus(t, vec2(.5, .02));
     wheel = min(wheel, cylinder(t.xzy + vec3(0, 0, .5), .02, .5));  // center-column of spokes
     pModPolar(t.xz, 5.);
@@ -533,7 +530,7 @@ float oilrig(vec3 p) {
   updateSubMaterial(SUBMATERIAL_YELLOW, pipes);
   updateSubMaterial(SUBMATERIAL_METAL, metal);
   updateSubMaterial(SUBMATERIAL_BRIGHT_RED, wheel);
-  return min(platforms, min(min(pipes,metal), wheel));
+  return min(platforms, min(min(pipes, metal), wheel));
 }
 
 float oilrigBridge(vec3 p) {
@@ -678,7 +675,6 @@ float iterationsR;
 float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
   float result = MAX_DIST;
   float prevNear = min_epsilon;
-  float stepLen = min_epsilon;
 
   for (int i = 0;; i++) {
     if (dist >= MAX_DIST) {
