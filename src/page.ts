@@ -36,10 +36,16 @@ export let headBobEnabled = true
 /** The main element that holds the canvas and the main menu. */
 const mainElement = document.getElementById('M') as HTMLDivElement
 
+const newGameButton = document.getElementById('R') as HTMLDivElement
+
 const highQualityCheckbox = document.getElementById('Q') as HTMLInputElement
 const invertYCheckbox = document.getElementById('Y') as HTMLInputElement
 const musicVolumeSlider = document.getElementById('V') as HTMLInputElement
 const headBobCheckbox = document.getElementById('H') as HTMLInputElement
+
+export const saveGameButton = document.getElementById('S')
+
+export const loadGameButton = document.getElementById('L')
 
 /** Handle resize event to update canvas size. */
 const handleResize = () => {
@@ -86,20 +92,21 @@ document.onpointerlockchange = () => {
 const canvasRequestPointerLock = (e?: MouseEvent) =>
   (!e || !e.button) && !mainMenuVisible && canvasElement.requestPointerLock()
 
-let started: Boolean
+export let gameStarted: Boolean
 
 export const startOrResumeClick = (newGame = true) => {
-  if (!started) {
+  if (!gameStarted) {
+    saveGameButton.className = ''
     if (newGame) {
       setText('Where am I? How did I get here?', 2)
     }
     //set camera pos
-    document.getElementById('R').innerText = 'Resume Game'
+    newGameButton.innerText = 'Resume Game'
     //start positions:
     vec3Set(cameraPos, -44, 4, 11)
     vec2Set(cameraEuler, 70 * DEG_TO_RAD, 0 * DEG_TO_RAD)
 
-    started = true
+    gameStarted = true
   }
   playMusic()
   mainMenuVisible = false
@@ -110,7 +117,7 @@ export const startOrResumeClick = (newGame = true) => {
 handleResize()
 onresize = handleResize
 
-document.getElementById('R').onclick = () => startOrResumeClick()
+newGameButton.onclick = () => startOrResumeClick()
 
 KeyFunctions[KEY_MAIN_MENU] = showMainMenu
 
