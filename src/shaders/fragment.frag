@@ -823,7 +823,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   float unpacked = uintBitsToFloat(
       (uint(packed.x * 255.) << 24 | uint(packed.y * 255.) << 16 | uint(packed.z * 255.) << 8 | uint(packed.z * 255.)));
 
-  float dist = rayMarch(p, dir, 0.001, MIN_DIST);
+  float dist = rayMarch(p, dir, 0.001, unpacked);
   float wdist = rayTraceWater(p, dir);
 
   vec3 color;
