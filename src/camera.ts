@@ -43,10 +43,10 @@ const MOUSE_ROTATION_SENSITIVITY_X = 0.001
 const MOUSE_ROTATION_SENSITIVITY_Y = MOUSE_ROTATION_SENSITIVITY_X
 
 /** Camera position */
-export const cameraPos: Vec3 = vec3New(-74, 50, 52)
+export const cameraPos: Vec3 = vec3New(103, 44, 9)
 
 /** Camera Yaw (x) and Pitch (y) angles, in radians. */
-export const cameraEuler: Vec2 = vec2New(128 * DEG_TO_RAD, 31 * DEG_TO_RAD)
+export const cameraEuler: Vec2 = vec2New(-102 * DEG_TO_RAD, 23 * DEG_TO_RAD)
 
 /** Camera direction, calculated from cameraEulerAngles */
 export const cameraDir: Vec3 = vec3NewValue()
