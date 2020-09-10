@@ -4,6 +4,7 @@ import { KEY_MAIN_MENU, KeyFunctions } from './keyboard'
 import { vec3Set } from './math/vec3'
 import { vec2Set } from './math/vec2'
 import { cameraPos, cameraEuler } from './camera'
+import { playMusic, pauseMusic, setVolume } from './music'
 import { setText } from './text'
 
 export const body = document.body
@@ -31,11 +32,15 @@ export let renderHeight: number
 
 export let mouseYInversion = 1
 
+export let headBobEnabled = 1
+
 /** The main element that holds the canvas and the main menu. */
 const mainElement = document.getElementById('M') as HTMLDivElement
 
 const highQualityCheckbox = document.getElementById('Q') as HTMLInputElement
 const invertYCheckbox = document.getElementById('Y') as HTMLInputElement
+const musicVolumeSlider = document.getElementById('V') as HTMLInputElement
+const headBobCheckbox = document.getElementById('H') as HTMLInputElement
 
 /** Handle resize event to update canvas size. */
 const handleResize = () => {
@@ -64,9 +69,17 @@ const handleResize = () => {
 }
 
 export const showMainMenu = () => {
+  pauseMusic()
   mainMenuVisible = true
   body.className = 'N'
   document.exitPointerLock()
+}
+
+document.onpointerlockchange = () => {
+  //document.pointerLockElement is falsy if we've unlocked
+  if (!document.pointerLockElement) {
+    showMainMenu()
+  }
 }
 
 const canvasRequestPointerLock = (e?: MouseEvent) =>
@@ -87,6 +100,7 @@ export const startOrResumeClick = (newGame = true) => {
 
     started = true
   }
+  playMusic()
   mainMenuVisible = false
   body.className = ''
   canvasRequestPointerLock()
@@ -102,6 +116,8 @@ KeyFunctions[KEY_MAIN_MENU] = showMainMenu
 canvasElement.onmousedown = canvasRequestPointerLock
 highQualityCheckbox.onchange = handleResize
 invertYCheckbox.onchange = () => (mouseYInversion = invertYCheckbox.checked ? -1 : 1)
+headBobCheckbox.onchange = () => (headBobEnabled = headBobCheckbox.checked ? true : false)
+musicVolumeSlider.onchange = () => setVolume(musicVolumeSlider.value / 100)
 
 export const gl = canvasElement.getContext('webgl2', {
   /** Boolean that indicates if the canvas contains an alpha buffer. */

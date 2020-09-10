@@ -9,7 +9,7 @@ import {
   debug_checkShaderProgramLinkStatus,
   debug_checkShaderCompileStatus
 } from './debug'
-import { cameraPos, cameraDir, cameraMat3 } from './camera'
+import { cameraPos, cameraDir, cameraMat3, headBob } from './camera'
 
 import { GAME_OBJECTS } from './state/objects'
 import { ANIMATIONS } from './state/animations'
@@ -76,7 +76,7 @@ export const loadMainShaderProgram = (mainFunction: string) => {
 
   ;[iNoise, iHeightmap, iPrerendered, iScreens].map((t, i) => gl.uniform1i(t, i))
 
-  const useShader = (time: number, width: number, height: number) => {
+  const useShader = (time: number, width: number, height: number, isCollider: boolean = false) => {
     gl.viewport(0, 0, width, height)
     gl.useProgram(program)
 
@@ -90,7 +90,7 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     gl.uniform4f(iSunDirection, vec3Temp0.x, vec3Temp0.y, vec3Temp0.z, waterLevel)
 
     // Camera position and time
-    gl.uniform3f(iP, cameraPos.x, cameraPos.y, cameraPos.z)
+    gl.uniform3f(iP, cameraPos.x, cameraPos.y + (isCollider ? 0 : headBob), cameraPos.z)
 
     // Camera direction and water level
     gl.uniform4f(iD, cameraDir.x, cameraDir.y, cameraDir.z, time)

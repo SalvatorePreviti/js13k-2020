@@ -15,7 +15,7 @@ import {
   debug_updateCameraDirection,
   debug_updateCameraEulerAngles
 } from './debug'
-import { canvasElement, mouseYInversion } from './page'
+import { canvasElement, mouseYInversion, headBobEnabled } from './page'
 import { cos, sin, wrapAngleInRadians, clamp, DEG_TO_RAD } from './math/scalar'
 import {
   vec3Temp0,
@@ -37,13 +37,16 @@ import { GAME_OBJECTS } from './state/objects'
 
 const CAMERA_SPEED_DEFAULT = 2
 
-const CAMERA_SPEED_RUN = 40
+const CAMERA_SPEED_RUN = 5
 
 const MOUSE_ROTATION_SENSITIVITY_X = 0.001
 const MOUSE_ROTATION_SENSITIVITY_Y = MOUSE_ROTATION_SENSITIVITY_X
 
 /** Camera position */
 export const cameraPos: Vec3 = vec3New(103, 44, 9)
+
+/** head bob value */
+export let headBob = 0
 
 /** Camera Yaw (x) and Pitch (y) angles, in radians. */
 export const cameraEuler: Vec2 = vec2New(-102 * DEG_TO_RAD, 23 * DEG_TO_RAD)
@@ -100,6 +103,8 @@ const updateCameraDirFromEulerAngles = (time: number) => {
   )
 }
 
+let timeMoving = 0
+
 export const updateCamera = (timeDelta: number, time: number) => {
   const speed = (PressedKeys[KEY_RUN] ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * timeDelta
 
@@ -122,6 +127,8 @@ export const updateCamera = (timeDelta: number, time: number) => {
       movementStrafe(1)
     }
     if (vec3Temp0.x || vec3Temp0.z) {
+      timeMoving += timeDelta
+      headBob = headBobEnabled ? sin(timeMoving * 10) * 0.03 : 0
       vec3Add(cameraPos, vec3ScalarMultiply(vec3Normalize(vec3Temp0), speed))
     }
     if (debug_mode) {
