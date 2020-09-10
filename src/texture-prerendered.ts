@@ -9,8 +9,7 @@ import {
   GL_COLOR_ATTACHMENT0,
   GL_CLAMP_TO_EDGE,
   GL_TEXTURE2,
-  GL_NEAREST,
-  GL_TRIANGLES
+  GL_NEAREST
 } from './gl/gl-constants'
 import { gl, glFrameBuffer } from './page'
 

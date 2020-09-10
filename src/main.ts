@@ -12,12 +12,12 @@ import { updateText } from './text'
 import { loadMainShader, mainShader, prerenderedShader } from './shader-program'
 import { updateCollider, initCollider } from './collider'
 import { buildScreenTextures, bindScreenTexture } from './texture-screen'
-import { initPrerenderedTexture, renderToPrerenderedTexture, PRERENDERED_TEXTURE_SIZE } from './texture-prerendered'
+import { initPrerenderedTexture, PRERENDERED_TEXTURE_SIZE } from './texture-prerendered'
 import { MINIGAME } from './state/minigame'
 import './save-load'
 import { loadMusic } from './music'
 import { GL_TRIANGLES, GL_FRAMEBUFFER } from './gl/gl-constants'
-import { updateTime, time } from './time'
+import { updateTime, gameTime } from './time'
 
 setTimeout(() => {
   buildNoiseTexture()
@@ -36,7 +36,7 @@ setTimeout(() => {
       debug_beginFrame()
 
       if (!updateTime(browserTimeInMilliseconds, mainMenuVisible)) {
-        debug_endFrame(time)
+        debug_endFrame(gameTime)
         return
       }
 
@@ -44,7 +44,7 @@ setTimeout(() => {
 
       if (!mainMenuVisible) {
         if (!GAME_OBJECTS._submarine._gameEnded) {
-          updateCollider(time)
+          updateCollider()
         }
         updateAnimations()
         updateGameObjects()
@@ -63,13 +63,13 @@ setTimeout(() => {
 
       // Render main scene
 
-      bindScreenTexture(min(MINIGAME._state || time & 1, 3))
+      bindScreenTexture(min(MINIGAME._state || gameTime & 1, 3))
 
       mainShader(renderWidth, renderHeight)
 
       gl.drawArrays(GL_TRIANGLES, 0, 3)
 
-      debug_endFrame(time)
+      debug_endFrame(gameTime)
     },
     { rethrow: false, file: import.meta.url }
   )

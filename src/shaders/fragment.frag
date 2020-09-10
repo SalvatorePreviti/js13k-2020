@@ -148,7 +148,7 @@ float epsilon;
 //=== COLORS ===
 
 const vec3 COLOR_SKY = vec3(.4, .8, 1);
-const vec3 COLOR_SUN = vec3(1.1, .95, .85);
+const vec3 COLOR_SUN = vec3(1., .95, .85);
 
 const vec3 TERRAIN_SIZE = vec3(120., 19., 78.);
 const float TERRAIN_OFFSET = 3.;
@@ -698,13 +698,9 @@ vec3 computeTerrainNormal(vec3 p, float dist) {
   return normalize(vec3(terrain(p + S.xyy), terrain(p + S.yxy), terrain(p + S.yyx)) - terrain(p));
 }
 
-float computeLambert(vec3 n, vec3 ld) {
-  return max(0.08, pow(dot(ld, n) / 1.7 + .45, 3.5));
-}
-
 float rayTraceGround(vec3 p, vec3 dir) {
   float t = (-TERRAIN_OFFSET - p.y) / dir.y;
-  return min(t >= 0. ? t : HORIZON_DIST, HORIZON_DIST);
+  return t >= 0. && t < HORIZON_DIST ? t : HORIZON_DIST;
 }
 
 float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
@@ -714,16 +710,20 @@ float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
   for (int i = 0;; i++) {
     vec3 hit = p + dir * dist;
 
-    if (dist >= MAX_DIST || hit.y > 45. || abs(hit.x) >= MAX_DIST || abs(hit.z) >= MAX_DIST) {
-      break;  // Nothing to render so far
-    }
-
-    if (hit.y <= UNDERGROUND_LEVEL) {
-      material = MATERIAL_TERRAIN;
-      return rayTraceGround(p, dir);  // Nothing to render underwater
-    }
-
     epsilon = min_epsilon * max(dist, 1.);
+
+    if (hit.y <= UNDERGROUND_LEVEL || dist >= MAX_DIST) {
+      float t = (-TERRAIN_OFFSET - p.y) / dir.y;
+      if (t >= 0. && t < HORIZON_DIST) {
+        material = MATERIAL_TERRAIN;
+        return t;
+      }
+      break;  // Nothingness...
+    }
+
+    if (hit.y > 45.) {
+      break;  // Too high
+    }
 
     float nearest = distanceToNearestSurface(hit);
 
@@ -749,6 +749,9 @@ float shadowR = 0.;
 
 #define SHADOW_ITERATIONS 50
 float getShadow(vec3 p, float camDistance, vec3 n) {
+  if (camDistance > MAX_DIST) {
+    return 1.;
+  }
   float res = 1.;
   float dist = clamp(camDistance * 0.005, 0.01, .1);  // start further out from the surface if the camera is far away
 
@@ -757,7 +760,7 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
   for (int i = 1; i < SHADOW_ITERATIONS; i++) {
     vec3 hit = p + iSunDirection * dist;
 
-    if (dist >= 80. || hit.y > 45. || hit.y < iWaterLevel - 0.01) {
+    if (dist >= 80. || hit.y > 45. || hit.y < iWaterLevel - epsilon * 2.) {
       break;  // Nothing to render so far
     }
 
@@ -820,10 +823,8 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   float unpacked = uintBitsToFloat(
       (uint(packed.x * 255.) << 24 | uint(packed.y * 255.) << 16 | uint(packed.z * 255.) << 8 | uint(packed.z * 255.)));
 
-  float dist = rayMarch(p, dir, 0.001, unpacked);
+  float dist = rayMarch(p, dir, 0.001, MIN_DIST);
   float wdist = rayTraceWater(p, dir);
-
-  float lightIntensity;
 
   vec3 color;
   vec3 normal = vec3(0, 1, 0);
@@ -906,12 +907,12 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
       ? pow(clamp01(dot(iSunDirection, reflect(dir, normal))), 50.)
       : 0.;
 
-  lightIntensity = computeLambert(normal, iSunDirection);
+  float lightIntensity = clamp01(dot(iSunDirection, normal));
 
   // Flashlight
   if (iFlashlightOn && dist < 20.) {
     float flashLightShadow = pow(clamp(dot(iCameraDir, dir), 0., 1.), 32.) * smoothstep(10., 0., dist);
-    lightIntensity += flashLightShadow * computeLambert(normal, -dir) * (1. - lightIntensity);
+    lightIntensity += flashLightShadow * max(dot(normal, -dir), 0.) * (1. - lightIntensity);
     shadow += flashLightShadow * (1. - shadow);
   }
 

@@ -1,5 +1,5 @@
 import { gameTextElement } from './page'
-import { timeDelta } from './time'
+import { gameTimeDelta } from './time'
 
 interface Text {
   _text: string
@@ -45,7 +45,7 @@ const setText = (text: string, timeout: number = -1) => {
 
 const updateText = () => {
   if (currentText && currentText._timeout > 0) {
-    currentText._timeout -= timeDelta
+    currentText._timeout -= gameTimeDelta
   }
 
   if (currentText._timeout < 0 && textQueue[0]) {

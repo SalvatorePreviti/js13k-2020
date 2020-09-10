@@ -17,10 +17,10 @@ import { sin, cos, min } from './math/scalar'
 import { vec3Normalize, vec3Temp0, vec3Set } from './math/vec3'
 import { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER } from './gl/gl-constants'
 import { gl } from './page'
-import { time } from './time'
+import { gameTime } from './time'
 
-export const loadMainShaderProgram = (mainFunction: string) => {
-  debug_time(`${loadMainShaderProgram.name} ${mainFunction}`)
+export const loadShaderFunction = (mainFunction: string) => {
+  debug_time(`${loadShaderFunction.name} ${mainFunction}`)
 
   // A new program
 
@@ -85,15 +85,17 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     gl.uniform2f(iResolution, width, height)
 
     // Sun directiom
-    const waterLevel = sin(time * 2 + 3) * 0.2
-    vec3Normalize(vec3Set(vec3Temp0, cos(time * 0.02) * 0.5, sin(time * 0.02) * 0.5 + 0.8, sin(time * 0.02) * 0.5))
+    const waterLevel = sin(gameTime * 2 + 3) * 0.2
+    vec3Normalize(
+      vec3Set(vec3Temp0, cos(gameTime * 0.02) * 0.5, sin(gameTime * 0.02) * 0.5 + 0.8, sin(gameTime * 0.02) * 0.5)
+    )
     gl.uniform4f(iSunDirection, vec3Temp0.x, vec3Temp0.y, vec3Temp0.z, waterLevel)
 
-    // Camera position and time
+    // Camera position
     gl.uniform3f(iP, cameraPos.x, cameraPos.y + (isCollider ? 0 : headBob), cameraPos.z)
 
-    // Camera direction and water level
-    gl.uniform4f(iD, cameraDir.x, cameraDir.y, cameraDir.z, time)
+    // Camera direction and global time
+    gl.uniform4f(iD, cameraDir.x, cameraDir.y, cameraDir.z, gameTime)
 
     // Camera rotation matrix
     gl.uniformMatrix3fv(iCameraMat3, false, cameraMat3)
@@ -138,11 +140,11 @@ export const loadMainShaderProgram = (mainFunction: string) => {
     useShader._program = program
   }
 
-  debug_timeEnd(`${loadMainShaderProgram.name} ${mainFunction}`)
+  debug_timeEnd(`${loadShaderFunction.name} ${mainFunction}`)
   return useShader
 }
 
-export type UseShaderFunction = ReturnType<typeof loadMainShaderProgram>
+export type UseShaderFunction = ReturnType<typeof loadShaderFunction>
 
 export let mainShader: UseShaderFunction
 
@@ -162,7 +164,7 @@ export const loadMainShader = () => {
       gl.deleteProgram(prerenderedShader._program)
     }
   })
-  mainShader = loadMainShaderProgram('m')
-  collisionShader = loadMainShaderProgram('c')
-  prerenderedShader = loadMainShaderProgram('p')
+  mainShader = loadShaderFunction('m')
+  collisionShader = loadShaderFunction('c')
+  prerenderedShader = loadShaderFunction('p')
 }
