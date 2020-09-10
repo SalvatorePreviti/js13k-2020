@@ -1,14 +1,12 @@
-import { CPlayer } from './soundbox/player'
-import { song } from './soundbox/song'
+import { musicInit, musicGenerate, musicCreateWave } from './soundbox/player'
 
 const mAudio = new Audio()
 const loadMusic = () => {
-  const player = new CPlayer()
-  player.init(song)
-  while (player.generate() < 1) {
-    //ignore the error
+  musicInit()
+  while (musicGenerate() < 1) {
+    // continue
   }
-  const musicWave = player.createWave()
+  const musicWave = musicCreateWave()
 
   mAudio.loop = true
   mAudio.src = URL.createObjectURL(new Blob([musicWave], { type: 'audio/wav' }))
@@ -20,12 +18,8 @@ const playMusic = (): void => {
   mAudio.play()
 }
 
-const pauseMusic = (): void => {
-  mAudio.pause()
-}
+const pauseMusic = () => mAudio.pause()
 
-const setVolume = (v): void => {
-  mAudio.volume = v
-}
+const setVolume = (v: number) => (mAudio.volume = v)
 
 export { loadMusic, playMusic, pauseMusic, setVolume }

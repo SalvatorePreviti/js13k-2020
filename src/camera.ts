@@ -35,9 +35,9 @@ import { RUMBLING } from './state/animations'
 import { MINIGAME, MINIGAME_LOADING, MINIGAME_ACTIVE } from './state/minigame'
 import { GAME_OBJECTS } from './state/objects'
 
-const CAMERA_SPEED_DEFAULT = 2
+const CAMERA_SPEED_DEFAULT = 2.1
 
-const CAMERA_SPEED_RUN = 5
+const CAMERA_SPEED_RUN = 5.5
 
 const MOUSE_ROTATION_SENSITIVITY_X = 0.001
 const MOUSE_ROTATION_SENSITIVITY_Y = MOUSE_ROTATION_SENSITIVITY_X

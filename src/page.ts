@@ -6,10 +6,9 @@ import { vec2Set } from './math/vec2'
 import { cameraPos, cameraEuler } from './camera'
 import { playMusic, pauseMusic, setVolume } from './music'
 import { setText } from './text'
+import { debug_mode } from './debug'
 
 export const body = document.body
-
-//export const { getElementById, getElementsByTagName, exitPointerLock, createElement } = newProxyBinder(document)
 
 export const canvasElement = document.getElementById('C') as HTMLCanvasElement
 
@@ -32,7 +31,7 @@ export let renderHeight: number
 
 export let mouseYInversion = 1
 
-export let headBobEnabled = 1
+export let headBobEnabled = true
 
 /** The main element that holds the canvas and the main menu. */
 const mainElement = document.getElementById('M') as HTMLDivElement
@@ -76,9 +75,11 @@ export const showMainMenu = () => {
 }
 
 document.onpointerlockchange = () => {
-  //document.pointerLockElement is falsy if we've unlocked
+  // document.pointerLockElement is falsy if we've unlocked
   if (!document.pointerLockElement) {
-    showMainMenu()
+    if (!debug_mode) {
+      showMainMenu()
+    }
   }
 }
 
@@ -109,15 +110,15 @@ export const startOrResumeClick = (newGame = true) => {
 handleResize()
 onresize = handleResize
 
-document.getElementById('R').onclick = startOrResumeClick
+document.getElementById('R').onclick = () => startOrResumeClick()
 
 KeyFunctions[KEY_MAIN_MENU] = showMainMenu
 
 canvasElement.onmousedown = canvasRequestPointerLock
 highQualityCheckbox.onchange = handleResize
 invertYCheckbox.onchange = () => (mouseYInversion = invertYCheckbox.checked ? -1 : 1)
-headBobCheckbox.onchange = () => (headBobEnabled = headBobCheckbox.checked ? true : false)
-musicVolumeSlider.onchange = () => setVolume(musicVolumeSlider.value / 100)
+headBobCheckbox.onchange = () => (headBobEnabled = headBobCheckbox.checked)
+musicVolumeSlider.onchange = () => setVolume((musicVolumeSlider.value as any) / 100)
 
 export const gl = canvasElement.getContext('webgl2', {
   /** Boolean that indicates if the canvas contains an alpha buffer. */

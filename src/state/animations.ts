@@ -16,7 +16,7 @@ interface Animation {
 const ANIMATIONS = {
   _prisonDoor: {
     _value: 0,
-    _speed: 1,
+    _speed: 1.1,
     _initial: 0,
     _max: 1,
     _running: 0
@@ -30,7 +30,7 @@ const ANIMATIONS = {
   },
   _monumentDescend: {
     _value: 0,
-    _speed: 0.2,
+    _speed: 0.3,
     _initial: 0,
     _max: 1,
     _running: 0,
@@ -42,7 +42,7 @@ const ANIMATIONS = {
   },
   _oilrigRamp: {
     _value: 0,
-    _speed: 1,
+    _speed: 1.2,
     _initial: 0,
     _max: 19,
     _running: 0,

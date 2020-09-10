@@ -1,7 +1,7 @@
 import { GAME_OBJECTS, INVENTORY } from './state/objects'
 import { ANIMATIONS } from './state/animations'
 import { cameraPos, cameraEuler } from './camera'
-import { setText } from './text'
+import { setText, clearTexts } from './text'
 import { startOrResumeClick } from './page'
 import { MINIGAME } from './state/minigame'
 import { updateMinigameTexture } from './texture-screen'
@@ -24,8 +24,10 @@ const SAVE_GAME = () => {
   startOrResumeClick(false)
 }
 const LOAD_GAME = () => {
+  clearTexts()
   startOrResumeClick(false) //call this first to update the "started" state before actually setting the load game state:
   deepMerge(data, JSON.parse(localStorage.getItem('ISLAND404')))
+  setText('Game loaded', 2)
   updateMinigameTexture()
 }
 

@@ -440,8 +440,9 @@ float prison(vec3 ip) {
   if (bounds > 5.)
     return bounds;
   p.y -= 2.;
+  float cornerBox = cuboid(p - vec3(-2.7, -1, -1.3), vec3(0.35, .5, .5));
   float structure = max(min(opOnion(cuboid(p, vec3(4, 1.6, 2)), 0.23),  // The main box
-                            cuboid(p - vec3(-3, -1, -1.3), vec3(0.3, .5, .5))  // corner box (key hides behind it)
+                            cornerBox  // corner box (key hides behind it)
                             ),
       -min(  // Cut holes for:
           cylinder(p - vec3(0, .5, 0), .8, 100.),  // the windows
@@ -457,11 +458,12 @@ float prison(vec3 ip) {
   pModInterval(p.x, .3, -10., 10.);  // repeat along x
   p.z = abs(p.z);  // mirror on z axis
   float bars = cylinder(p.xzy - vec3(0, 2, .5), .01, 1.);  // draw a single bar
-  float metalThings = min(bars, door);
-  updateSubMaterial(SUBMATERIAL_METAL, metalThings);
+  float woodThings = min(cornerBox, door);
+  updateSubMaterial(SUBMATERIAL_METAL, bars);
+  updateSubMaterial(SUBMATERIAL_WOOD, woodThings);
   updateSubMaterial(SUBMATERIAL_CONCRETE, structure);
 
-  float nearest = min(structure, metalThings);
+  float nearest = min(bars, min(structure, woodThings));
 
   float gameObjects = MAX_DIST;
 
@@ -697,12 +699,12 @@ vec3 computeTerrainNormal(vec3 p, float dist) {
 }
 
 float computeLambert(vec3 n, vec3 ld) {
-  return pow(dot(ld, n) / 2. + .5, 3.) * 1.1;
+  return max(0.08, pow(dot(ld, n) / 1.7 + .45, 3.5));
 }
 
 float rayTraceGround(vec3 p, vec3 dir) {
   float t = (-TERRAIN_OFFSET - p.y) / dir.y;
-  return min(t >= 0. ? t : MAX_DIST, MAX_DIST);
+  return min(t >= 0. ? t : HORIZON_DIST, HORIZON_DIST);
 }
 
 float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
@@ -747,11 +749,6 @@ float shadowR = 0.;
 
 #define SHADOW_ITERATIONS 50
 float getShadow(vec3 p, float camDistance, vec3 n) {
-  /*if (dot(n, iSunDirection) < -0.1) {
-    // TODO review shadows calculation
-    return computeLambert(n, iSunDirection);  // Skip faces behind the sun
-  }*/
-
   float res = 1.;
   float dist = clamp(camDistance * 0.005, 0.01, .1);  // start further out from the surface if the camera is far away
 
@@ -885,12 +882,12 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
           hitNormal = computeNonTerrainNormal(hit);
 
           switch (submat) {
-            case SUBMATERIAL_WOOD: color *= vec3(.8, .6, .4); break;
             case SUBMATERIAL_METAL: color = vec3(1); break;  // extra bright
             case SUBMATERIAL_BRIGHT_RED: color = vec3(1, 0, 0); break;
             case SUBMATERIAL_DARK_RED: color = vec3(.5, 0, 0); break;
             case SUBMATERIAL_BLACK_PURPLE: color = vec3(.2, .1, .2); break;
             case SUBMATERIAL_YELLOW: color = vec3(1, .95, .8); break;
+            case SUBMATERIAL_WOOD: color *= vec3(.8, .6, .4); break;
             default:
               vec4 concrete = (texture(iNoise, hit.xy * .35) * hitNormal.z +
                   texture(iNoise, hit.yz * .35) * hitNormal.x + texture(iNoise, hit.xz * .35) * hitNormal.y - 0.5);
@@ -919,7 +916,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   }
 
   color = mix(color, waterColor, waterOpacity);
-  color = (color * (COLOR_SUN * lightIntensity) + specular) * mix(0.3, 1., shadow);
+  color = (color * (COLOR_SUN * lightIntensity) + specular) * mix(0.5, 1., shadow);
 
   return applyFog(color, mdist, dir);
 }

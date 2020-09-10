@@ -1,7 +1,7 @@
 /* eslint-disable */
 // Song data
 const song = {
-  songData: [
+  _songData: [
     {
       // Instrument 0
       i: [
@@ -159,10 +159,10 @@ const song = {
       c: [{ n: [134], f: [] }]
     }
   ],
-  rowLen: 6615, // In sample lengths
-  patternLen: 32, // Rows per pattern
-  endPattern: 24, // End pattern
-  numChannels: 4 // Number of channels
+  _rowLen: 6615, // In sample lengths
+  _patternLen: 32, // Rows per pattern
+  _endPattern: 24, // End pattern
+  _numChannels: 4 // Number of channels
 }
 
 export { song }
