@@ -148,7 +148,7 @@ float epsilon;
 //=== COLORS ===
 
 const vec3 COLOR_SKY = vec3(.4, .8, 1);
-const vec3 COLOR_SUN = vec3(1.16, .95, .85);
+const vec3 COLOR_SUN = vec3(1.1, .95, .85);
 
 const vec3 TERRAIN_SIZE = vec3(120., 19., 78.);
 const float TERRAIN_OFFSET = 3.;
@@ -238,13 +238,10 @@ void pModInterval(inout float p, float size, float start, float stop) {
   p = mod(p + halfsize, size) - halfsize;
   if (c > stop) {
     p += size * (c - stop);
-    // c = stop;
   }
   if (c < start) {
     p += size * (c - start);
-    // c = start;
   }
-  // return c;
 }
 
 // Repeat around the origin a number of times
@@ -700,10 +697,8 @@ vec3 computeTerrainNormal(vec3 p, float dist) {
 }
 
 float computeLambert(vec3 n, vec3 ld) {
-  return clamp01(dot(ld, n));
+  return mix(.1, 1., clamp01(dot(ld, n)));
 }
-
-float iterationsR;
 
 float rayTraceGround(vec3 p, vec3 dir) {
   float t = (-TERRAIN_OFFSET - p.y) / dir.y;
@@ -742,7 +737,6 @@ float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
     }
 
     prevNear = nearest;
-    iterationsR += 1. / float(MAX_ITERATIONS);
   }
 
   material = MATERIAL_SKY;
@@ -753,37 +747,38 @@ float shadowR = 0.;
 
 #define SHADOW_ITERATIONS 50
 float getShadow(vec3 p, float camDistance, vec3 n) {
-  if (dot(n, iSunDirection) < -0.1) {
-    return 0.;  // Skip faces behind the sun
-  }
+  /*if (dot(n, iSunDirection) < -0.1) {
+    // TODO review shadows calculation
+    return computeLambert(n, iSunDirection);  // Skip faces behind the sun
+  }*/
 
   float res = 1.;
   float dist = clamp(camDistance * 0.005, 0.01, .1);  // start further out from the surface if the camera is far away
 
   p = p + n * dist;  // Jump out of the surface by the normal * that dist
 
-  for (int i = 1; dist < 60. && camDistance + dist < 190. && i < SHADOW_ITERATIONS; i++) {
+  for (int i = 1; i < SHADOW_ITERATIONS; i++) {
     vec3 hit = p + iSunDirection * dist;
 
-    if (dist >= 100. || hit.y > 45. || hit.y < iWaterLevel - 0.01) {
+    if (dist >= 80. || hit.y > 45. || hit.y < iWaterLevel - 0.01) {
       break;  // Nothing to render so far
     }
 
     float nearest = nonTerrain(hit);
 
-    if (nearest < max(epsilon, 0.01 * min(1., dist))) {
-      return 0.;
+    float shadowEpsilon = max(epsilon, 0.01 * min(1., dist) + .01 * float(i) / float(SHADOW_ITERATIONS));
+    if (nearest <= shadowEpsilon) {
+      return 0.;  // Hit or inside something.
     }
 
-    shadowR += 1. / float(SHADOW_ITERATIONS);
-
-    res = min(res, smoothstep(0., .04, nearest / dist));
-
-    if (res < 0.08) {
-      return 0.;
+    res = min(res, smoothstep(0., .03, nearest / dist));
+    if (res < 0.075) {
+      return 0.;  // Dark enough already.
     }
 
     dist += nearest;
+
+    shadowR += 1. / float(SHADOW_ITERATIONS);
   }
   return res;
 }
@@ -821,40 +816,6 @@ vec3 applyFog(vec3 rgb, float dist, vec3 rayDir) {
   float sunAmount = max(dot(rayDir, iSunDirection), 0.0);
   vec3 fogColor = mix(COLOR_SKY, COLOR_SUN, pow(sunAmount, 10.0));
   return mix(rgb, fogColor, fogAmount);
-}
-
-vec3 getColorAt(vec3 hit, vec3 normal, int mat, int subMat) {
-  vec3 color = vec3(.8);
-  switch (mat) {
-    case MATERIAL_TERRAIN:
-      color = mix(vec3(.93, .8, .64),
-                  mix(vec3(.69 + texture(iNoise, hit.xz * 0.0001).x, .67, .65), vec3(.38, .52, .23),
-                      dot(normal, vec3(0, 1, 0))),
-                  clamp01(hit.y * .5 - 1.)) +
-          texture(iNoise, hit.xz * 0.15).x * 0.1 + texture(iNoise, hit.xz * 0.01).y * 0.1;
-      ;
-      break;
-    case MATERIAL_BUILDINGS:
-      if (subMat <= SUBMATERIAL_CONCRETE) {
-        vec4 concrete = (texture(iNoise, hit.xy * .35) * normal.z + texture(iNoise, hit.yz * .35) * normal.x +
-            texture(iNoise, hit.xz * .35) * normal.y - 0.5);
-        color += 0.125 * (concrete.x - concrete.y + concrete.z - concrete.w);
-      }
-      if (subMat == SUBMATERIAL_WOOD)
-        color *= vec3(.8, .6, .4);
-      if (subMat == SUBMATERIAL_METAL)
-        color = vec3(1);  // extra bright
-      if (subMat == SUBMATERIAL_BRIGHT_RED)
-        color = vec3(1, 0, 0);
-      if (subMat == SUBMATERIAL_DARK_RED)
-        color = vec3(0.5, 0, 0);
-      if (subMat == SUBMATERIAL_BLACK_PURPLE)
-        color = vec3(.2, .1, .2);
-      if (subMat == SUBMATERIAL_YELLOW)
-        color = vec3(1, 1, .8);
-    default: break;
-  }
-  return color;
 }
 
 vec3 intersectWithWorld(vec3 p, vec3 dir) {
@@ -902,16 +863,42 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
     color = COLOR_SKY;  // mix(COLOR_SKY, COLOR_SUN, pow(clamp(dot(dir, iSunDirection),0.,1.),10.));
   } else {
     vec3 hitNormal;
+
     if (hit.y <= UNDERGROUND_LEVEL) {
       hitNormal = vec3(0, 1, 0);
       color = vec3(1, 1, 1);
     } else {
-      if (material == MATERIAL_TERRAIN) {
-        hitNormal = computeTerrainNormal(hit, dist);
-      } else {
-        hitNormal = computeNonTerrainNormal(hit);
+      color = vec3(.8);
+
+      switch (mat) {
+        case MATERIAL_TERRAIN:
+          hitNormal = computeTerrainNormal(hit, dist);
+
+          color = mix(vec3(.93, .8, .64),
+                      mix(vec3(.69 + texture(iNoise, hit.xz * 0.0001).x, .67, .65), vec3(.38, .52, .23),
+                          dot(hitNormal, vec3(0, 1, 0))),
+                      clamp01(hit.y * .5 - 1.)) +
+              texture(iNoise, hit.xz * 0.15).x * 0.1 + texture(iNoise, hit.xz * 0.01).y * 0.1;
+          ;
+          break;
+        case MATERIAL_BUILDINGS:
+          hitNormal = computeNonTerrainNormal(hit);
+
+          switch (submat) {
+            case SUBMATERIAL_WOOD: color *= vec3(.8, .6, .4); break;
+            case SUBMATERIAL_METAL: color = vec3(1); break;  // extra bright
+            case SUBMATERIAL_BRIGHT_RED: color = vec3(1, 0, 0); break;
+            case SUBMATERIAL_DARK_RED: color = vec3(.5, 0, 0); break;
+            case SUBMATERIAL_BLACK_PURPLE: color = vec3(.2, .1, .2); break;
+            case SUBMATERIAL_YELLOW: color = vec3(1, .95, .8); break;
+            default:
+              vec4 concrete = (texture(iNoise, hit.xy * .35) * hitNormal.z +
+                  texture(iNoise, hit.yz * .35) * hitNormal.x + texture(iNoise, hit.xz * .35) * hitNormal.y - 0.5);
+              color += 0.125 * (concrete.x - concrete.y + concrete.z - concrete.w);
+              break;
+          }
       }
-      color = getColorAt(hit, hitNormal, mat, submat);
+
       normal = normalize(mix(hitNormal, normal, waterOpacity));
     }
 
@@ -977,29 +964,7 @@ void main_m() {
 
   oColor = vec4(intersectWithWorld(iCameraPos, ray), 1);
 
-  /*
-    vec4 packed = texelFetch(iPrerendered, ivec2(fragCoord * PRERENDERED_TEXTURE_SIZE / iResolution), 0);
-
-    float unpacked = uintBitsToFloat(
-        (uint(packed.x * 255.) << 24 | uint(packed.y * 255.) << 16 | uint(packed.z * 255.) << 8 | uint(packed.z *
-    255.)));
-
-    oColor.xyz = 4. * vec3(unpacked) / MAX_DIST;*/
-  // * 4.;
-
-  // vec3 pixelColour = clamp(intersectWithWorld(iCameraPos, ray), 0., 1.);
-  // oColor = vec4(pixelColour, 1);
-
   // oColor.x = shadowR * 2.;
-  // oColor.y = shadowR;
-  // oColor.z = shadowR;
-
-  // oColor.x = shadowR * 2.;
-  // oColor.y = iterationsR * 2.;
-  // oColor.z = iterationsR * 2.;
-  // oColor.y = xxxDebug;
-  // oColor.z = iterationsR;
-  // oColor.x = shadowR;
   // oColor.y = shadowR;
   // oColor.z = shadowR;
 }
