@@ -46,9 +46,3 @@ export const initPrerenderedTexture = () => {
 
   debug_timeEnd(initPrerenderedTexture)
 }
-
-export const renderToPrerenderedTexture = () => {
-  gl.bindFramebuffer(GL_FRAMEBUFFER, glFrameBuffer)
-  gl.drawArrays(GL_TRIANGLES, 0, 3)
-  gl.bindFramebuffer(GL_FRAMEBUFFER, null)
-}

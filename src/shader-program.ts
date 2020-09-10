@@ -17,6 +17,7 @@ import { sin, cos, min } from './math/scalar'
 import { vec3Normalize, vec3Temp0, vec3Set } from './math/vec3'
 import { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER } from './gl/gl-constants'
 import { gl } from './page'
+import { time } from './time'
 
 export const loadMainShaderProgram = (mainFunction: string) => {
   debug_time(`${loadMainShaderProgram.name} ${mainFunction}`)
@@ -76,7 +77,7 @@ export const loadMainShaderProgram = (mainFunction: string) => {
 
   ;[iNoise, iHeightmap, iPrerendered, iScreens].map((t, i) => gl.uniform1i(t, i))
 
-  const useShader = (time: number, width: number, height: number, isCollider: boolean = false) => {
+  const useShader = (width: number, height: number, isCollider?: boolean) => {
     gl.viewport(0, 0, width, height)
     gl.useProgram(program)
 

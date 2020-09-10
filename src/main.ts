@@ -1,5 +1,5 @@
 import './css/styles.css'
-import { mainMenuVisible, renderHeight, renderWidth, gl, showMainMenu } from './page'
+import { mainMenuVisible, renderHeight, renderWidth, gl, showMainMenu, glFrameBuffer } from './page'
 import { debug_beginFrame, debug_endFrame, debug_trycatch_wrap, debug_log, debug_updateCameraPosition } from './debug'
 
 import { min } from './math/scalar'
@@ -16,10 +16,8 @@ import { initPrerenderedTexture, renderToPrerenderedTexture, PRERENDERED_TEXTURE
 import { MINIGAME } from './state/minigame'
 import './save-load'
 import { loadMusic } from './music'
-import { GL_TRIANGLES } from './gl/gl-constants'
-
-let prevTime = 0
-let time = 0
+import { GL_TRIANGLES, GL_FRAMEBUFFER } from './gl/gl-constants'
+import { updateTime, time } from './time'
 
 setTimeout(() => {
   buildNoiseTexture()
@@ -32,38 +30,44 @@ setTimeout(() => {
   showMainMenu()
 
   const animationFrame = debug_trycatch_wrap(
-    (timeMilliseconds: number) => {
+    (browserTimeInMilliseconds: number) => {
       requestAnimationFrame(animationFrame)
-      time = timeMilliseconds / 1000
-      const timeDelta = min(time - prevTime, 0.33) //if we go below 30fps then game slows down
 
       debug_beginFrame()
-      updateCamera(timeDelta, time)
 
-      if (!mainMenuVisible && !GAME_OBJECTS._submarine._gameEnded) {
-        updateCollider(time)
+      if (!updateTime(browserTimeInMilliseconds, mainMenuVisible)) {
+        debug_endFrame(time)
+        return
+      }
+
+      updateCamera()
+
+      if (!mainMenuVisible) {
+        if (!GAME_OBJECTS._submarine._gameEnded) {
+          updateCollider(time)
+        }
+        updateAnimations()
+        updateGameObjects()
+        updateText()
       }
 
       debug_updateCameraPosition(cameraPos)
 
-      updateAnimations(timeDelta)
-      updateGameObjects()
-      updateText(timeDelta)
-
       // Prerender
 
-      prerenderedShader(time, PRERENDERED_TEXTURE_SIZE, PRERENDERED_TEXTURE_SIZE)
-      renderToPrerenderedTexture()
+      prerenderedShader(PRERENDERED_TEXTURE_SIZE, PRERENDERED_TEXTURE_SIZE)
+
+      gl.bindFramebuffer(GL_FRAMEBUFFER, glFrameBuffer)
+      gl.drawArrays(GL_TRIANGLES, 0, 3)
+      gl.bindFramebuffer(GL_FRAMEBUFFER, null)
 
       // Render main scene
 
       bindScreenTexture(min(MINIGAME._state || time & 1, 3))
 
-      mainShader(time, renderWidth, renderHeight)
+      mainShader(renderWidth, renderHeight)
 
       gl.drawArrays(GL_TRIANGLES, 0, 3)
-
-      prevTime = time
 
       debug_endFrame(time)
     },

@@ -2,6 +2,7 @@ import { objectValues } from '../core/objects'
 import { GAME_OBJECTS } from './objects'
 import { vec3New } from '../math/vec3'
 import { MINIGAME, MINIGAME_ACTIVE } from './minigame'
+import { timeDelta } from '../time'
 
 interface Animation {
   _value: float
@@ -95,14 +96,14 @@ const ANIMATIONS = {
 const ANIMATIONS_LIST: Animation[] = objectValues(ANIMATIONS)
 let RUMBLING: boolean = false
 
-function updateAnimations(dt: float) {
+function updateAnimations() {
   RUMBLING = false
   for (const anim of ANIMATIONS_LIST) {
     if (anim._running) {
       if (anim._rumble) {
         RUMBLING = anim._rumble(anim._value)
       }
-      anim._value += anim._speed * dt * anim._running
+      anim._value += anim._speed * timeDelta * anim._running
       if (anim._value > anim._max || anim._value < anim._initial) {
         anim._value = anim._running > 0 ? anim._max : anim._initial
         if (anim._onComplete) {

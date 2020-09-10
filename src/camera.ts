@@ -34,6 +34,7 @@ import { typedArraySet } from './core/arrays'
 import { RUMBLING } from './state/animations'
 import { MINIGAME, MINIGAME_LOADING, MINIGAME_ACTIVE } from './state/minigame'
 import { GAME_OBJECTS } from './state/objects'
+import { timeDelta, time } from './time'
 
 const CAMERA_SPEED_DEFAULT = 2.1
 
@@ -67,7 +68,7 @@ export const cameraMoveDown = (amount: number) => {
   cameraPos.y += amount
 }
 
-const updateCameraDirFromEulerAngles = (time: number) => {
+const updateCameraDirFromEulerAngles = () => {
   //vec3FromYawAndPitch(cameraDir, cameraEulerAngles)
   let { x: yaw, y: pitch } = cameraEuler
   if (RUMBLING) {
@@ -105,7 +106,7 @@ const updateCameraDirFromEulerAngles = (time: number) => {
 
 let timeMoving = 0
 
-export const updateCamera = (timeDelta: number, time: number) => {
+export const updateCamera = () => {
   const speed = (PressedKeys[KEY_RUN] ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * timeDelta
 
   if (
@@ -141,13 +142,13 @@ export const updateCamera = (timeDelta: number, time: number) => {
     }
   }
 
-  updateCameraDirFromEulerAngles(time)
+  updateCameraDirFromEulerAngles()
 
   debug_updateCameraEulerAngles(cameraEuler)
   debug_updateCameraDirection(cameraDir)
 }
 
-updateCameraDirFromEulerAngles(0)
+updateCameraDirFromEulerAngles()
 
 debug_updateCameraPosition(cameraPos)
 
