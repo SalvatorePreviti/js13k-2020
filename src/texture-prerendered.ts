@@ -9,8 +9,7 @@ import {
   GL_COLOR_ATTACHMENT0,
   GL_CLAMP_TO_EDGE,
   GL_TEXTURE2,
-  GL_NEAREST,
-  GL_TRIANGLES
+  GL_NEAREST
 } from './gl/gl-constants'
 import { gl, glFrameBuffer } from './page'
 
@@ -45,10 +44,4 @@ export const initPrerenderedTexture = () => {
   gl.bindFramebuffer(GL_FRAMEBUFFER, null)
 
   debug_timeEnd(initPrerenderedTexture)
-}
-
-export const renderToPrerenderedTexture = () => {
-  gl.bindFramebuffer(GL_FRAMEBUFFER, glFrameBuffer)
-  gl.drawArrays(GL_TRIANGLES, 0, 3)
-  gl.bindFramebuffer(GL_FRAMEBUFFER, null)
 }

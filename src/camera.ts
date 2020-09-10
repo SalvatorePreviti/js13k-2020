@@ -34,10 +34,11 @@ import { typedArraySet } from './core/arrays'
 import { RUMBLING } from './state/animations'
 import { MINIGAME, MINIGAME_LOADING, MINIGAME_ACTIVE } from './state/minigame'
 import { GAME_OBJECTS } from './state/objects'
+import { gameTimeDelta, gameTime } from './time'
 
-const CAMERA_SPEED_DEFAULT = 2
+const CAMERA_SPEED_DEFAULT = 2.1
 
-const CAMERA_SPEED_RUN = 5
+const CAMERA_SPEED_RUN = debug_mode ? 20 : 5.5
 
 const MOUSE_ROTATION_SENSITIVITY_X = 0.001
 const MOUSE_ROTATION_SENSITIVITY_Y = MOUSE_ROTATION_SENSITIVITY_X
@@ -67,12 +68,12 @@ export const cameraMoveDown = (amount: number) => {
   cameraPos.y += amount
 }
 
-const updateCameraDirFromEulerAngles = (time: number) => {
+const updateCameraDirFromEulerAngles = () => {
   //vec3FromYawAndPitch(cameraDir, cameraEulerAngles)
   let { x: yaw, y: pitch } = cameraEuler
   if (RUMBLING) {
-    yaw += sin(time * 100) * 0.005
-    pitch += sin(time * 200) * 0.005
+    yaw += sin(gameTime * 100) * 0.005
+    pitch += sin(gameTime * 200) * 0.005
   }
 
   // if (game is not started we should use) {
@@ -105,8 +106,8 @@ const updateCameraDirFromEulerAngles = (time: number) => {
 
 let timeMoving = 0
 
-export const updateCamera = (timeDelta: number, time: number) => {
-  const speed = (PressedKeys[KEY_RUN] ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * timeDelta
+export const updateCamera = () => {
+  const speed = (PressedKeys[KEY_RUN] ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * gameTimeDelta
 
   if (
     MINIGAME._state !== MINIGAME_LOADING &&
@@ -127,7 +128,7 @@ export const updateCamera = (timeDelta: number, time: number) => {
       movementStrafe(1)
     }
     if (vec3Temp0.x || vec3Temp0.z) {
-      timeMoving += timeDelta
+      timeMoving += gameTimeDelta
       headBob = headBobEnabled ? sin(timeMoving * 10) * 0.03 : 0
       vec3Add(cameraPos, vec3ScalarMultiply(vec3Normalize(vec3Temp0), speed))
     }
@@ -141,13 +142,13 @@ export const updateCamera = (timeDelta: number, time: number) => {
     }
   }
 
-  updateCameraDirFromEulerAngles(time)
+  updateCameraDirFromEulerAngles()
 
   debug_updateCameraEulerAngles(cameraEuler)
   debug_updateCameraDirection(cameraDir)
 }
 
-updateCameraDirFromEulerAngles(0)
+updateCameraDirFromEulerAngles()
 
 debug_updateCameraPosition(cameraPos)
 

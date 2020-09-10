@@ -45,8 +45,8 @@ export const initCollider = () => {
   gl.framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colliderTexture, 0)
 }
 
-export const updateCollider = (time: number) => {
-  collisionShader(time, COLLIDER_SIZE, COLLIDER_SIZE, true)
+export const updateCollider = () => {
+  collisionShader(COLLIDER_SIZE, COLLIDER_SIZE, true)
 
   gl.bindFramebuffer(GL_FRAMEBUFFER, colliderFrameBuffer)
   gl.drawArrays(GL_TRIANGLES, 0, 3)

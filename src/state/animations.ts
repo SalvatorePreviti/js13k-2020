@@ -2,6 +2,7 @@ import { objectValues } from '../core/objects'
 import { GAME_OBJECTS } from './objects'
 import { vec3New } from '../math/vec3'
 import { MINIGAME, MINIGAME_ACTIVE } from './minigame'
+import { gameTimeDelta } from '../time'
 
 interface Animation {
   _value: float
@@ -16,7 +17,7 @@ interface Animation {
 const ANIMATIONS = {
   _prisonDoor: {
     _value: 0,
-    _speed: 1,
+    _speed: 1.1,
     _initial: 0,
     _max: 1,
     _running: 0
@@ -30,7 +31,7 @@ const ANIMATIONS = {
   },
   _monumentDescend: {
     _value: 0,
-    _speed: 0.2,
+    _speed: 0.3,
     _initial: 0,
     _max: 1,
     _running: 0,
@@ -42,7 +43,7 @@ const ANIMATIONS = {
   },
   _oilrigRamp: {
     _value: 0,
-    _speed: 1,
+    _speed: 1.2,
     _initial: 0,
     _max: 19,
     _running: 0,
@@ -95,14 +96,14 @@ const ANIMATIONS = {
 const ANIMATIONS_LIST: Animation[] = objectValues(ANIMATIONS)
 let RUMBLING: boolean = false
 
-function updateAnimations(dt: float) {
+function updateAnimations() {
   RUMBLING = false
   for (const anim of ANIMATIONS_LIST) {
     if (anim._running) {
       if (anim._rumble) {
         RUMBLING = anim._rumble(anim._value)
       }
-      anim._value += anim._speed * dt * anim._running
+      anim._value += anim._speed * gameTimeDelta * anim._running
       if (anim._value > anim._max || anim._value < anim._initial) {
         anim._value = anim._running > 0 ? anim._max : anim._initial
         if (anim._onComplete) {
