@@ -10,7 +10,8 @@ import {
   GL_CLAMP_TO_EDGE,
   GL_TEXTURE1,
   GL_TRIANGLES,
-  GL_LINEAR_MIPMAP_LINEAR
+  GL_LINEAR_MIPMAP_LINEAR,
+  GL_LINEAR
 } from './gl/gl-constants'
 import { loadMainShaderProgram } from './shader-program'
 import { gl, glFrameBuffer } from './page'
@@ -45,7 +46,7 @@ export const buildHeightmapTexture = () => {
 
   gl.generateMipmap(GL_TEXTURE_2D)
 
-  glSetTextureSampling(GL_CLAMP_TO_EDGE, GL_LINEAR_MIPMAP_LINEAR)
+  glSetTextureSampling(GL_CLAMP_TO_EDGE, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
 
   gl.bindFramebuffer(GL_FRAMEBUFFER, null)
 
