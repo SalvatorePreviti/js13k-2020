@@ -136,6 +136,18 @@ const GAME_OBJECTS = {
     _onInteract() {},
     _onLookAt: () => 'This bridge looks broken'
   },
+  _oilRigLever2: {
+    _location: vec3New(26.6, 5.5, -55.6),
+    _lookAtDistance: 2.5,
+    _visible: true,
+    _onInteract() {
+      runAnimation(ANIMATIONS._oilrigRamp2)
+      this._visible = false
+    },
+    _onLookAt() {
+      return 'A Lever'
+    }
+  },
   _oilrigWheel: {
     _location: vec3New(26, 13.5, -52.9),
     _visible: true,

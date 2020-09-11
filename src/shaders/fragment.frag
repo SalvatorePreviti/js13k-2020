@@ -44,6 +44,7 @@ uniform vec4 iA;
 uniform vec4 iB;
 uniform vec4 iC;
 uniform vec4 iS;
+uniform vec4 iX;
 uniform mat3 iM;
 uniform lowp int iF;
 
@@ -121,6 +122,9 @@ out vec4 oColor;
 
 // submarine position
 #define iSubmarineHeight iB.w
+
+// the inner ramp
+#define iAnimOilrigInnerRamp iX.x
 
 ///// Textures /////
 
@@ -528,7 +532,8 @@ float oilrig(vec3 p) {
 
   vec3 absp = abs(p);  // mirror
   vec3 q = vec3(absp.x, abs(p.y - 4.58), absp.z);  // mirror in x & z and y with a translation
-
+  float yellow = 
+    lever(invZ(p.xzy - vec3(1.9,-1.5,.2)) * .5, min(1., (6. - iAnimOilrigInnerRamp)*.2)) / .5;
   float platforms =
       max(cuboid(vec3(p.x, abs(p.y - 3.5) - 3.5, p.z), vec3(6, .2, 6)) - .05,  // platforms (mirrored around y=3.5)
           max(-cube(p - vec3(2, 7, 2), 1.5),  // hole in upper platform
@@ -539,9 +544,9 @@ float oilrig(vec3 p) {
   u.xy *= rot(.3);  // rotate the console towards player
 
   vec3 e = vec3(p.xy, abs(p.z + 2.));  // mirror around z=2
-  float pipes = min(min(cylinder(e.xzy - vec3(-6, 1.1, 8.7), 1., 1.75),  // tank
+  yellow = min(yellow, min(min(cylinder(e.xzy - vec3(-6, 1.1, 8.7), 1., 1.75),  // tank
                         cylinder(e.xzy - vec3(-6.5, 1.1, 0), .2, 8.)),  // pipe from tanks to sea
-      cylinder(vec3(p.z, abs(p.y - 7.6), p.x) - vec3(-3, .2, 0), .1, 5.));  // pipes from console to tank
+      cylinder(vec3(p.z, abs(p.y - 7.6), p.x) - vec3(-3, .2, 0), .1, 5.)));  // pipes from console to tank
 
   float metal =
       min(min(min(cylinder(vec3(absp.xz, p.y) - vec3(5, 5, 0), .5, 8.3),  // main platform cylinders
@@ -552,14 +557,14 @@ float oilrig(vec3 p) {
           cuboid(u, vec3(.5, .6, 1.5)) - 0.05  // console
       );
 
-  updateSubMaterial(SUBMATERIAL_YELLOW, pipes);
   updateSubMaterial(SUBMATERIAL_METAL, metal);
 
-  vec3 r = p - vec3(2, 3.53, -.05);
+  vec3 r = p - vec3(2, 3.59, -.1);
   r.zy *= rot(-PI / 4.);
-  platforms = min(platforms, cuboid(r, vec3(1, 5.1, .1)) - .05);  // ramp from lower platform to upper
-
-  float result = min(platforms, min(pipes, metal));
+  r.y -= iAnimOilrigInnerRamp;
+  yellow = min(yellow, cuboid(r, vec3(1, 5.1, .02)) - .05);  // ramp from lower platform to upper
+  updateSubMaterial(SUBMATERIAL_YELLOW, yellow);
+  float result = min(min(platforms, yellow), metal);
 
   vec3 t = u - vec3(0, .8, 0);
   if (length(t) - 1. < 2.) {  // Wheel

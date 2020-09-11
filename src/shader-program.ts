@@ -74,6 +74,7 @@ export const loadShaderFunction = (mainFunction: string) => {
   const iF = gl.getUniformLocation(program, 'iF')
   const iA = gl.getUniformLocation(program, 'iA')
   const iB = gl.getUniformLocation(program, 'iB')
+  const iX = gl.getUniformLocation(program, 'iX')
 
   ;[iNoise, iHeightmap, iPrerendered, iScreens].map((t, i) => gl.uniform1i(t, i))
 
@@ -129,6 +130,15 @@ export const loadShaderFunction = (mainFunction: string) => {
       ANIMATIONS._elevatorHeight._value,
       // submarine position
       min(0, ANIMATIONS._submarine._value) + waterLevel
+    )
+
+    gl.uniform4f(
+      iX,
+      // inner ramp on oil rig
+      6 - ANIMATIONS._oilrigRamp2._value * 6,
+      0,
+      0,
+      0
     )
   }
 

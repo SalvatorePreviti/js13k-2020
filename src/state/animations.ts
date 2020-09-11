@@ -90,6 +90,13 @@ const ANIMATIONS = {
     _max: 4,
     _speed: 1,
     _running: 0
+  },
+  _oilrigRamp2: {
+    _value: 0,
+    _initial: 0,
+    _max: 1,
+    _speed: 1,
+    _running: 0
   }
 }
 
