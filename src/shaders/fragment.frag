@@ -934,7 +934,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
 
   float lightIntensity = lambert1 + lambert2 * .15;
   if (mat == MATERIAL_TERRAIN && !isWater) {
-    lightIntensity = pow(lightIntensity * mix(.7, 1.08, lambert1 * lambert1), 1. + lambert1 * .7);
+    lightIntensity = pow(lightIntensity * mix(.7, 1.05, lambert1 * lambert1), 1. + lambert1 * .7);
   }
 
   float shadow = 1.;
