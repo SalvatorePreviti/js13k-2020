@@ -441,9 +441,7 @@ float prison(vec3 ip) {
     return bounds;
   p.y -= 2.;
   float cornerBox = cuboid(p - vec3(-2.7, -1, -1.3), vec3(0.35, .5, .5));
-  float structure = max(min(opOnion(cuboid(p, vec3(4, 1.6, 2)), 0.23),  // The main box
-                            cornerBox  // corner box (key hides behind it)
-                            ),
+  float structure = max(opOnion(cuboid(p, vec3(4, 1.6, 2)), 0.23),  // The main box
       -min(  // Cut holes for:
           cylinder(p - vec3(0, .5, 0), .8, 100.),  // the windows
           cuboid(p - vec3(4, -.37, 1), vec3(2, 1, .53))  // the door
