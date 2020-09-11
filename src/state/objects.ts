@@ -246,6 +246,7 @@ const GAME_OBJECTS = {
     _onInteract() {
       this._gameEnded = true
       runAnimation(ANIMATIONS._submarine, -1)
+      localStorage['OS13kTrophy,🏝,Island Not Found'] = 'Found a way out!'
       vec3Set(cameraPos, -42, 12, -47)
       vec2Set(cameraEuler, -12.7 * DEG_TO_RAD, 33.7 * DEG_TO_RAD)
       setText('', 3) //3 seconds delay

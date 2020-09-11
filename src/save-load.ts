@@ -18,16 +18,18 @@ function deepMerge(original: any, item: any) {
   }
 }
 
+const LOCAL_STORAGE_KEY = 'ISLAND_NOT_FOUND'
+
 const SAVE_GAME = () => {
   if (gameStarted) {
-    localStorage.setItem('ISLAND404', JSON.stringify(data))
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data))
     setText('Saved', 2)
     startOrResumeClick(false)
     loadGameButton.className = ''
   }
 }
 
-const getDataFromLocalStorage = () => localStorage.getItem('ISLAND404')
+const getDataFromLocalStorage = () => localStorage.getItem(LOCAL_STORAGE_KEY)
 
 const LOAD_GAME = () => {
   const savedGame = getDataFromLocalStorage()
