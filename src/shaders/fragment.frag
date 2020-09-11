@@ -271,8 +271,10 @@ float opOnion(float sdf, float thickness) {
 
 #define ELONGATE(p, h) (p - clamp(p, -h, h))
 
+// Rotation by a constant angle
 #define ROT(a) mat2(cos(a), sin(a), -sin(a), cos(a))
 
+// Rotation by a dynamic angle
 mat2 rot(float a) {
   float c = cos(a), s = sin(a);
   return mat2(c, s, -s, c);
@@ -281,8 +283,6 @@ mat2 rot(float a) {
 vec3 invZ(vec3 p) {
   return vec3(p.xy, -p.z);
 }
-
-// === STATE BASED ON UNIFORMS ===
 
 // === GEOMETRY ===
 float gameObjectFlashlight(vec3 p) {
