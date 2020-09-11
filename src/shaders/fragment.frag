@@ -415,7 +415,7 @@ float antenna(vec3 p) {
   float metalThings = min(dish, door);
   updateSubMaterial(SUBMATERIAL_BRIGHT_RED, oilrigLever);
   updateSubMaterial(SUBMATERIAL_DARK_RED, console);
-  updateSubMaterial(SUBMATERIAL_METAL, metalThings);
+  updateSubMaterial(SUBMATERIAL_YELLOW, metalThings);
 
   return min(min(console, structure), min(metalThings, oilrigLever));
 }

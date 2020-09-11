@@ -80,7 +80,7 @@ export const updateMinigameTexture = () => {
   context.arc(135 + MINIGAME._phase, 175 + MINIGAME._frequency, 8, 0, TWO_PI)
   context.fill()
 
-  if (MINIGAME._state === MINIGAME_COMPLETE) {
+  if (MINIGAME._state >= MINIGAME_COMPLETE) {
     context.fillStyle = '#000015'
     context.fillRect(0, 160, SCREEN_TEXTURE_SIZE, SCREEN_TEXTURE_SIZE)
     context.strokeRect(20, 180, 472, 120)

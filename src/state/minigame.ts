@@ -8,6 +8,8 @@ export const MINIGAME_ACTIVE = 3
 
 export const MINIGAME_COMPLETE = 4
 
+export const MINIGAME_COMPLETE_2 = 5
+
 export const MINIGAME = {
   _state: MINIGAME_INACTIVE,
   _phase: 0,

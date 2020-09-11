@@ -4,7 +4,7 @@ import { cameraPos, cameraDir, cameraEuler } from '../camera'
 import { setText } from '../text'
 import { KEY_ACTION, KEY_FLASHLIGHT_TOGGLE, KeyFunctions, PressedKeys } from '../keyboard'
 import { objectValues } from '../core/objects'
-import { MINIGAME, MINIGAME_LOADING, MINIGAME_INACTIVE } from './minigame'
+import { MINIGAME, MINIGAME_LOADING, MINIGAME_INACTIVE, MINIGAME_COMPLETE, MINIGAME_COMPLETE_2 } from './minigame'
 import { vec2Set } from '../math/vec2'
 import { DEG_TO_RAD } from '../math/scalar'
 
@@ -98,6 +98,9 @@ const GAME_OBJECTS = {
     _visible: true,
     _lookAtDistance: 1.5,
     _onInteract() {
+      if (MINIGAME._state === MINIGAME_COMPLETE) {
+        MINIGAME._state = MINIGAME_COMPLETE_2
+      }
       if (ANIMATIONS._antennaRotation._running && INVENTORY._floppy && MINIGAME._state === MINIGAME_INACTIVE) {
         MINIGAME._state = MINIGAME_LOADING
         runAnimation(ANIMATIONS._afterFloppyInsert)
@@ -106,7 +109,9 @@ const GAME_OBJECTS = {
       }
     },
     _onLookAt: () =>
-      MINIGAME._state !== MINIGAME_INACTIVE
+      MINIGAME._state === MINIGAME_COMPLETE
+        ? "A submarine? That's my way out! [Press E to continue]"
+        : MINIGAME._state !== MINIGAME_INACTIVE
         ? ''
         : ANIMATIONS._antennaRotation._running
         ? INVENTORY._floppy
