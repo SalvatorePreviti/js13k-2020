@@ -245,13 +245,6 @@ float pModInterval(float value, float size, float start, float stop) {
 }
 
 // Repeat around the origin a number of times
-void pModPolar(inout vec2 p, float repetitions) {
-  float halfAngle = PI / repetitions;
-  float a = mod(atan(p.y, p.x) + halfAngle, halfAngle * 2.) - halfAngle;
-  p = vec2(cos(a), sin(a)) * length(p);
-}
-
-// Repeat around the origin a number of times
 vec2 pModPolar2(vec2 xy, float repetitions) {
   float halfAngle = PI / repetitions;
   float a = mod(atan(xy.y, xy.x) + halfAngle, halfAngle * 2.) - halfAngle;
