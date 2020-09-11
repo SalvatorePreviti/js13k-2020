@@ -220,6 +220,11 @@ float cuboid(vec3 p, vec3 s) {
   return min(max(d.x, max(d.y, d.z)), 0.0) + length(max(d, 0.0));
 }
 
+float cube(vec3 p, float s) {
+  vec3 d = abs(p) - s;
+  return min(max(d.x, max(d.y, d.z)), 0.0) + length(max(d, 0.0));
+}
+
 float cylinder(vec3 p, float r, float l) {
   float d = length(p.xy) - r;
   return max(d, abs(p.z) - l);
@@ -232,34 +237,41 @@ float torus(vec3 p, vec2 t) {
 //=== OPERATIONS ===
 // hg_sdf: http://mercury.sexy/hg_sdf/
 // splits world up with limits
-void pModInterval(inout float p, float size, float start, float stop) {
-  float halfsize = size * 0.5;
-  float c = floor((p + halfsize) / size);
-  p = mod(p + halfsize, size) - halfsize;
-  if (c > stop) {
-    p += size * (c - stop);
-  }
-  if (c < start) {
-    p += size * (c - start);
-  }
+float pModInterval(float value, float size, float start, float stop) {
+  float halfsize = size * .5;
+  float c = floor((value + halfsize) / size);
+  float p = mod(value + halfsize, size) - halfsize;
+  return c > stop ? p + size * (c - stop) : c < start ? p + size * (c - start) : p;
 }
 
 // Repeat around the origin a number of times
 void pModPolar(inout vec2 p, float repetitions) {
-  float angle = 2. * PI / repetitions;
-  float a = atan(p.y, p.x) + angle / 2.;
-  float r = length(p);
-  a = mod(a, angle) - angle / 2.;
-  p = vec2(cos(a), sin(a)) * r;
+  float halfAngle = PI / repetitions;
+  float a = mod(atan(p.y, p.x) + halfAngle, halfAngle * 2.) - halfAngle;
+  p = vec2(cos(a), sin(a)) * length(p);
+}
+
+// Repeat around the origin a number of times
+vec2 pModPolar2(vec2 xy, float repetitions) {
+  float halfAngle = PI / repetitions;
+  float a = mod(atan(xy.y, xy.x) + halfAngle, halfAngle * 2.) - halfAngle;
+  return vec2(cos(a), sin(a)) * length(xy);
+}
+
+// Repeat around the origin a number of times, also adding a rotation
+vec2 pModPolar2Rot(vec2 xy, float repetitions, float additionalRotation) {
+  float halfAngle = PI / repetitions;
+  float a = mod(atan(xy.y, xy.x) + halfAngle + additionalRotation, halfAngle * 2.) - halfAngle;
+  return vec2(cos(a), sin(a)) * length(xy);
 }
 
 float opOnion(float sdf, float thickness) {
   return abs(sdf) - thickness;
 }
 
-vec3 elongate(vec3 p, vec3 h) {
-  return p - clamp(p, -h, h);
-}
+#define ELONGATE(p, h) (p - clamp(p, -h, h))
+
+#define ROT(a) mat2(cos(a), sin(a), -sin(a), cos(a))
 
 mat2 rot(float a) {
   float c = cos(a), s = sin(a);
@@ -270,13 +282,15 @@ vec3 invZ(vec3 p) {
   return vec3(p.xy, -p.z);
 }
 
+// === STATE BASED ON UNIFORMS ===
+
 // === GEOMETRY ===
 float gameObjectFlashlight(vec3 p) {
   float bounds = length(p) - .3;
   if (bounds > .3)
     return bounds;
-  p.xz *= rot(-1.2);
-  p.yz *= rot(-.2);
+  p.xz *= ROT(-1.2);
+  p.yz *= ROT(-.2);
   return min(cylinder(p, .025, .1), max(sphere(p - vec3(0, 0, .12), .05), p.z - .12));
 }
 
@@ -300,13 +314,15 @@ float gameObjectFloppy(vec3 p) {
 // s is number of segments (*2 + 1, so 5 = 11 segments)
 float bridge(vec3 p, float s, float bend) {
   float bounds = length(p) - s * .6;
-  if (bounds > 4.)
+  if (bounds > 4.) {
     return bounds;
+  }
+
   p.y += cos(p.z * bend / s);
   p.x = abs(p.x);
   float boards = cuboid(p - vec3(.2, 0, 0), vec3(.1, .03, s * .55));
   float ropes = cylinder(p - vec3(.5, 1., 0), .02, s * .55);
-  pModInterval(p.z, .55, -s, s);
+  p.z = pModInterval(p.z, .55, -s, s);
   ropes = min(ropes, cylinder(p.xzy - vec3(.5, 0, .5), .02, .5));
   updateSubMaterial(SUBMATERIAL_METAL, ropes);
   boards = min(boards, cuboid(p, vec3(.5, .05, .2)));
@@ -319,19 +335,19 @@ float antennaConsole(vec3 p) {
   if (bounds > 1.)
     return bounds;
   vec3 q = p;
-  q.xy *= rot(-.25);
+  q.xy *= ROT(-.25);
   float r = cuboid(q + vec3(.2, .25, 0), vec3(.25, .5, .5)) - 0.01;
   q -= vec3(-.13, .25, 0);
-  pModInterval(q.z, .04, -10., 10.);
-  pModInterval(q.x, .04, -3., 3.);
-  float keys = cuboid(q, vec3(.01)) - .005;
+  q.z = pModInterval(q.z, .04, -10., 10.);
+  q.x = pModInterval(q.x, .04, -3., 3.);
+  float keys = cube(q, .01) - .005;
   updateSubMaterial(SUBMATERIAL_METAL, keys);
   r = min(min(r, keys), cuboid(p - vec3(-.45, .2, 0), vec3(.2, .8, .5)) - 0.01);
   return r;
 }
 
 float antennaCable(vec3 p) {
-  p.zy *= rot(.06);
+  p.zy *= ROT(.06);
   p.y += cos(p.z / 20.) * 3.;
   return cylinder(p, 0.01, 27.5);
 }
@@ -344,10 +360,10 @@ float antennaDoor(vec3 p) {
   p.zx *= rot(iAnimAntennaDoor * -2.5);  // Door opening animation
   p.xz += vec2(1., -.05);
   float door = cylinder(p, .99, .05);  // the door itself
-  pModPolar(p.xy, 8.);
+  vec3 rp = vec3(pModPolar2(p.xy, 8.), p.z);
   return max(door,
-      -min(cuboid(p - vec3(.5, 0, .1), vec3(.02, .1, .1)),  // The monument-style impression
-          cylinder(p - vec3(0, 0, .1), .02, .1)  // key-hole in the center
+      -min(cuboid(rp - vec3(.5, 0, .1), vec3(.02, .1, .1)),  // The monument-style impression
+          cylinder(rp - vec3(0, 0, .1), .02, .1)  // key-hole in the center
           ));
 }
 
@@ -367,7 +383,7 @@ float lever(vec3 p, float leverState) {
 }
 
 // rotation.x controls elevation/altitude, rotation.y controls azimuth
-float antenna(vec3 p, vec2 rotation) {
+float antenna(vec3 p) {
   const float size = 9.;
   float bounds = length(p) - size * 2.;
   if (bounds > 5.)
@@ -375,8 +391,8 @@ float antenna(vec3 p, vec2 rotation) {
   p.y -= size;
 
   vec3 q = p;
-  q.xz *= rot(rotation.y);
-  q.xy *= rot(rotation.x);
+  q.xz *= rot(iAnimAntennaRotation);
+  q.xy *= ROT(0.5);
   q.y -= size;
   float dishSphere = sphere(q, size);
   float dish = max(opOnion(dishSphere, .01),
@@ -385,7 +401,7 @@ float antenna(vec3 p, vec2 rotation) {
   dish = min(dish, cylinder(q.xzy + vec3(0, 0, size * .5), .1, size * .5));
   dish = min(dish, sphere(q, .3));
   p.y += size * .75;
-  float structure = cuboid(p, vec3(size / 4., size / 2.5, size / 2.));
+  float structure = cuboid(p, size / vec3(4., 2.5, 2.));
   structure = min(structure,
       min(max(opOnion(cylinder(p.xzy - vec3(size / 4., 0, 0), size / 2. - .1, size / 2.5 - .1), .1),
               -min(cylinder(p.zyx - vec3(0, 1.8, 0), 1., 100.),  // hole for the door
@@ -400,7 +416,7 @@ float antenna(vec3 p, vec2 rotation) {
   p.y -= size * .25;
   structure = max(min(structure, cylinder(p.xzy, size * .05, size * .53)), -dishSphere);
   p -= vec3(7, -2.85, 0);
-  p.xy *= rot(-.5);
+  p.xy *= ROT(-.5);
   structure = min(structure, cuboid(p, vec3(1, 1, .8)) - .01);
   float metalThings = min(dish, door);
   updateSubMaterial(SUBMATERIAL_BRIGHT_RED, oilrigLever);
@@ -412,25 +428,34 @@ float antenna(vec3 p, vec2 rotation) {
 
 float monument(vec3 p) {
   float bounds = length(p.xz) - 2.;
-  if (bounds > 3.)
+  if (bounds > 3.) {
     return bounds;
-  float metals = cylinder(p.xzy + vec3(0, 0, clamp(iAnimMonumentDescend, 0., .02)), .05, .53);  // the button
-  updateSubMaterial(SUBMATERIAL_METAL, metals);
+  }
+
   float r = cylinder(p.xzy, .2, .5);  // the button mount
 
-  p.y += iAnimMonumentDescend * 4.;
+  float ph = p.y + iAnimMonumentDescend * 4.;
   if (iGOAntennaKeyVisible) {
-    float key = gameObjectKey(p - vec3(-1.05, 5.05, -1.05));
-    updateSubMaterial(SUBMATERIAL_BRIGHT_RED, key);
-    r = min(r, key);
+    float key = gameObjectKey(vec3(p.x, ph, p.z) + vec3(1.05, -5.05, 1.05));
+    if (key < r) {
+      updateSubMaterial(SUBMATERIAL_BRIGHT_RED, key);
+      r = key;
+    }
   }
-  vec3 q = p;
-  pModPolar(p.xz, 8.);
-  p.x -= 1.5;
-  metals = min(metals, cuboid(p, vec3(.1, 5, .2)));  // the actual monument
-  updateSubMaterial(SUBMATERIAL_BLACK_PURPLE, metals);
 
-  return min(metals, r);
+  float m = cuboid(vec3(pModPolar2(p.xz, 8.), ph).xzy - vec3(1.5, 0, 0), vec3(.1, 5, .2));  // the actual monument
+  if (m < r) {
+    updateSubMaterial(SUBMATERIAL_BLACK_PURPLE, m);
+    r = m;
+  }
+
+  float b = cylinder(p.xzy + vec3(0, 0, clamp(iAnimMonumentDescend, 0., .02)), .05, .53);  // the button
+  if (b < r) {
+    updateSubMaterial(SUBMATERIAL_METAL, b);
+    r = b;
+  }
+
+  return r;
 }
 
 float prison(vec3 ip) {
@@ -455,7 +480,7 @@ float prison(vec3 ip) {
   float door = cuboid(q - vec3(0, .4, .5), vec3(.05, .99, .52));
 
   // The bars on the windows:
-  pModInterval(p.x, .3, -10., 10.);  // repeat along x
+  p.x = pModInterval(p.x, .3, -10., 10.);  // repeat along x
   p.z = abs(p.z);  // mirror on z axis
   float bars = cylinder(p.xzy - vec3(0, 2, .5), .01, 1.);  // draw a single bar
   float woodThings = min(cornerBox, door);
@@ -488,13 +513,14 @@ float submarine(vec3 p) {
   if (bounds > 1.) {
     return bounds;
   }
-  p.xz *= rot(-PI/4.);
+  p.xz *= ROT(-PI/4.);
   float dock = cuboid(p-vec3(-1.5,1,5), vec3(1,.2,3));
   p.y -= iSubmarineHeight;
+  vec3 q = p.xzy - vec3(-2.,0,2.);
   float sub = smin(
-    sphere(elongate(p, vec3(6,0,0)), 1.7), //main body
+    sphere(ELONGATE(p, vec3(6,0,0)), 1.7), //main body
     min(
-      cylinder(elongate(p.xzy - vec3(-2.,0,2.), vec3(.5,0,0)), .4, .5), //the top/periscope thingy
+      cylinder(ELONGATE(q, vec3(.5,0,0)), .4, .5), //the top/periscope thingy
       min(
         cuboid(p-vec3(7.5,0,0), vec3(0.3,2,.05)) - .05,
         cuboid(p-vec3(7.5,0,0), vec3(0.3,.05,2)) - .05
@@ -508,53 +534,62 @@ float submarine(vec3 p) {
 }
 
 float oilrig(vec3 p) {
-  float bounds = length(p) - 12.;
-  if (bounds > 2.)
+  float bounds = length(p) - 13.;
+  if (bounds > 3.) {
     return bounds;
-  vec3 q = p, w = p, e = p, o = p, t, u;  // copies of p for different co-ordinate systems
-  q.xz = abs(q.xz);  // mirror in x & z
-  float metal = cylinder(q.xzy - vec3(5, 5, 0), .5, 8.3);  // main platform cylinders
-  q.y = abs(w.y - 4.58);  // mirror y at y=4;
-  metal = min(metal, cylinder(q.zyx - vec3(5.3, 3.5, 0), .05, 5.3));  // guard rails
-  metal = min(metal,
-      max(cylinder(q.xyz - vec3(5.3, 3.5, 0), .05, 5.3),  // guard rails
-          -cuboid(p - vec3(5, .7, 4), vec3(.8))  // cut a hole in the guard rails where the bridge will connect
-          ));
-  w.y = abs(w.y - 3.5);  // mirror y at y=3.5
-  float platforms = cuboid(w - vec3(0, 3.5, 0), vec3(6, .2, 6)) - .05;  // platforms (mirrored around y=3.5)
-  platforms = max(platforms, -cuboid(p - vec3(2, 7, 2), vec3(1.5)));  // hole in upper platform
-  platforms = max(platforms, -cuboid(p - vec3(5.7, 0, 4), vec3(.52)));  // hole in lower platform for the bridge
-  e.z = abs(e.z + 2.);  // mirror around z=2
-  float pipes = cylinder(e.xzy - vec3(-6, 1.1, 8.7), 1., 1.75);
-  pipes = min(pipes, cylinder(e.xzy - vec3(-6.5, 1.1, 0), .2, 8.));  // pipes from tanks to sea
-  o.y = abs(o.y - 7.6);
-  pipes = min(pipes, cylinder(o.zyx - vec3(-3, .2, 0), .1, 5.));  // pipes from console to tank
-  // r = min(r, cylinder(o-vec3(-6,.2,-2),.1,1.));    //pipes between tanks
-  u = p - vec3(5, 7.6, -2);
-  u.xy *= rot(.3);  // rotate the console towards player
-  metal = min(metal, cuboid(u, vec3(.5, .6, 1.5)) - 0.05);  // console
-  t = u - vec3(0, .8, 0);
-  // rotate wheel around xz based on animation uniform:
-  float wheel = length(t) - 1.;
-  if (wheel < 2.) {
-    t.xz *= rot(iAnimOilrigWheel);
-    wheel = torus(t, vec2(.5, .02));
-    wheel = min(wheel, cylinder(t.xzy + vec3(0, 0, .5), .02, .5));  // center-column of spokes
-    pModPolar(t.xz, 5.);
-    wheel = min(wheel, cylinder(t.zyx - vec3(0, 0, .25), .01, .25));  // spokes
   }
-  p -= vec3(2, 3.53, -.05);
-  p.zy *= rot(-PI / 4.);
-  platforms = min(platforms, cuboid(p, vec3(1, 5.1, .1)) - .05);  // ramp from lower platform to upper
+
+  vec3 absp = abs(p);  // mirror
+  vec3 q = vec3(absp.x, abs(p.y - 4.58), absp.z);  // mirror in x & z and y with a translation
+
+  float platforms =
+      max(cuboid(vec3(p.x, abs(p.y - 3.5) - 3.5, p.z), vec3(6, .2, 6)) - .05,  // platforms (mirrored around y=3.5)
+          max(-cube(p - vec3(2, 7, 2), 1.5),  // hole in upper platform
+              -cube(p - vec3(5.7, 0, 4), .52))  // hole in lower platform for the bridge
+      );
+
+  vec3 u = p - vec3(5, 7.6, -2);
+  u.xy *= ROT(.3);  // rotate the console towards player
+
+  vec3 e = vec3(p.xy, abs(p.z + 2.));  // mirror around z=2
+  float pipes = min(min(cylinder(e.xzy - vec3(-6, 1.1, 8.7), 1., 1.75),  // pipe from tanks to sea
+                        cylinder(e.xzy - vec3(-6.5, 1.1, 0), .2, 8.)),  // pipe from tanks to sea
+      cylinder(vec3(p.z, abs(p.y - 7.6), p.x) - vec3(-3, .2, 0), .1, 5.));  // pipes from console to tank
+
+  float metal =
+      min(min(min(cylinder(vec3(absp.xz, p.y) - vec3(5, 5, 0), .5, 8.3),  // main platform cylinders
+                  cylinder(q.zyx - vec3(5.3, 3.5, 0), .05, 5.3)),  // guard rails
+              max(cylinder(q - vec3(5.3, 3.5, 0), .05, 5.3),  // guard rails
+                  -cube(p - vec3(5, .7, 4), .8)  // cut a hole in the guard rails where the bridge will connect
+                  )),
+          cuboid(u, vec3(.5, .6, 1.5)) - 0.05  // console
+      );
+
   updateSubMaterial(SUBMATERIAL_YELLOW, pipes);
   updateSubMaterial(SUBMATERIAL_METAL, metal);
-  updateSubMaterial(SUBMATERIAL_BRIGHT_RED, wheel);
-  return min(platforms, min(min(pipes, metal), wheel));
+
+  vec3 r = p - vec3(2, 3.53, -.05);
+  r.zy *= ROT(-PI / 4.);
+  platforms = min(platforms, cuboid(r, vec3(1, 5.1, .1)) - .05);  // ramp from lower platform to upper
+
+  float result = min(platforms, min(pipes, metal));
+
+  vec3 t = u - vec3(0, .8, 0);
+  if (length(t) - 1. < 2.) {  // Wheel
+    float wheel =
+        min(min(torus(t, vec2(.5, .02)), cylinder(t.xzy + vec3(0, 0, .5), .02, .5)),  // center-column of spokes
+            cylinder(vec3(pModPolar2Rot(t.xz, 5., iAnimOilrigWheel), t.y).zyx - vec3(0, 0, .25), .01, .25));  // spokes
+    if (wheel < result) {
+      updateSubMaterial(SUBMATERIAL_BRIGHT_RED, wheel);
+      result = wheel;
+    }
+  }
+  return result;
 }
 
 float oilrigBridge(vec3 p) {
   vec3 q = p.zyx - vec3(4, -1, 17);
-  q.zy *= rot(-.19);
+  q.zy *= ROT(-.19);
   q.z -= 19. - iAnimOilrigRamp;  // 0: sticking out of sand slightly, 19 - connected with the oil rig
   return min(bridge(q, 21., 0.), cylinder(q.xzy + vec3(0, 10.5, 6), 0.15, 5.));
 }
@@ -567,10 +602,10 @@ float guardTower(vec3 ip) {
   if (bounds > 4.) {
     return bounds;
   }
-  vec3 q = p, z, y = p, l=p;
-  pModPolar(q.xz, 6.);
-  z = q;
-  pModInterval(z.y, 1.5, -3., 7.);
+
+  vec3 q = vec3(pModPolar2(p.xz, 6.), p.y).xzy;
+  vec3 z = vec3(q.x, pModInterval(p.y, 1.5, -3., 7.), q.z);
+
   float structure = max(
       max(
         min(
@@ -587,21 +622,25 @@ float guardTower(vec3 ip) {
       ),
       -cuboid(p+vec3(0,7,1), vec3(.8,1.2,.8))  //cut doorway out
   );
-  l.y-=iAnimElevatorHeight;
+
+  vec3 l = vec3(p.x, p.y - iAnimElevatorHeight, p.z);
+
   float elevator = cylinder(l.xzy,1.,11.);  //elevator
-  pModInterval(l.y, 1.5, -7., 7.);
+
+  l.y = pModInterval(l.y, 1.5, -7., 7.);
+
   elevator = max(
     elevator,
     -torus(l,vec2(1.,.01))
   );
-  y -= vec3(.8, 12.7, -.9);
-  pModInterval(y.y, 20.5, -1., 0.);
 
-  float elevatorButton = sphere(y-vec3(0, .5, 0), .06);
+  vec3 k = vec3(p.x - .8, pModInterval(p.y-12.7, 20.5, -1., 0.), p.z +.9);
+
+  float elevatorButton = sphere(k-vec3(0, .5, 0), .06);
   float buttonPost = min(
-    cylinder(y.xzy, .05, .5),
+    cylinder(k.xzy, .05, .5),
     min(
-      cuboid(y-vec3(0, .5, 0), vec3(.05,.1,.1)),
+      cuboid(k-vec3(0, .5, 0), vec3(.05,.1,.1)),
       elevatorButton
     )
   );
@@ -627,14 +666,14 @@ float guardTower(vec3 ip) {
 }
 
 vec2 screenCoords;
-float screen(vec3 p, vec3 screenPosition, vec2 size, float angle) {
+float screen(vec3 p, vec3 screenPosition, vec2 size) {
   p -= screenPosition;
   float bounds = length(p) - 2.;
   if (bounds > .5)
     return bounds;
-  p.xz *= rot(angle);
+  p.xz *= ROT(PI / 2.);
   screenCoords = (size - p.xy) / (size * 2.);
-  float screen = cuboid(p, vec3(size.x, size.y, 0.01));
+  float screen = cuboid(p, vec3(size.xy, 0.01));
   return screen;
 }
 
@@ -648,11 +687,11 @@ float terrain(vec3 p) {
 
 float nonTerrain(vec3 p) {
   float b = bridge(p - vec3(45, 1.7, 22.4), 10., 2.);
-  float a = antenna(p - vec3(2, 10, 2), vec2(0.5, iAnimAntennaRotation));
+  float a = antenna(p - vec3(2, 10, 2));
   float m = monument(p - vec3(47.5, 3.5, 30.5));
   float pr = prison(p);
   vec3 oilrigCoords = p - vec3(26, 5, -58);
-  oilrigCoords.xz *= rot(PI / 2. + 0.4);
+  oilrigCoords.xz *= ROT(PI / 2. + 0.4);
   float o = oilrig(oilrigCoords);
   float ob = oilrigBridge(oilrigCoords);
   float aoc = antennaCable(oilrigCoords.zyx - vec3(-2, 9.7, 32.5));
@@ -678,7 +717,7 @@ float distanceToNearestSurface(vec3 p) {
     return t;
   }
   float n = nonTerrain(p);
-  float s = screen(p, vec3(4.76, 14.42, 4), vec2(.45, .29), PI / 2.);
+  float s = screen(p, vec3(4.76, 14.42, 4), vec2(.45, .29));
   float sn = min(s, n);
   if (t < sn) {
     material = MATERIAL_TERRAIN;
@@ -749,30 +788,31 @@ float shadowR = 0.;
 
 #define SHADOW_ITERATIONS 50
 float getShadow(vec3 p, float camDistance, vec3 n) {
-  if (camDistance > MAX_DIST) {
-    return 1.;
-  }
   float res = 1.;
   float dist = clamp(camDistance * 0.005, 0.01, .1);  // start further out from the surface if the camera is far away
 
   p = p + n * dist;  // Jump out of the surface by the normal * that dist
 
-  for (int i = 1; i < SHADOW_ITERATIONS; i++) {
+  float maxHitY = iWaterLevel - epsilon * 2.;
+
+  for (float i = 1.; i < float(SHADOW_ITERATIONS); i++) {
     vec3 hit = p + iSunDirection * dist;
 
-    if (dist >= 80. || hit.y > 45. || hit.y < iWaterLevel - epsilon * 2.) {
+    if (dist >= 80. || hit.y > 45. || hit.y < maxHitY || length(p) >= MAX_DIST) {
       break;  // Nothing to render so far
     }
 
     float nearest = nonTerrain(hit);
 
-    float shadowEpsilon = max(epsilon, 0.01 * min(1., dist) + .01 * float(i) / float(SHADOW_ITERATIONS));
+    float shadowEpsilon = max(epsilon, 0.01 * min(1., dist) + i * (.01 / float(SHADOW_ITERATIONS)));
     if (nearest <= shadowEpsilon) {
       return 0.;  // Hit or inside something.
     }
 
-    res = min(res, smoothstep(0., .03, nearest / dist));
-    if (res < 0.075) {
+    nearest += epsilon;
+
+    res = min(res, smoothstep(0., .04, nearest / dist));
+    if (res < 0.078) {
       return 0.;  // Dark enough already.
     }
 
@@ -888,7 +928,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
             case SUBMATERIAL_DARK_RED: color = vec3(.5, 0, 0); break;
             case SUBMATERIAL_BLACK_PURPLE: color = vec3(.2, .1, .2); break;
             case SUBMATERIAL_YELLOW: color = vec3(1, .95, .8); break;
-            case SUBMATERIAL_WOOD: color *= vec3(.8, .6, .4); break;
+            case SUBMATERIAL_WOOD: color = .8 * vec3(.8, .6, .4); break;
             default:
               vec4 concrete = (texture(iNoise, hit.xy * .35) * hitNormal.z +
                   texture(iNoise, hit.yz * .35) * hitNormal.x + texture(iNoise, hit.xz * .35) * hitNormal.y - 0.5);
@@ -963,7 +1003,7 @@ void main_m() {
 
   oColor = vec4(intersectWithWorld(iCameraPos, ray), 1);
 
-  // oColor.x = shadowR * 2.;
+  // oColor.x = shadowR;
   // oColor.y = shadowR;
   // oColor.z = shadowR;
 }
