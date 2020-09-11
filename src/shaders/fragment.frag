@@ -264,9 +264,6 @@ float opOnion(float sdf, float thickness) {
 
 #define ELONGATE(p, h) (p - clamp(p, -h, h))
 
-// Rotation by a constant angle
-#define ROT(a) mat2(cos(a), sin(a), -sin(a), cos(a))
-
 // Rotation by a dynamic angle
 mat2 rot(float a) {
   float c = cos(a), s = sin(a);
@@ -282,8 +279,8 @@ float gameObjectFlashlight(vec3 p) {
   float bounds = length(p) - .3;
   if (bounds > .3)
     return bounds;
-  p.xz *= ROT(-1.2);
-  p.yz *= ROT(-.2);
+  p.xz *= rot(-1.2);
+  p.yz *= rot(-.2);
   return min(cylinder(p, .025, .1), max(sphere(p - vec3(0, 0, .12), .05), p.z - .12));
 }
 
@@ -328,7 +325,7 @@ float antennaConsole(vec3 p) {
   if (bounds > 1.)
     return bounds;
   vec3 q = p;
-  q.xy *= ROT(-.25);
+  q.xy *= rot(-.25);
   float r = cuboid(q + vec3(.2, .25, 0), vec3(.25, .5, .5)) - 0.01;
   q -= vec3(-.13, .25, 0);
   q.z = pModInterval(q.z, .04, -10., 10.);
@@ -340,7 +337,7 @@ float antennaConsole(vec3 p) {
 }
 
 float antennaCable(vec3 p) {
-  p.zy *= ROT(.06);
+  p.zy *= rot(.06);
   p.y += cos(p.z / 20.) * 3.;
   return cylinder(p, 0.01, 27.5);
 }
@@ -385,7 +382,7 @@ float antenna(vec3 p) {
 
   vec3 q = p;
   q.xz *= rot(iAnimAntennaRotation);
-  q.xy *= ROT(0.5);
+  q.xy *= rot(0.5);
   q.y -= size;
   float dishSphere = sphere(q, size);
   float dish = max(opOnion(dishSphere, .01),
@@ -409,7 +406,7 @@ float antenna(vec3 p) {
   p.y -= size * .25;
   structure = max(min(structure, cylinder(p.xzy, size * .05, size * .53)), -dishSphere);
   p -= vec3(7, -2.85, 0);
-  p.xy *= ROT(-.5);
+  p.xy *= rot(-.5);
   structure = min(structure, cuboid(p, vec3(1, 1, .8)) - .01);
   float metalThings = min(dish, door);
   updateSubMaterial(SUBMATERIAL_BRIGHT_RED, oilrigLever);
@@ -506,7 +503,7 @@ float submarine(vec3 p) {
   if (bounds > 1.) {
     return bounds;
   }
-  p.xz *= ROT(-PI/4.);
+  p.xz *= rot(-PI/4.);
   float dock = cuboid(p-vec3(-1.5,1,5), vec3(1,.2,3));
   p.y -= iSubmarineHeight;
   vec3 q = p.xzy - vec3(-2.,0,2.);
@@ -542,7 +539,7 @@ float oilrig(vec3 p) {
       );
 
   vec3 u = p - vec3(5, 7.6, -2);
-  u.xy *= ROT(.3);  // rotate the console towards player
+  u.xy *= rot(.3);  // rotate the console towards player
 
   vec3 e = vec3(p.xy, abs(p.z + 2.));  // mirror around z=2
   float pipes = min(min(cylinder(e.xzy - vec3(-6, 1.1, 8.7), 1., 1.75),  // pipe from tanks to sea
@@ -562,7 +559,7 @@ float oilrig(vec3 p) {
   updateSubMaterial(SUBMATERIAL_METAL, metal);
 
   vec3 r = p - vec3(2, 3.53, -.05);
-  r.zy *= ROT(-PI / 4.);
+  r.zy *= rot(-PI / 4.);
   platforms = min(platforms, cuboid(r, vec3(1, 5.1, .1)) - .05);  // ramp from lower platform to upper
 
   float result = min(platforms, min(pipes, metal));
@@ -582,7 +579,7 @@ float oilrig(vec3 p) {
 
 float oilrigBridge(vec3 p) {
   vec3 q = p.zyx - vec3(4, -1, 17);
-  q.zy *= ROT(-.19);
+  q.zy *= rot(-.19);
   q.z -= 19. - iAnimOilrigRamp;  // 0: sticking out of sand slightly, 19 - connected with the oil rig
   return min(bridge(q, 21., 0.), cylinder(q.xzy + vec3(0, 10.5, 6), 0.15, 5.));
 }
@@ -664,7 +661,7 @@ float screen(vec3 p, vec3 screenPosition, vec2 size) {
   float bounds = length(p) - 2.;
   if (bounds > .5)
     return bounds;
-  p.xz *= ROT(PI / 2.);
+  p.xz *= rot(PI / 2.);
   screenCoords = (size - p.xy) / (size * 2.);
   float screen = cuboid(p, vec3(size.xy, 0.01));
   return screen;
@@ -684,7 +681,7 @@ float nonTerrain(vec3 p) {
   float m = monument(p - vec3(47.5, 3.5, 30.5));
   float pr = prison(p);
   vec3 oilrigCoords = p - vec3(26, 5, -58);
-  oilrigCoords.xz *= ROT(PI / 2. + 0.4);
+  oilrigCoords.xz *= rot(PI / 2. + 0.4);
   float o = oilrig(oilrigCoords);
   float ob = oilrigBridge(oilrigCoords);
   float aoc = antennaCable(oilrigCoords.zyx - vec3(-2, 9.7, 32.5));
