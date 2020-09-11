@@ -776,17 +776,11 @@ float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
   return HORIZON_DIST;
 }
 
-float shadowR = 0.;
-
 #define SHADOW_ITERATIONS 50
 float getShadow(vec3 p, float camDistance, vec3 n, float res) {
   float dist = clamp(camDistance * 0.005, 0.01, .1);  // start further out from the surface if the camera is far away
 
   p = p + n * dist;  // Jump out of the surface by the normal * that dist
-
-  if (dot(n, iSunDirection) < -.5) {
-    return 1.;
-  }
 
   float maxHitY = iWaterLevel - epsilon * 2.;
 
@@ -804,16 +798,12 @@ float getShadow(vec3 p, float camDistance, vec3 n, float res) {
       return 0.;  // Hit or inside something.
     }
 
-    nearest += epsilon;
-
-    res = min(res, smoothstep(0., .04, nearest / dist));
+    res = min(res, 85. * nearest / dist);
     if (res < 0.078) {
       return 0.;  // Dark enough already.
     }
 
-    dist += nearest;
-
-    shadowR += 1. / float(SHADOW_ITERATIONS);
+    dist += nearest + epsilon;
   }
   return res;
 }
@@ -942,17 +932,15 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   float lambert1 = clamp01(dot(iSunDirection, normal));
   float lambert2 = clamp01(dot(iSunDirection * vec3(-1, 1, -1), normal));
 
-  float lambert = lambert1 + lambert2 * .15;
+  float lightIntensity = lambert1 + lambert2 * .15;
   if (mat == MATERIAL_TERRAIN && !isWater) {
-    lambert = pow(lambert, 1. + lambert1 * .7);
+    lightIntensity = pow(lightIntensity * mix(.7, 1.08, lambert1 * lambert1), 1. + lambert1 * .7);
   }
 
   float shadow = 1.;
   if (material != MATERIAL_SKY) {
     shadow = getShadow(p + dir * mdist, mdist, normal, 1.);
   }
-
-  float lightIntensity = lambert;
 
   // Flashlight
   if (iFlashlightOn && dist < 20.) {
@@ -962,7 +950,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   }
 
   color = mix(color, waterColor, waterOpacity);
-  color = (color * (COLOR_SUN * lightIntensity) + specular) * mix(0.5, 1., shadow);
+  color = (color * (COLOR_SUN * lightIntensity) + specular) * mix(0.5 + (1. - lightIntensity) * .2, 1., shadow);
 
   return applyFog(color, mdist, dir);
 }
@@ -1007,10 +995,6 @@ void main_m() {
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
 
   oColor = vec4(intersectWithWorld(iCameraPos, ray), 1);
-
-  // oColor.x = shadowR;
-  // oColor.y = shadowR;
-  // oColor.z = shadowR;
 }
 
 /**********************************************************************/
