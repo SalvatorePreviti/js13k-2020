@@ -539,7 +539,7 @@ float oilrig(vec3 p) {
   u.xy *= rot(.3);  // rotate the console towards player
 
   vec3 e = vec3(p.xy, abs(p.z + 2.));  // mirror around z=2
-  float pipes = min(min(cylinder(e.xzy - vec3(-6, 1.1, 8.7), 1., 1.75),  // pipe from tanks to sea
+  float pipes = min(min(cylinder(e.xzy - vec3(-6, 1.1, 8.7), 1., 1.75),  // tank
                         cylinder(e.xzy - vec3(-6.5, 1.1, 0), .2, 8.)),  // pipe from tanks to sea
       cylinder(vec3(p.z, abs(p.y - 7.6), p.x) - vec3(-3, .2, 0), .1, 5.));  // pipes from console to tank
 
