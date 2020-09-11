@@ -1,6 +1,6 @@
 import { min } from './math/scalar'
 
-const MAX_GAME_TIME_DELTA_PER_FRAME = 0.33
+const MAX_GAME_TIME_DELTA_PER_FRAME = 0.033
 
 /** Game time, paused while game is paused */
 export let gameTime: number = 0
