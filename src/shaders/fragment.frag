@@ -461,7 +461,6 @@ float prison(vec3 ip) {
   float woodThings = min(cornerBox, door);
   updateSubMaterial(SUBMATERIAL_METAL, bars);
   updateSubMaterial(SUBMATERIAL_WOOD, woodThings);
-  updateSubMaterial(SUBMATERIAL_CONCRETE, structure);
 
   float nearest = min(bars, min(structure, woodThings));
 
