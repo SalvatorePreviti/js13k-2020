@@ -823,9 +823,9 @@ vec3 waterFBM(vec2 p) {
   float distToCameraRatio = (1. - length(iCameraPos.xz - p) / HORIZON_DIST);
   float octaves = 5. * distToCameraRatio * distToCameraRatio;
   for (float i = 0.; i < octaves; ++i) {
-    p += iTime;
+    p += iTime * .5;
     flow *= -.75;
-    vec3 v = noiseDxy(p + sin(p.yx * .5 + iTime) * .5);
+    vec3 v = noiseDxy(p + sin(p.yx * .5 + iTime * .5) * .5);
     f += v * a;
     p += v.yz * .43;
     p *= 2.;
@@ -877,7 +877,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
     wdist -= abs(waterXYD.z) * waterOpacity * .6;
     mdist = wdist;
 
-    waterColor = mix(vec3(.15, .42, .63), vec3(.15, .62, .83), abs(waterXYD.z));
+    waterColor = mix(vec3(.25, .52, .73), vec3(.15, .62, .83), clamp01(abs(waterXYD.z) - waterOpacity));
   }
 
   int mat = material;
