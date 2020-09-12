@@ -2,8 +2,14 @@
 
 A game by Ben Clark and Salvatore Previti for https://2020.js13kgames.com/
 
+PLAY IT HERE https://2020.js13kgames.com/entries/island-not-found
+
 MIT License
 Ben Clark, Salvatore Previti, 2020
+
+https://www.linkedin.com/in/ben-clark-18bb3b20/
+
+https://www.linkedin.com/in/salvatorepreviti/
 
 # Build the source code
 
