@@ -18,7 +18,7 @@ body,
   background: #000;
   color: #fca;
   text-align: center;
-  font-family: papyrus, fantasy;
+  font-family: Papyrus, Gabriola, fantasy;
 }
 
 #M {
@@ -97,7 +97,14 @@ label {
   display: block;
 }
 
-i {
-  opacity: 0.8;
+a,
+a:visited,
+a:active {
+  opacity: 0.7;
   font-size: 0.6em;
+  color: #fca;
+}
+
+a:hover {
+  opacity: 1;
 }
