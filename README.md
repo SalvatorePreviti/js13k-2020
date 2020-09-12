@@ -2,8 +2,14 @@
 
 A game by Ben Clark and Salvatore Previti for https://2020.js13kgames.com/
 
+PLAY IT HERE https://2020.js13kgames.com/entries/island-not-found
+
 MIT License
 Ben Clark, Salvatore Previti, 2020
+
+https://www.linkedin.com/in/ben-clark-18bb3b20/
+
+https://www.linkedin.com/in/salvatorepreviti/
 
 # Build the source code
 
@@ -47,6 +53,7 @@ npm run ts-run src/filename.ts
 - https://www.shadertoy.com/view/Xl2XRW - We got inspiration from here for the water Fractional Brownian motion.
 - http://prng.di.unimi.it/ - We used xoshiro pseudorandom number generator to feed randomness to our virtual island.
 - https://developer.mozilla.org/ - for documentation
+- https://twitter.com/kostik13337 for helping us in testing and fixing the font for Linux
 
 # Packages and tools:
 

@@ -87,11 +87,13 @@ const GAME_OBJECTS = {
     _visible: true,
     _lookAtDistance: 1.5,
     _onInteract() {
-      this._visible = false
-      runAnimation(ANIMATIONS._oilrigRamp)
-      GAME_OBJECTS._oilrigBridge._visible = false
+      if (cameraDir.z <= 0) {
+        this._visible = false
+        runAnimation(ANIMATIONS._oilrigRamp)
+        GAME_OBJECTS._oilrigBridge._visible = false
+      }
     },
-    _onLookAt: () => 'A lever [press E or Space]'
+    _onLookAt: () => (cameraDir.z <= 0 ? 'A lever [press E or Space]' : '')
   },
   _antennaConsole: {
     _location: vec3New(4.8, 14.4, 3.7),
