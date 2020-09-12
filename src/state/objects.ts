@@ -43,7 +43,7 @@ const GAME_OBJECTS = {
     _onInteract() {
       this._visible = false
       INVENTORY._flashlight = true
-      setText('You picked up the flashlight. [Press Q to activate/deactivate]', 3)
+      setText('You picked up the flashlight. [Press F to activate/deactivate]', 3)
     },
     _onLookAt: () => 'Pick up the flashlight [press E or Space]'
   },
@@ -110,7 +110,7 @@ const GAME_OBJECTS = {
     },
     _onLookAt: () =>
       MINIGAME._state === MINIGAME_COMPLETE
-        ? "A submarine? That's my way out! [Press E to continue]"
+        ? "A submarine? That's my way out! [Press E or Space to continue]"
         : MINIGAME._state !== MINIGAME_INACTIVE
         ? ''
         : ANIMATIONS._antennaRotation._running
