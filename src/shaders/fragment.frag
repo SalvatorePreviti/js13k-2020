@@ -152,7 +152,7 @@ float epsilon;
 //=== COLORS ===
 
 const vec3 COLOR_SKY = vec3(.4, .8, 1);
-const vec3 COLOR_SUN = vec3(1., .95, .85);
+const vec3 COLOR_SUN = vec3(1.065, .95, .85);
 
 const vec3 TERRAIN_SIZE = vec3(120., 19., 78.);
 const float TERRAIN_OFFSET = 3.;
@@ -813,6 +813,7 @@ float rayTraceWater(vec3 p, vec3 dir) {
   return min(t >= 0. ? t : HORIZON_DIST, HORIZON_DIST);
 }
 
+// Inspired from https://www.shadertoy.com/view/Xl2XRW
 vec3 waterFBM(vec2 p) {
   vec3 f = vec3(0);
   float tot = 0.;
@@ -873,7 +874,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
 
     normal = normalize(vec3(waterXYD.x, 1., waterXYD.y));
 
-    wdist -= abs(waterXYD.z) * waterOpacity * .6;  //(waterXYD.z * 2. - 1.) * .1;
+    wdist -= abs(waterXYD.z) * waterOpacity * .6;
     mdist = wdist;
 
     waterColor = mix(vec3(.15, .42, .63), vec3(.15, .62, .83), abs(waterXYD.z));
@@ -882,7 +883,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   int mat = material;
   int submat = subMaterial;
   if (material == MATERIAL_SKY) {
-    color = COLOR_SKY;  // mix(COLOR_SKY, COLOR_SUN, pow(clamp(dot(dir, iSunDirection),0.,1.),10.));
+    color = COLOR_SKY;
   } else {
     vec3 hitNormal;
 
@@ -934,9 +935,10 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
 
   float lightIntensity = lambert1 + lambert2 * .15;
   if (mat == MATERIAL_TERRAIN) {
-    float adjustedLight = pow(lightIntensity * mix(.9, 1.02, lambert1 * lambert1), 1. + lambert1 * .6);
-    lightIntensity = mix(adjustedLight, lightIntensity, waterOpacity);
+    lightIntensity = pow(lightIntensity * mix(.9, 1.02, lambert1 * lambert1), 1. + lambert1 * .6);
   }
+
+  lightIntensity = mix(lightIntensity, lambert1, waterOpacity);
 
   float shadow = 1.;
   if (material != MATERIAL_SKY) {
