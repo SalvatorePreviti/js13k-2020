@@ -135,10 +135,10 @@ export const updateCamera = () => {
     }
     if (debug_mode) {
       if (PressedKeys[KEY_FLY_UP]) {
-        cameraPos.y -= speed
+        cameraPos.y += speed
       }
       if (PressedKeys[KEY_FLY_DOWN]) {
-        cameraPos.y += speed
+        cameraPos.y -= speed
       }
     }
   }

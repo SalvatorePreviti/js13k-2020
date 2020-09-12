@@ -29,6 +29,8 @@ export const KeyFunctions: Record<number, (repeat?: boolean) => void> = {}
 const _keyMap: Record<string, number> = {
   w: KEY_FORWARD,
   W: KEY_FORWARD,
+  z: KEY_FORWARD,
+  Z: KEY_FORWARD,
   ArrowUp: KEY_FORWARD,
 
   s: KEY_BACKWARD,
@@ -37,6 +39,8 @@ const _keyMap: Record<string, number> = {
 
   a: KEY_STRAFE_LEFT,
   A: KEY_STRAFE_LEFT,
+  q: KEY_STRAFE_LEFT,
+  Q: KEY_STRAFE_LEFT,
   ArrowLeft: KEY_STRAFE_LEFT,
 
   d: KEY_STRAFE_RIGHT,
@@ -49,9 +53,8 @@ const _keyMap: Record<string, number> = {
   E: KEY_ACTION,
   ' ': KEY_ACTION,
 
-  //probably this should switch to F key when we remove up/down movement
-  q: KEY_FLASHLIGHT_TOGGLE,
-  Q: KEY_FLASHLIGHT_TOGGLE,
+  f: KEY_FLASHLIGHT_TOGGLE,
+  F: KEY_FLASHLIGHT_TOGGLE,
 
   Escape: KEY_MAIN_MENU,
   M: KEY_MAIN_MENU,
@@ -60,13 +63,13 @@ const _keyMap: Record<string, number> = {
 
 if (debug_mode) {
   Object.assign(_keyMap, {
-    f: KEY_FLY_UP,
-    F: KEY_FLY_UP,
-    '+': KEY_FLY_UP,
+    g: KEY_FLY_DOWN,
+    G: KEY_FLY_DOWN,
+    '-': KEY_FLY_DOWN,
 
-    r: KEY_FLY_DOWN,
-    R: KEY_FLY_DOWN,
-    '-': KEY_FLY_DOWN
+    r: KEY_FLY_UP,
+    R: KEY_FLY_UP,
+    '+': KEY_FLY_UP
   })
 }
 
