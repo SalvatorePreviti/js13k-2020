@@ -872,7 +872,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
     vec3 waterXYD = mix(vec3(0),
         waterFBM(waterhit.xz * (.7 - iWaterLevel * .02)) * (1. - length(waterhit) / (.9 * HORIZON_DIST)), waterOpacity);
 
-    normal = normalize(vec3(waterXYD.x, 1., waterXYD.y));
+    normal = normalize(vec3(waterXYD.y, 1., waterXYD.x));
 
     wdist -= abs(waterXYD.z) * waterOpacity * .6;
     mdist = wdist;
@@ -953,7 +953,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   }
 
   color = mix(color, waterColor, waterOpacity);
-  color = (color * (COLOR_SUN * lightIntensity) + specular) * mix(0.5 + (1. - lightIntensity) * .2, 1., shadow);
+  color = (color * (COLOR_SUN * lightIntensity) + specular) * mix(0.38 + (1. - lightIntensity) * .2, 1., shadow);
 
   return applyFog(color, mdist, dir);
 }
