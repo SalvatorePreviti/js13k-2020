@@ -532,8 +532,7 @@ float oilrig(vec3 p) {
 
   vec3 absp = abs(p);  // mirror
   vec3 q = vec3(absp.x, abs(p.y - 4.58), absp.z);  // mirror in x & z and y with a translation
-  float yellow = 
-    lever(invZ(p.xzy - vec3(1.9,-1.5,.2)) * .5, min(1., (6. - iAnimOilrigInnerRamp)*.2)) / .5;
+  float yellow = lever(invZ(p.xzy - vec3(1.9, -1.5, .2)) * .5, min(1., (6. - iAnimOilrigInnerRamp) * .2)) / .5;
   float platforms =
       max(cuboid(vec3(p.x, abs(p.y - 3.5) - 3.5, p.z), vec3(6, .2, 6)) - .05,  // platforms (mirrored around y=3.5)
           max(-cube(p - vec3(2, 7, 2), 1.5),  // hole in upper platform
@@ -544,9 +543,10 @@ float oilrig(vec3 p) {
   u.xy *= rot(.3);  // rotate the console towards player
 
   vec3 e = vec3(p.xy, abs(p.z + 2.));  // mirror around z=2
-  yellow = min(yellow, min(min(cylinder(e.xzy - vec3(-6, 1.1, 8.7), 1., 1.75),  // tank
-                        cylinder(e.xzy - vec3(-6.5, 1.1, 0), .2, 8.)),  // pipe from tanks to sea
-      cylinder(vec3(p.z, abs(p.y - 7.6), p.x) - vec3(-3, .2, 0), .1, 5.)));  // pipes from console to tank
+  yellow = min(yellow,
+      min(min(cylinder(e.xzy - vec3(-6, 1.1, 8.7), 1., 1.75),  // tank
+              cylinder(e.xzy - vec3(-6.5, 1.1, 0), .2, 8.)),  // pipe from tanks to sea
+          cylinder(vec3(p.z, abs(p.y - 7.6), p.x) - vec3(-3, .2, 0), .1, 5.)));  // pipes from console to tank
 
   float metal =
       min(min(min(cylinder(vec3(absp.xz, p.y) - vec3(5, 5, 0), .5, 8.3),  // main platform cylinders
@@ -776,11 +776,8 @@ float rayMarch(vec3 p, vec3 dir, float min_epsilon, float dist) {
   return HORIZON_DIST;
 }
 
-float shadowR = 0.;
-
 #define SHADOW_ITERATIONS 50
-float getShadow(vec3 p, float camDistance, vec3 n) {
-  float res = 1.;
+float getShadow(vec3 p, float camDistance, vec3 n, float res) {
   float dist = clamp(camDistance * 0.005, 0.01, .1);  // start further out from the surface if the camera is far away
 
   p = p + n * dist;  // Jump out of the surface by the normal * that dist
@@ -801,16 +798,12 @@ float getShadow(vec3 p, float camDistance, vec3 n) {
       return 0.;  // Hit or inside something.
     }
 
-    nearest += epsilon;
-
-    res = min(res, smoothstep(0., .04, nearest / dist));
+    res = min(res, 85. * nearest / dist);
     if (res < 0.078) {
       return 0.;  // Dark enough already.
     }
 
-    dist += nearest;
-
-    shadowR += 1. / float(SHADOW_ITERATIONS);
+    dist += nearest + epsilon;
   }
   return res;
 }
@@ -861,7 +854,6 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   vec3 color;
   vec3 normal = vec3(0, 1, 0);
   float mdist = dist;
-  float shadow = 1.;
 
   if (material == MATERIAL_SCREEN) {
     return iAnimAntennaRotation > 0. ? texture(iScreens, screenCoords).xyz : vec3(0);
@@ -931,15 +923,25 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
 
       normal = normalize(mix(hitNormal, normal, waterOpacity));
     }
-
-    shadow = getShadow(p + dir * mdist, mdist, normal);
   }
 
   float specular = isWater || (mat == MATERIAL_BUILDINGS && submat > SUBMATERIAL_CONCRETE)
       ? pow(clamp01(dot(iSunDirection, reflect(dir, normal))), 50.)
       : 0.;
 
-  float lightIntensity = clamp01(dot(iSunDirection, normal));
+  float lambert1 = clamp01(dot(iSunDirection, normal));
+  float lambert2 = clamp01(dot(iSunDirection * vec3(-1, 1, -1), normal));
+
+  float lightIntensity = lambert1 + lambert2 * .15;
+  if (mat == MATERIAL_TERRAIN) {
+    float adjustedLight = pow(lightIntensity * mix(.9, 1.02, lambert1 * lambert1), 1. + lambert1 * .6);
+    lightIntensity = mix(adjustedLight, lightIntensity, waterOpacity);
+  }
+
+  float shadow = 1.;
+  if (material != MATERIAL_SKY) {
+    shadow = getShadow(p + dir * mdist, mdist, normal, 1.);
+  }
 
   // Flashlight
   if (iFlashlightOn && dist < 20.) {
@@ -949,7 +951,7 @@ vec3 intersectWithWorld(vec3 p, vec3 dir) {
   }
 
   color = mix(color, waterColor, waterOpacity);
-  color = (color * (COLOR_SUN * lightIntensity) + specular) * mix(0.5, 1., shadow);
+  color = (color * (COLOR_SUN * lightIntensity) + specular) * mix(0.5 + (1. - lightIntensity) * .2, 1., shadow);
 
   return applyFog(color, mdist, dir);
 }
@@ -994,10 +996,6 @@ void main_m() {
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
 
   oColor = vec4(intersectWithWorld(iCameraPos, ray), 1);
-
-  // oColor.x = shadowR;
-  // oColor.y = shadowR;
-  // oColor.z = shadowR;
 }
 
 /**********************************************************************/
