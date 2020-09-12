@@ -1,0 +1,1647 @@
+<html><head>
+    <title>&#x1F3DD;</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>*{
+  user-select:none;
+}
+html,
+body{
+  margin:0;
+  padding:0;
+}
+body,
+#M{
+  align-items:center;
+  display:flex;
+  justify-content:center;
+  height:100%;
+  text-shadow:0px 0px 8px #000, -1px -1px 3px #000, 1px 1px 3px #000;
+  background:#000;
+  color:#fca;
+  text-align:center;
+  font-family:Papyrus, Gabriola, 'Times New Roman', Times, serif;
+}
+#M{
+  position:relative;
+  letter-spacing:0.01em;
+}
+input{
+  width:1.2rem;
+  height:1.2rem;
+  vertical-align:middle;
+}
+#V{
+  width:15em;
+}
+#N{
+  position:absolute;
+  top:0;
+}
+#N{
+  display:none;
+  width:100%;
+  height:100%;
+  backdrop-filter:blur(15px) contrast(200%) brightness(35%);
+}
+b{
+  cursor:pointer;
+}
+b:hover{
+  text-decoration:underline;
+}
+.X{
+  opacity:0.5;
+  cursor:no-drop;
+}
+.X:hover{
+  text-decoration:none;
+}
+#T{
+  padding:2px;
+  bottom:0;
+  position:absolute;
+}
+h1,
+h3{
+  margin:0.2em;
+}
+small{
+  display:block;
+  margin:0.55em;
+}
+label{
+  margin:0.4em;
+}
+@-moz-document url-prefix(){
+.N #C{
+    filter:blur(15px) contrast(190%) brightness(50%);
+}
+}
+.N #T{
+  display:none;
+}
+.N #N{
+  display:block;
+}
+a,
+a:visited,
+a:active{
+  opacity:0.7;
+  font-size:0.6em;
+  color:#fca;
+}
+a:hover{
+  opacity:1;
+}
+</style></head>
+
+  <body class="L">
+    <div id="M">
+      <canvas id="C"></canvas>
+      <div id="T">
+        <h1>Loading...</h1>
+      </div>
+      <div id="N">
+        <h1>ISLAND NOT FOUND</h1>
+        <h3><b id="R">New Game</b></h3>
+        <h3><b id="S" class="X">Save Game</b></h3>
+        <h3><b id="L">Load Game</b></h3>
+        <small>
+          <label><input type="checkbox" id="Y"> Invert Y </label>
+          <label> <input type="checkbox" id="Q" checked> High quality </label>
+          <label> <input type="checkbox" id="H" checked> Head Bob </label><br>
+          <label>Music Volume <input type="range" id="V" value="50"></label>
+          <br>
+          <br>
+          Shift: run<br>
+          W,A,S,D/Z,Q,S,D/Arrows: move<br>
+          Mouse: look around<br>
+          E,Space: interact<br>
+          F: flashlight<br>
+          Esc,M: menu
+        </small>
+        <a href="https://github.com/SalvatorePreviti/js13k-2020" target="_blank">
+          Copyright (c) 2020 Ben Clark, Salvatore Previti.
+        </a>
+      </div>
+    </div>
+    
+  
+
+<script>function __js_load_modules__(){(function() {
+  ;
+  const {
+    abs,
+    acos,
+    acosh,
+    asin,
+    asinh,
+    atan,
+    atanh,
+    atan2,
+    ceil,
+    cbrt,
+    expm1,
+    clz32,
+    cos,
+    cosh,
+    exp,
+    floor,
+    fround,
+    hypot,
+    imul,
+    log,
+    log1p,
+    log2,
+    log10,
+    max,
+    min,
+    random,
+    round,
+    sign,
+    sin,
+    sinh,
+    sqrt,
+    tan,
+    tanh,
+    trunc,
+    E,
+    LN10,
+    LN2,
+    LOG10E,
+    LOG2E,
+    PI,
+    SQRT1_2,
+    SQRT2
+  } = Math;
+  const TWO_PI = PI * 2;
+  const DEG_TO_RAD = PI / 180;
+  const clamp = (value, minimum, maximum) => min(max(value, minimum), maximum);
+  const wrapAngleInRadians = (angle) => angle - TWO_PI * floor((angle + PI) / TWO_PI);
+  const scalarAdd = (a, b) => a + b;
+  const scalarSubtract = (a, b) => a - b;
+  const scalarMultiply = (a, b) => a * b;
+  const scalarDivide = (a, b) => a / b;
+  const unpackFloatBytes4 = (r, g, b, a) => {
+    return r / 255 + g / 65025 + b / 16581375 + a / 40948250625;
+  };
+  const {
+    assign: objectAssign,
+    getOwnPropertyDescriptor: objectGetOwnPropertyDescriptor,
+    getOwnPropertyDescriptors: objectGetOwnPropertyDescriptors,
+    getOwnPropertyNames: objectGetOwnPropertyNames,
+    getOwnPropertySymbols: objectGetOwnPropertySymbols,
+    is: objectIs,
+    preventExtensions: objectPreventExtensions,
+    seal: objectSeal,
+    create: objectCreate,
+    defineProperties: objectDefineProperties,
+    defineProperty: objectDefineProperty,
+    freeze: objectFreeze,
+    getPrototypeOf: objectGetPrototypeOf,
+    setPrototypeOf: objectSetPrototypeOf,
+    isExtensible: objectIsExtensible,
+    isFrozen: objectIsFrozen,
+    isSealed: objectIsSealed,
+    keys: objectKeys,
+    entries: objectEntries,
+    fromEntries: objectFromEntries,
+    values: objectValues
+  } = Object;
+  const debug_trycatch_wrap = (fn, _info) => fn;
+  const KEY_FORWARD = 1;
+  const KEY_BACKWARD = 2;
+  const KEY_STRAFE_LEFT = 3;
+  const KEY_STRAFE_RIGHT = 4;
+  const KEY_RUN = 5;
+  const KEY_ACTION = 6;
+  const KEY_FLASHLIGHT_TOGGLE = 7;
+  const KEY_MAIN_MENU = 8;
+  const PressedKeys = [];
+  const KeyFunctions = {};
+  const _keyMap = {
+    w: KEY_FORWARD,
+    W: KEY_FORWARD,
+    z: KEY_FORWARD,
+    Z: KEY_FORWARD,
+    ArrowUp: KEY_FORWARD,
+    s: KEY_BACKWARD,
+    S: KEY_BACKWARD,
+    ArrowDown: KEY_BACKWARD,
+    a: KEY_STRAFE_LEFT,
+    A: KEY_STRAFE_LEFT,
+    q: KEY_STRAFE_LEFT,
+    Q: KEY_STRAFE_LEFT,
+    ArrowLeft: KEY_STRAFE_LEFT,
+    d: KEY_STRAFE_RIGHT,
+    D: KEY_STRAFE_RIGHT,
+    ArrowRight: KEY_STRAFE_RIGHT,
+    Shift: KEY_RUN,
+    e: KEY_ACTION,
+    E: KEY_ACTION,
+    " ": KEY_ACTION,
+    f: KEY_FLASHLIGHT_TOGGLE,
+    F: KEY_FLASHLIGHT_TOGGLE,
+    Escape: KEY_MAIN_MENU,
+    M: KEY_MAIN_MENU,
+    m: KEY_MAIN_MENU
+  };
+  const _setKeyPressed = (e, value) => {
+    if (!e.keyCode || e.metaKey || !document.activeElement || mainMenuVisible) {
+      PressedKeys.length = 0;
+    } else {
+      const keyId = _keyMap[e.key] | 0;
+      if (value && KeyFunctions[keyId]) {
+        KeyFunctions[keyId](e.repeat);
+      }
+      PressedKeys[keyId] = value;
+    }
+  };
+  onkeydown = (ev) => _setKeyPressed(ev, true);
+  onkeyup = (ev) => _setKeyPressed(ev, false);
+  const vec3New = (x, y, z) => ({x, y, z});
+  const vec3NewValue = (value = 0) => ({x: value, y: value, z: value});
+  const vec3Temp0 = vec3NewValue();
+  const vec3Temp1 = vec3NewValue();
+  const VEC3_UNIT_Y = vec3New(0, 1, 0);
+  const vec3Set = (out, x, y, z) => {
+    out.x = x;
+    out.y = y;
+    out.z = z;
+    return out;
+  };
+  const vec3SetEachVecVec = (out, {x, y, z}, b, fn) => vec3Set(out, fn(x, b.x), fn(y, b.y), fn(z, b.z));
+  const vec3SetEachVecScalar = (out, {x, y, z}, b, fn) => vec3Set(out, fn(x, b), fn(y, b), fn(z, b));
+  const vec3Dot = ({x, y, z}, b) => x * b.x + y * b.y + z * b.z;
+  const vec3LengthSquared = ({x, y, z}) => x ** 2 + y ** 2 + z ** 2;
+  const vec3Length = (a) => sqrt(vec3LengthSquared(a));
+  const vec3DistanceSquared = ({x, y, z}, b) => (b.x - x) ** 2 + (b.y - y) ** 2 + (b.z - z) ** 2;
+  const vec3Distance = (a, b) => sqrt(vec3DistanceSquared(a, b));
+  const vec3Add = (out, a, b = out) => vec3SetEachVecVec(out, a, b, scalarAdd);
+  const vec3Subtract = (out, a, b) => vec3SetEachVecVec(out, a, b, scalarSubtract);
+  const vec3ScalarMultiply = (out, b, a = out) => vec3SetEachVecScalar(out, a, b, scalarMultiply);
+  const vec3DivideScalar = (out, a, b) => vec3SetEachVecScalar(out, a, b, scalarDivide);
+  const vec3Normalize = (out, a = out) => vec3DivideScalar(out, a, vec3Length(a));
+  const vec3Direction = (out, a, b) => vec3Normalize(vec3Subtract(out, b, a));
+  const vec3Cross = (out, {x, y, z}, {x: bx, y: by, z: bz}) => vec3Set(out, y * bz - z * by, z * bx - x * bz, x * by - y * bx);
+  const vec2New = (x, y) => ({x, y});
+  const vec2Set = (out, x, y) => {
+    out.x = x;
+    out.y = y;
+    return out;
+  };
+  const typedArraySet = (array, ...values) => array.set(values);
+  const MAX_GAME_TIME_DELTA_PER_FRAME = 0.033;
+  let gameTime = 0;
+  let gameTimeDelta = MAX_GAME_TIME_DELTA_PER_FRAME;
+  let globalTime = 0;
+  let renderDuringPausedGameTime = 0;
+  const updateTime = (browserTimeInMilliseconds, paused) => {
+    const newGlobalTime = browserTimeInMilliseconds / 1e3;
+    const globalTimeDiff = newGlobalTime - globalTime;
+    globalTime = newGlobalTime;
+    if (paused) {
+      gameTimeDelta = 0;
+      if (newGlobalTime - renderDuringPausedGameTime >= 0.2) {
+        renderDuringPausedGameTime = newGlobalTime;
+        return true;
+      }
+      return false;
+    }
+    gameTimeDelta = min(globalTimeDiff, MAX_GAME_TIME_DELTA_PER_FRAME);
+    gameTime += gameTimeDelta;
+    return gameTimeDelta > 0;
+  };
+  const EMPTY = {_text: "", _timeout: -1};
+  let currentText = EMPTY;
+  const textQueue = [];
+  const clearTexts = () => {
+    textQueue.length = 0;
+    currentText = EMPTY;
+    gameTextElement.innerHTML = "";
+  };
+  const setText = (text, timeout = -1) => {
+    const textObject = text || timeout > 0 ? {_text: text, _timeout: timeout} : EMPTY;
+    if (textQueue[0]) {
+      if (timeout < 0) {
+        textQueue[0] = textObject;
+      } else {
+        textQueue.splice(1, 0, textObject);
+      }
+    } else {
+      textQueue.unshift(textObject);
+      if (timeout > 0) {
+        textQueue.unshift(EMPTY);
+      }
+    }
+  };
+  const updateText = () => {
+    if (currentText && currentText._timeout > 0) {
+      currentText._timeout -= gameTimeDelta;
+    }
+    if (currentText._timeout < 0 && textQueue[0]) {
+      currentText = textQueue.pop();
+      gameTextElement.innerHTML = currentText._text;
+    }
+  };
+  const MINIGAME_INACTIVE = 0;
+  const MINIGAME_LOADING = 2;
+  const MINIGAME_ACTIVE = 3;
+  const MINIGAME_COMPLETE = 4;
+  const MINIGAME_COMPLETE_2 = 5;
+  const MINIGAME = {
+    _state: MINIGAME_INACTIVE,
+    _phase: 0,
+    _frequency: 0
+  };
+  const INVENTORY = {
+    _key: false,
+    _antennaKey: false,
+    _flashlight: false,
+    _floppy: false
+  };
+  const GAME_OBJECTS = {
+    _key: {
+      _location: vec3New(-45.5, 2, 7.4),
+      _visible: true,
+      _lookAtDistance: 2,
+      _onInteract() {
+        this._visible = false;
+        INVENTORY._key = true;
+        setText("You picked up a key", 3);
+      },
+      _onLookAt: () => "A key, how convenient! [press E or Space to collect]"
+    },
+    _flashlight: {
+      _location: vec3New(-42, 3, 11.2),
+      _visible: true,
+      _active: false,
+      _lookAtDistance: 1.5,
+      _onInteract() {
+        this._visible = false;
+        INVENTORY._flashlight = true;
+        setText("You picked up the flashlight. [Press F to activate/deactivate]", 3);
+      },
+      _onLookAt: () => "Pick up the flashlight [press E or Space]"
+    },
+    _antennaInitialLookat: {
+      _location: vec3New(-40.5, 4.5, 11),
+      _visible: true,
+      _lookAtDistance: 2.8,
+      _onInteract() {
+      },
+      _onLookAt: () => "That looks like a big antenna, maybe I can call for help if I can make it there…"
+    },
+    _antennaDoor: {
+      _location: vec3New(8.5, 14, 2),
+      _visible: true,
+      _lookAtDistance: 2.5,
+      _checked: false,
+      _onInteract() {
+        if (INVENTORY._antennaKey) {
+          this._visible = false;
+          runAnimation(ANIMATIONS._antennaDoor);
+        }
+        this._checked = true;
+      },
+      _onLookAt() {
+        return this._checked ? "A locked door… The symbol on it looks familiar" : "A door";
+      }
+    },
+    _antennaKey: {
+      _location: vec3New(0, 1e3, 0),
+      _visible: true,
+      _lookAtDistance: 2.5,
+      _onInteract() {
+        INVENTORY._antennaKey = true;
+        this._visible = false;
+        GAME_OBJECTS._monumentButton._visible = true;
+        runAnimation(ANIMATIONS._monumentDescend, -1);
+      },
+      _onLookAt: () => "A key"
+    },
+    _antennaOilrigLever: {
+      _location: vec3New(5.7, 14.2, -1.9),
+      _visible: true,
+      _lookAtDistance: 1.5,
+      _onInteract() {
+        if (cameraDir.z <= 0) {
+          this._visible = false;
+          runAnimation(ANIMATIONS._oilrigRamp);
+          GAME_OBJECTS._oilrigBridge._visible = false;
+        }
+      },
+      _onLookAt: () => cameraDir.z <= 0 ? "A lever [press E or Space]" : ""
+    },
+    _antennaConsole: {
+      _location: vec3New(4.8, 14.4, 3.7),
+      _visible: true,
+      _lookAtDistance: 1.5,
+      _onInteract() {
+        if (MINIGAME._state === MINIGAME_COMPLETE) {
+          MINIGAME._state = MINIGAME_COMPLETE_2;
+        }
+        if (ANIMATIONS._antennaRotation._running && INVENTORY._floppy && MINIGAME._state === MINIGAME_INACTIVE) {
+          MINIGAME._state = MINIGAME_LOADING;
+          runAnimation(ANIMATIONS._afterFloppyInsert);
+          vec3Set(cameraPos, 5.844, 14.742, 4);
+          vec2Set(cameraEuler, -90 * DEG_TO_RAD, 17 * DEG_TO_RAD);
+        }
+      },
+      _onLookAt: () => MINIGAME._state === MINIGAME_COMPLETE ? "A submarine? That's my way out! [Press E or Space to continue]" : MINIGAME._state !== MINIGAME_INACTIVE ? "" : ANIMATIONS._antennaRotation._running ? INVENTORY._floppy ? "Insert the floppy disk" : "Damn, I need to find this floppy disk" : "There is no electricity, there must be a generator somewhere on this damn island"
+    },
+    _monumentButton: {
+      _location: vec3New(47.5, 4, 30.5),
+      _visible: true,
+      _lookAtDistance: 1.5,
+      _onInteract() {
+        if (INVENTORY._antennaKey) {
+          setText("I already got the key", 2);
+        }
+        runAnimation(ANIMATIONS._monumentDescend);
+        this._visible = false;
+      },
+      _onLookAt() {
+        return "A button [press E or Space]";
+      }
+    },
+    _oilrigBridge: {
+      _location: vec3New(11.8, 2, -34.3),
+      _visible: true,
+      _lookAtDistance: 5,
+      _onInteract() {
+      },
+      _onLookAt: () => "This bridge looks broken"
+    },
+    _oilRigLever2: {
+      _location: vec3New(26.6, 5.5, -55.6),
+      _lookAtDistance: 2.5,
+      _visible: true,
+      _onInteract() {
+        runAnimation(ANIMATIONS._oilrigRamp2);
+        this._visible = false;
+      },
+      _onLookAt() {
+        return "A Lever";
+      }
+    },
+    _oilrigWheel: {
+      _location: vec3New(26, 13.5, -52.9),
+      _visible: true,
+      _lookAtDistance: 2,
+      _onInteract() {
+        runAnimation(ANIMATIONS._oilrigWheel);
+        this._visible = false;
+      },
+      _onLookAt: () => "A big wheel, I suppose it will feed fuel to the generator…"
+    },
+    _prisonDoor: {
+      _location: vec3New(-43, 3.4, 15),
+      _lookAtDistance: 2.2,
+      _visible: true,
+      _checked: false,
+      _onInteract() {
+        if (INVENTORY._key) {
+          this._visible = false;
+          runAnimation(ANIMATIONS._prisonDoor);
+          GAME_OBJECTS._antennaInitialLookat._visible = false;
+        }
+        this._checked = true;
+      },
+      _onLookAt() {
+        return INVENTORY._key ? "Open the door with the key [press E or Space]" : this._checked ? "A locked door, I need a key" : "A door [press E or Space to open]";
+      }
+    },
+    _floppyDisk: {
+      _location: vec3New(12.2, 22.3, 38.7),
+      _lookAtDistance: 2,
+      _visible: true,
+      _onInteract() {
+        this._visible = false;
+        INVENTORY._floppy = true;
+      },
+      _onLookAt: () => "A floppy disk"
+    },
+    _bottomLiftButton: {
+      _location: vec3New(9.3, 2, 36.1),
+      _lookAtDistance: 2,
+      _visible: true,
+      _onInteract() {
+        if (!ANIMATIONS._antennaRotation._running) {
+          return;
+        }
+        if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._initial) {
+          runAnimation(ANIMATIONS._elevatorHeight);
+        }
+        if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._max) {
+          runAnimation(ANIMATIONS._elevatorHeight, -1);
+        }
+      },
+      _onLookAt() {
+        if (!ANIMATIONS._antennaRotation._running) {
+          return "Elevator is out of order";
+        }
+        if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._initial) {
+          return "Activate";
+        }
+        if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._max) {
+          return "Call elevator";
+        }
+        return "";
+      }
+    },
+    _topLiftButton: {
+      _location: vec3New(9.3, 22.5, 36.1),
+      _lookAtDistance: 2,
+      _visible: true,
+      _onInteract: () => GAME_OBJECTS._bottomLiftButton._onInteract(),
+      _onLookAt() {
+        if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._max) {
+          return "Activate";
+        }
+        if (ANIMATIONS._elevatorHeight._value === ANIMATIONS._elevatorHeight._initial) {
+          return "Call elevator";
+        }
+        return "";
+      }
+    },
+    _submarine: {
+      _location: vec3New(-46.5, 2, -28.5),
+      _lookAtDistance: 5,
+      _visible: false,
+      _onLookAt: () => "A submarine! My way out. [press E or Space to Escape!]",
+      _gameEnded: false,
+      _onInteract() {
+        this._gameEnded = true;
+        runAnimation(ANIMATIONS._submarine, -1);
+        localStorage["OS13kTrophy,🏝,Island Not Found"] = "Found a way out!";
+        vec3Set(cameraPos, -42, 12, -47);
+        vec2Set(cameraEuler, -12.7 * DEG_TO_RAD, 33.7 * DEG_TO_RAD);
+        setText("", 3);
+        setText("<h1>The End</h1><h2>you found your way out</h2><h3>Game by Salvatore Previti & Ben Clark</h3>Thank you for playing!", 1e4);
+      }
+    }
+  };
+  const GAME_OBJECTS_LIST = objectValues(GAME_OBJECTS);
+  const getVisibleObject = () => {
+    for (const gameObject of GAME_OBJECTS_LIST) {
+      if (gameObject._visible) {
+        const objectLocation = gameObject._location;
+        if (vec3Distance(objectLocation, cameraPos) <= gameObject._lookAtDistance) {
+          if (vec3Dot(cameraDir, vec3Direction(vec3Temp0, cameraPos, objectLocation)) > 0.9) {
+            return gameObject;
+          }
+        }
+      }
+    }
+    return void 0;
+  };
+  const updateGameObjects = () => {
+    const visibleObject = getVisibleObject();
+    setText(visibleObject && visibleObject._onLookAt() || "");
+    if (visibleObject && PressedKeys[KEY_ACTION]) {
+      visibleObject._onInteract();
+    }
+  };
+  KeyFunctions[KEY_FLASHLIGHT_TOGGLE] = (repeat) => !repeat && (GAME_OBJECTS._flashlight._active = INVENTORY._flashlight && !GAME_OBJECTS._flashlight._active);
+  const ANIMATIONS = {
+    _prisonDoor: {
+      _value: 0,
+      _speed: 1.1,
+      _initial: 0,
+      _max: 1,
+      _running: 0
+    },
+    _antennaDoor: {
+      _value: 0,
+      _speed: 0.2,
+      _initial: 0,
+      _max: 1,
+      _running: 0
+    },
+    _monumentDescend: {
+      _value: 0,
+      _speed: 0.3,
+      _initial: 0,
+      _max: 1,
+      _running: 0,
+      _onComplete() {
+        GAME_OBJECTS._antennaKey._location = vec3New(46.4, 4.6, 29.4);
+      },
+      _rumble: () => true
+    },
+    _oilrigRamp: {
+      _value: 0,
+      _speed: 1.2,
+      _initial: 0,
+      _max: 19,
+      _running: 0,
+      _rumble: (v) => v < 0.5 || v > 18.8
+    },
+    _oilrigWheel: {
+      _value: 0,
+      _speed: 3,
+      _initial: 0,
+      _max: 10,
+      _running: 0,
+      _onComplete() {
+        runAnimation(ANIMATIONS._antennaRotation);
+      }
+    },
+    _antennaRotation: {
+      _value: 0,
+      _speed: 0.5,
+      _initial: 0,
+      _max: 1e9,
+      _running: 0
+    },
+    _elevatorHeight: {
+      _value: 1,
+      _initial: -19.2,
+      _max: 1,
+      _speed: 4,
+      _running: 0,
+      _rumble: (v) => v < -19 || v > 0.8
+    },
+    _afterFloppyInsert: {
+      _value: 0,
+      _initial: 0,
+      _max: 1,
+      _speed: 1,
+      _running: 0,
+      _onComplete() {
+        MINIGAME._state = MINIGAME_ACTIVE;
+      }
+    },
+    _submarine: {
+      _value: -10,
+      _initial: -10,
+      _max: 4,
+      _speed: 1,
+      _running: 0
+    },
+    _oilrigRamp2: {
+      _value: 0,
+      _initial: 0,
+      _max: 1,
+      _speed: 1,
+      _running: 0
+    }
+  };
+  const ANIMATIONS_LIST = objectValues(ANIMATIONS);
+  let RUMBLING = false;
+  function updateAnimations() {
+    RUMBLING = false;
+    for (const anim of ANIMATIONS_LIST) {
+      if (anim._running) {
+        if (anim._rumble) {
+          RUMBLING = anim._rumble(anim._value);
+        }
+        anim._value += anim._speed * gameTimeDelta * anim._running;
+        if (anim._value > anim._max || anim._value < anim._initial) {
+          anim._value = anim._running > 0 ? anim._max : anim._initial;
+          if (anim._onComplete) {
+            anim._onComplete();
+          }
+          anim._running = 0;
+        }
+      }
+    }
+  }
+  function runAnimation(anim, direction = 1) {
+    anim._value = direction > 0 ? anim._initial : anim._max;
+    anim._running = direction;
+  }
+  const CAMERA_SPEED_DEFAULT = 2.1;
+  const CAMERA_SPEED_RUN = 5.5;
+  const MOUSE_ROTATION_SENSITIVITY_X = 1e-3;
+  const MOUSE_ROTATION_SENSITIVITY_Y = MOUSE_ROTATION_SENSITIVITY_X;
+  const cameraPos = vec3New(103, 44, 9);
+  let headBob = 0;
+  const cameraEuler = vec2New(-102 * DEG_TO_RAD, 23 * DEG_TO_RAD);
+  const cameraDir = vec3NewValue();
+  const cameraMat3 = new Float32Array(9);
+  const movementForward = (direction) => vec3Add(vec3Temp0, vec3ScalarMultiply(vec3Normalize(vec3Set(vec3Temp1, cameraDir.x, 0, cameraDir.z)), direction));
+  const movementStrafe = (direction) => vec3Add(vec3Temp0, vec3ScalarMultiply(vec3Normalize(vec3Cross(vec3Temp1, cameraDir, VEC3_UNIT_Y)), direction));
+  const updateCameraDirFromEulerAngles = () => {
+    let {x: yaw, y: pitch} = cameraEuler;
+    if (RUMBLING) {
+      yaw += sin(gameTime * 100) * 5e-3;
+      pitch += sin(gameTime * 200) * 5e-3;
+    }
+    const sinYaw = sin(yaw);
+    const cosYaw = cos(yaw);
+    const sinPitch = sin(pitch);
+    const cosPitch = cos(pitch);
+    vec3Normalize(vec3Set(cameraDir, sinYaw * cosPitch, -sinPitch, cosYaw * cosPitch));
+    typedArraySet(cameraMat3, cosYaw, 0, -sinYaw, sinYaw * sinPitch, cosPitch, cosYaw * sinPitch, sinYaw * cosPitch, -sinPitch, cosYaw * cosPitch);
+  };
+  let timeMoving = 0;
+  const updateCamera = () => {
+    const speed = (PressedKeys[KEY_RUN] ? CAMERA_SPEED_RUN : CAMERA_SPEED_DEFAULT) * gameTimeDelta;
+    if (MINIGAME._state !== MINIGAME_LOADING && MINIGAME._state !== MINIGAME_ACTIVE && MINIGAME._state !== MINIGAME_COMPLETE && !GAME_OBJECTS._submarine._gameEnded) {
+      vec3Set(vec3Temp0, 0, 0, 0);
+      if (PressedKeys[KEY_FORWARD]) {
+        movementForward(1);
+      }
+      if (PressedKeys[KEY_BACKWARD]) {
+        movementForward(-1);
+      }
+      if (PressedKeys[KEY_STRAFE_LEFT]) {
+        movementStrafe(-1);
+      }
+      if (PressedKeys[KEY_STRAFE_RIGHT]) {
+        movementStrafe(1);
+      }
+      if (vec3Temp0.x || vec3Temp0.z) {
+        timeMoving += gameTimeDelta;
+        headBob = headBobEnabled ? sin(timeMoving * 10) * 0.03 : 0;
+        vec3Add(cameraPos, vec3ScalarMultiply(vec3Normalize(vec3Temp0), speed));
+      }
+    }
+    updateCameraDirFromEulerAngles();
+  };
+  updateCameraDirFromEulerAngles();
+  onmousemove = (e) => {
+    if (document.pointerLockElement === canvasElement && !GAME_OBJECTS._submarine._gameEnded) {
+      cameraEuler.x = wrapAngleInRadians(cameraEuler.x - e.movementX * MOUSE_ROTATION_SENSITIVITY_X);
+      cameraEuler.y = clamp(cameraEuler.y + e.movementY * mouseYInversion * MOUSE_ROTATION_SENSITIVITY_Y, -87 * DEG_TO_RAD, 87 * DEG_TO_RAD);
+    }
+  };
+  const song = {
+    _songData: [
+      {
+        i: [
+          0,
+          0,
+          140,
+          0,
+          0,
+          0,
+          140,
+          0,
+          0,
+          255,
+          158,
+          158,
+          158,
+          0,
+          0,
+          0,
+          51,
+          2,
+          1,
+          2,
+          58,
+          239,
+          0,
+          32,
+          88,
+          1,
+          157,
+          2
+        ],
+        p: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, , , , 1, 1, , , 1, 1, 1, 1],
+        c: [{n: [146], f: []}]
+      },
+      {
+        i: [
+          0,
+          91,
+          128,
+          0,
+          0,
+          95,
+          128,
+          12,
+          0,
+          0,
+          12,
+          0,
+          72,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          255,
+          0,
+          0,
+          32,
+          83,
+          3,
+          130,
+          4
+        ],
+        p: [, , , , 1, 2, 1, 2, 3, 4, 3, 4, 3, 4, 3, 2, 4, 3, 4, 3, 4, 3, 4, 3, 2],
+        c: [
+          {n: [127, , , , , , , , , , , , , , , , 135], f: []},
+          {n: [127, , , , , , , , , , , , , , , , 128], f: []},
+          {n: [127, , , , , , , , 135, , , , , , , , 127, , , , , , , , 140], f: []},
+          {n: [127, , , , , , , , 135, , , , , , , , 127, , , , , , , , 128], f: []}
+        ]
+      },
+      {
+        i: [
+          0,
+          84,
+          108,
+          1,
+          0,
+          88,
+          116,
+          0,
+          1,
+          0,
+          4,
+          6,
+          35,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          14,
+          0,
+          0,
+          32,
+          0,
+          0,
+          0,
+          0
+        ],
+        p: [, , , , , , , 1, 2, 2, 2, 2, 2, , , 1, 2, 2, 2, 1, 2, 2, 2],
+        c: [
+          {n: [, , , , , , , , , , , , , , , , 144, , , , 144, , , , 144, , 144, , 144, 144, 144, 144], f: []},
+          {n: [144, , , , 144, , , , 144, , , , 144, , , , 144, , , , 144, , , , 144, , , , 144], f: []}
+        ]
+      },
+      {
+        i: [
+          1,
+          0,
+          128,
+          0,
+          1,
+          0,
+          128,
+          0,
+          0,
+          255,
+          158,
+          100,
+          158,
+          0,
+          0,
+          3,
+          67,
+          4,
+          1,
+          3,
+          57,
+          254,
+          85,
+          171,
+          88,
+          1,
+          157,
+          2
+        ],
+        p: [, , , , , , , , , 1, , 1, , , , , 1],
+        c: [{n: [134], f: []}]
+      }
+    ],
+    _rowLen: 6615,
+    _patternLen: 32,
+    _endPattern: 24,
+    _numChannels: 4
+  };
+  const osc_sin = (value) => sin(value * 6.283184);
+  const osc_square = (value) => value % 1 < 0.5 ? 1 : -1;
+  const osc_tri = (value) => {
+    const v2 = value % 1 * 4;
+    return v2 < 2 ? v2 - 1 : 3 - v2;
+  };
+  const getnotefreq = (n) => 0.003959503758 * 2 ** ((n - 128) / 12);
+  const mOscillators = [osc_sin, osc_square, osc_tri, osc_tri];
+  let mLastRow;
+  let mCurrentCol;
+  let mNumWords;
+  let mMixBuf;
+  const musicInit = () => {
+    mLastRow = song._endPattern;
+    mCurrentCol = 0;
+    mNumWords = song._rowLen * song._patternLen * (mLastRow + 1) * 2;
+    mMixBuf = new Int32Array(mNumWords);
+  };
+  const createNote = function(instr, n, rowLen) {
+    const osc1 = mOscillators[instr.i[0]];
+    const o1vol = instr.i[1];
+    const o1xenv = instr.i[3];
+    const osc2 = mOscillators[instr.i[4]];
+    const o2vol = instr.i[5];
+    const o2xenv = instr.i[8];
+    const noiseVol = instr.i[9];
+    const attack = instr.i[10] * instr.i[10] * 4;
+    const sustain = instr.i[11] * instr.i[11] * 4;
+    const release = instr.i[12] * instr.i[12] * 4;
+    const releaseInv = 1 / release;
+    let arp = instr.i[13];
+    const arpInterval = rowLen * 2 ** (2 - instr.i[14]);
+    const noteBuf = new Int32Array(attack + sustain + release);
+    let c1 = 0;
+    let c2 = 0;
+    let j;
+    let j2;
+    let e;
+    let t;
+    let rsample;
+    let o1t;
+    let o2t;
+    for (j = 0, j2 = 0; j < attack + sustain + release; j++, j2++) {
+      if (j2 >= 0) {
+        arp = arp >> 8 | (arp & 255) << 4;
+        j2 -= arpInterval;
+        o1t = getnotefreq(n + (arp & 15) + instr.i[2] - 128);
+        o2t = getnotefreq(n + (arp & 15) + instr.i[6] - 128) * (1 + 8e-4 * instr.i[7]);
+      }
+      e = 1;
+      if (j < attack) {
+        e = j / attack;
+      } else if (j >= attack + sustain) {
+        e -= (j - attack - sustain) * releaseInv;
+      }
+      t = o1t;
+      if (o1xenv) {
+        t *= e * e;
+      }
+      c1 += t;
+      rsample = osc1(c1) * o1vol;
+      t = o2t;
+      if (o2xenv) {
+        t *= e * e;
+      }
+      c2 += t;
+      rsample += osc2(c2) * o2vol;
+      if (noiseVol) {
+        rsample += (2 * random() - 1) * noiseVol;
+      }
+      noteBuf[j] = 80 * rsample * e | 0;
+    }
+    return noteBuf;
+  };
+  const musicGenerate = function() {
+    let i;
+    let j;
+    let p;
+    let row;
+    let col;
+    let n;
+    let cp;
+    let k;
+    let t;
+    let rsample;
+    let rowStartSample;
+    let f;
+    const chnBuf = new Int32Array(mNumWords);
+    const instr = song._songData[mCurrentCol];
+    const rowLen = song._rowLen;
+    const patternLen = song._patternLen;
+    let low = 0;
+    let band = 0;
+    let high;
+    let lsample;
+    let filterActive = false;
+    let noteCache = [];
+    for (p = 0; p <= mLastRow; ++p) {
+      cp = instr.p[p];
+      for (row = 0; row < patternLen; ++row) {
+        const cmdNo = cp ? instr.c[cp - 1].f[row] : 0;
+        if (cmdNo) {
+          instr.i[cmdNo - 1] = instr.c[cp - 1].f[row + patternLen] || 0;
+          if (cmdNo < 16) {
+            noteCache = [];
+          }
+        }
+        const oscLFO = mOscillators[instr.i[15]];
+        const lfoAmt = instr.i[16] / 512;
+        const lfoFreq = 2 ** (instr.i[17] - 9) / rowLen;
+        const fxLFO = instr.i[18];
+        const fxFilter = instr.i[19];
+        const fxFreq = instr.i[20] * 43.23529 * 3.141592 / 44100;
+        const q = 1 - instr.i[21] / 255;
+        const dist = instr.i[22] * 1e-5;
+        const drive = instr.i[23] / 32;
+        const panAmt = instr.i[24] / 512;
+        const panFreq = 6.283184 * 2 ** (instr.i[25] - 9) / rowLen;
+        const dlyAmt = instr.i[26] / 255;
+        const dly = instr.i[27] * rowLen & ~1;
+        rowStartSample = (p * patternLen + row) * rowLen;
+        for (col = 0; col < 4; ++col) {
+          n = cp ? instr.c[cp - 1].n[row + col * patternLen] : 0;
+          if (n) {
+            if (!noteCache[n]) {
+              noteCache[n] = createNote(instr, n, rowLen);
+            }
+            const noteBuf = noteCache[n];
+            for (j = 0, i = rowStartSample * 2; j < noteBuf.length; j++, i += 2) {
+              chnBuf[i] += noteBuf[j];
+            }
+          }
+        }
+        for (j = 0; j < rowLen; j++) {
+          k = (rowStartSample + j) * 2;
+          rsample = chnBuf[k];
+          if (rsample || filterActive) {
+            f = fxFreq;
+            if (fxLFO) {
+              f *= oscLFO(lfoFreq * k) * lfoAmt + 0.5;
+            }
+            f = 1.5 * sin(f);
+            low += f * band;
+            high = q * (rsample - band) - low;
+            band += f * high;
+            rsample = fxFilter === 3 ? band : fxFilter === 1 ? high : low;
+            if (dist) {
+              rsample *= dist;
+              rsample = rsample < 1 ? rsample > -1 ? osc_sin(rsample * 0.25) : -1 : 1;
+              rsample /= dist;
+            }
+            rsample *= drive;
+            filterActive = rsample * rsample > 1e-5;
+            t = sin(panFreq * k) * panAmt + 0.5;
+            lsample = rsample * (1 - t);
+            rsample *= t;
+          } else {
+            lsample = 0;
+          }
+          if (k >= dly) {
+            lsample += chnBuf[k - dly + 1] * dlyAmt;
+            rsample += chnBuf[k - dly] * dlyAmt;
+          }
+          chnBuf[k] = lsample | 0;
+          chnBuf[k + 1] = rsample | 0;
+          mMixBuf[k] += lsample | 0;
+          mMixBuf[k + 1] += rsample | 0;
+        }
+      }
+    }
+    mCurrentCol++;
+    return mCurrentCol / song._numChannels;
+  };
+  const musicCreateWave = function() {
+    const headerLen = 44;
+    const l1 = headerLen + mNumWords * 2 - 8;
+    const l2 = l1 - 36;
+    const wave = new Uint8Array(headerLen + mNumWords * 2);
+    wave.set([
+      82,
+      73,
+      70,
+      70,
+      l1 & 255,
+      l1 >> 8 & 255,
+      l1 >> 16 & 255,
+      l1 >> 24 & 255,
+      87,
+      65,
+      86,
+      69,
+      102,
+      109,
+      116,
+      32,
+      16,
+      0,
+      0,
+      0,
+      1,
+      0,
+      2,
+      0,
+      68,
+      172,
+      0,
+      0,
+      16,
+      177,
+      2,
+      0,
+      4,
+      0,
+      16,
+      0,
+      100,
+      97,
+      116,
+      97,
+      l2 & 255,
+      l2 >> 8 & 255,
+      l2 >> 16 & 255,
+      l2 >> 24 & 255
+    ]);
+    for (let i = 0, idx = headerLen; i < mNumWords; ++i) {
+      let y = mMixBuf[i];
+      y = y < -32767 ? -32767 : y > 32767 ? 32767 : y;
+      wave[idx++] = y & 255;
+      wave[idx++] = y >> 8 & 255;
+    }
+    return wave;
+  };
+  const mAudio = new Audio();
+  const loadMusic = () => {
+    musicInit();
+    while (musicGenerate() < 1) {
+    }
+    const musicWave = musicCreateWave();
+    mAudio.loop = true;
+    mAudio.src = URL.createObjectURL(new Blob([musicWave], {type: "audio/wav"}));
+    mAudio.volume = 0.5;
+  };
+  const playMusic = () => {
+    mAudio.play();
+  };
+  const pauseMusic = () => mAudio.pause();
+  const setVolume = (v) => mAudio.volume = v;
+  const body = document.body;
+  const canvasElement = document.getElementById("C");
+  const gameTextElement = document.getElementById("T");
+  const MAIN_ELEMENT_PADDING = 30;
+  const MAIN_ELEMENT_ASPECT_RATIO = 1.5;
+  const MAIN_ELEMENT_MAX_WIDTH = 1200;
+  let mainMenuVisible;
+  let renderWidth;
+  let renderHeight;
+  let mouseYInversion = 1;
+  let headBobEnabled = true;
+  const mainElement = document.getElementById("M");
+  const newGameButton = document.getElementById("R");
+  const highQualityCheckbox = document.getElementById("Q");
+  const invertYCheckbox = document.getElementById("Y");
+  const musicVolumeSlider = document.getElementById("V");
+  const headBobCheckbox = document.getElementById("H");
+  const saveGameButton = document.getElementById("S");
+  const loadGameButton = document.getElementById("L");
+  const handleResize = () => {
+    let cw = min(MAIN_ELEMENT_MAX_WIDTH, innerWidth - MAIN_ELEMENT_PADDING);
+    let ch = innerHeight - MAIN_ELEMENT_PADDING;
+    if (MAIN_ELEMENT_ASPECT_RATIO >= cw / ch) {
+      ch = cw / MAIN_ELEMENT_ASPECT_RATIO;
+    } else {
+      cw = ch * MAIN_ELEMENT_ASPECT_RATIO;
+    }
+    const whStyles = {width: cw | 0, height: ch | 0, fontSize: `${ch / 23 | 0}px`};
+    objectAssign(mainElement.style, whStyles);
+    objectAssign(canvasElement.style, whStyles);
+    let {clientWidth: w, clientHeight: h} = mainElement;
+    if (!highQualityCheckbox.checked) {
+      w = w / 2 | 0;
+      h = h / 2 | 0;
+    }
+    renderWidth = w;
+    renderHeight = h;
+    canvasElement.width = w;
+    canvasElement.height = h;
+  };
+  const showMainMenu = () => {
+    pauseMusic();
+    mainMenuVisible = true;
+    body.className = "N";
+    document.exitPointerLock();
+  };
+  document.onpointerlockchange = () => {
+    if (!document.pointerLockElement) {
+      {
+        showMainMenu();
+      }
+    }
+  };
+  const canvasRequestPointerLock = (e) => (!e || !e.button) && !mainMenuVisible && canvasElement.requestPointerLock();
+  let gameStarted;
+  const startOrResumeClick = (newGame = true) => {
+    if (!gameStarted) {
+      saveGameButton.className = "";
+      if (newGame) {
+        setText("Where am I? How did I get here?", 2);
+      }
+      newGameButton.innerText = "Resume Game";
+      vec3Set(cameraPos, -44, 4, 11);
+      vec2Set(cameraEuler, 70 * DEG_TO_RAD, 0 * DEG_TO_RAD);
+      gameStarted = true;
+    }
+    playMusic();
+    mainMenuVisible = false;
+    body.className = "";
+    canvasRequestPointerLock();
+  };
+  handleResize();
+  onresize = handleResize;
+  newGameButton.onclick = () => startOrResumeClick();
+  KeyFunctions[KEY_MAIN_MENU] = showMainMenu;
+  canvasElement.onmousedown = canvasRequestPointerLock;
+  highQualityCheckbox.onchange = handleResize;
+  invertYCheckbox.onchange = () => mouseYInversion = invertYCheckbox.checked ? -1 : 1;
+  headBobCheckbox.onchange = () => headBobEnabled = headBobCheckbox.checked;
+  musicVolumeSlider.onchange = () => setVolume(musicVolumeSlider.value / 100);
+  const gl = canvasElement.getContext("webgl2", {
+    alpha: false,
+    desynchronized: true,
+    antialias: false,
+    depth: false,
+    failIfMajorPerformanceCaveat: false,
+    powerPreference: "high-performance",
+    preserveDrawingBuffer: false,
+    stencil: false
+  });
+  const glFrameBuffer = gl.createFramebuffer();
+  const GL_TRIANGLES = 4;
+  const GL_NICEST = 4354;
+  const GL_GENERATE_MIPMAP_HINT = 33170;
+  const GL_UNSIGNED_BYTE = 5121;
+  const GL_RGBA = 6408;
+  const GL_FRAGMENT_SHADER = 35632;
+  const GL_VERTEX_SHADER = 35633;
+  const GL_NEAREST = 9728;
+  const GL_LINEAR = 9729;
+  const GL_LINEAR_MIPMAP_LINEAR = 9987;
+  const GL_TEXTURE_MAG_FILTER = 10240;
+  const GL_TEXTURE_MIN_FILTER = 10241;
+  const GL_TEXTURE_WRAP_S = 10242;
+  const GL_TEXTURE_WRAP_T = 10243;
+  const GL_TEXTURE_2D = 3553;
+  const GL_TEXTURE0 = 33984;
+  const GL_TEXTURE1 = 33985;
+  const GL_TEXTURE2 = 33986;
+  const GL_TEXTURE3 = 33987;
+  const GL_TEXTURE5 = 33989;
+  const GL_REPEAT = 10497;
+  const GL_CLAMP_TO_EDGE = 33071;
+  const GL_FRAMEBUFFER = 36160;
+  const GL_COLOR_ATTACHMENT0 = 36064;
+  const glSetTextureSampling = (wrap = GL_REPEAT, minFilter = GL_LINEAR, magFilter = minFilter) => {
+    gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
+    gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
+    gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+    gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+  };
+  const code = "#version 300 es\nprecision mediump int;uniform vec2 iR;out vec2 FC;void main(){vec2 a=vec2(float((gl_VertexID&1)<<2),float((gl_VertexID&2)<<1));gl_Position=vec4(a-1.,0.,1.);FC=a*iR*.5;}";
+  const code$1 = "#version 300 es\nprecision highp float;in vec2 FC;uniform vec2 iR;uniform vec3 iP;uniform vec4 iD;uniform vec4 iA;uniform vec4 iB;uniform vec4 iC;uniform vec4 iS;uniform vec4 iX;uniform mat3 iM;uniform lowp int iF;out vec4 oC;uniform highp sampler2D tN;uniform highp sampler2D tH;uniform highp sampler2D tP;uniform highp sampler2D tS;float a;float b(float a){return clamp(a,0.,1.);}float c(float a,float b,float c){float d=max(c-abs(a-b),0.)/c;return min(a,b)-d*d*c/4.;}vec4 d(float a){vec4 c=b(a)*vec4(.999998,254.99948,65024.867,160581056);c=fract(c);c-=c.yzww*vec4(.003921569,.003921569,.003921569,0);return c;}float e(vec4 a){return dot(a,vec4(1,.003921569,1.53787e-5,6.2273724e-9));}vec3 f(vec2 a){vec4 b=texelFetch(tN,ivec2(floor(a))&511,0);float c=b.y-b.x,d=b.z-b.x,e=b.w-c-b.z;vec2 f=fract(a),g=f*f,h=g*(3.-2.*f);return vec3(b.x+c*h.x+d*h.y+e*h.x*h.y,30.*g*(f*(f-2.)+1.)*(vec2(c,d)+e*h.yx));}int g=0;float h=150.;void i(int b,float c){if(c<a&&c!=h){g=b;h=c;}}float j(vec3 a,float b){return length(a)-b;}float k(vec3 a,vec3 b){vec3 c=abs(a)-b;return min(max(c.x,max(c.y,c.z)),0.)+length(max(c,0.));}float l(vec3 a,float b){vec3 c=abs(a)-b;return min(max(c.x,max(c.y,c.z)),0.)+length(max(c,0.));}float m(vec3 a,float b,float c){float d=length(a.xy)-b;return max(d,abs(a.z)-c);}float n(vec3 a,vec2 b){return length(vec2(length(a.xz)-b.x,a.y))-b.y;}float o(float a,float b,float c,float d){float e=b*.5,f=floor((a+e)/b),g=mod(a+e,b)-e;return f>d?g+b*(f-d):f<c?g+b*(f-c):g;}vec2 p(vec2 a,float b){float c=3.1415927/b,d=mod(atan(a.y,a.x)+c,c*2.)-c;return vec2(cos(d),sin(d))*length(a);}vec2 q(vec2 a,float b,float c){float d=3.1415927/b,e=mod(atan(a.y,a.x)+d+c,d*2.)-d;return vec2(cos(e),sin(e))*length(a);}float r(float a,float b){return abs(a)-b;}mat2 s(float a){float b=cos(a),c=sin(a);return mat2(b,c,-c,b);}vec3 t(vec3 a){return vec3(a.xy,-a.z);}float u(vec3 a){float b=length(a)-.3;if(b>.3)return b;a.xz*=s(-1.2);a.yz*=s(-.2);return min(m(a,.025,.1),max(j(a-vec3(0,0,.12),.05),a.z-.12));}float v(vec3 a){float b=length(a)-.3;if(b>.3)return b;float c=m(a,.01,.06);c=min(c,m(a.yzx+vec3(0,.1,0),.04,.005));c=min(c,k(a-vec3(0,-.01,.04),vec3(.002,.02,.02)));return c;}float w(vec3 a){float b=k(a-vec3(.03,0,0),vec3(.03,.006,.03));i(1,b);return min(k(a,vec3(.06,.005,.06)),b);}float x(vec3 a,float b,float c){float d=length(a)-b*.6;if(d>4.)return d;a.y+=cos(a.z*c/b);a.x=abs(a.x);float e=k(a-vec3(.2,0,0),vec3(.1,.03,b*.55)),f=m(a-vec3(.5,1,0),.02,b*.55);a.z=o(a.z,.55,-b,b);f=min(f,m(a.xzy-vec3(.5,0,.5),.02,.5));i(1,f);e=min(e,k(a,vec3(.5,.05,.2)));i(-1,e);return min(e,f);}float y(vec3 a){float b=length(a)-2.;if(b>1.)return b;vec3 c=a;c.xy*=s(-.25);float d=k(c+vec3(.2,.25,0),vec3(.25,.5,.5))-.01;c-=vec3(-.13,.25,0);c.z=o(c.z,.04,-10.,10.);c.x=o(c.x,.04,-3.,3.);float e=l(c,.01)-.005;i(1,e);d=min(min(d,e),k(a-vec3(-.45,.2,0),vec3(.2,.8,.5))-.01);return d;}float z(vec3 a){a.zy*=s(.06);a.y+=cos(a.z/20.)*3.;return m(a,.01,27.5);}float A(vec3 a){float b=length(a)-3.;if(b>.5)return b;a.xz-=vec2(1,-.05);a.zx*=s(iA.y*-2.5);a.xz+=vec2(1,-.05);float c=m(a,.99,.05);vec3 d=vec3(p(a.xy,8.),a.z);return max(c,-min(k(d-vec3(.5,0,.1),vec3(.02,.1,.1)),m(d-vec3(0,0,.1),.02,.1)));}float B(vec3 a,float b){float c=length(a)-1.;if(c>1.)return c;float d=k(a,vec3(.2,.5,.05));d=max(d,-k(a,vec3(.03,.2,1)));a.yz*=s(-1.5707964*b+.7853982);a.z+=.2;d=min(d,m(a,.02,.2));a.z+=.2;d=min(d,m(a,.03,.05));return d;}float C(vec3 a){float b=length(a)-18.;if(b>5.)return b;a.y-=9.;vec3 c=a;c.xz*=s(iB.y);c.xy*=s(.5);c.y-=9.;float d=j(c,9.),e=max(r(d,.01),c.y+4.5);e=min(e,m(c.xzy+vec3(0,0,4.5),.1,4.5));e=min(e,j(c,.3));a.y+=6.75;float f=k(a,vec3(2.25,3.6,4.5));f=min(f,min(max(r(m(a.xzy-vec3(2.25,0,0),4.4,3.5),.1),-min(m(a.zyx-vec3(0,1.8,0),1.,100.),m(a-vec3(4.5,2.3,0),.4,100.))),m(a.xzy-vec3(2.25,0,-2.2),4.4,2.9)));float g=y(a-vec3(3,1.5,2)),h=A(a.zyx-vec3(0,1.8,6.5)),l=B(t(a-vec3(3.7,2,-4)),clamp(iA.w,0.,1.));a.y-=2.25;f=max(min(f,m(a.xzy,.45000002,4.7699995)),-d);a-=vec3(7,-2.85,0);a.xy*=s(-.5);f=min(f,k(a,vec3(1,1,.8))-.01);float n=min(e,h);i(2,l);i(3,g);i(5,n);return min(min(g,f),min(n,l));}float D(vec3 a){float b=length(a.xz)-2.;if(b>3.)return b;float c=m(a.xzy,.2,.5),d=a.y+iA.z*4.;if((iF&8)!=0){float b=v(vec3(a.x,d,a.z)+vec3(1.05,-5.05,1.05));if(b<c){i(2,b);c=b;}}float e=k(vec3(p(a.xz,8.),d).xzy-vec3(1.5,0,0),vec3(.1,5,.2));if(e<c){i(4,e);c=e;}float f=m(a.xzy+vec3(0,0,clamp(iA.z,0.,.02)),.05,.53);if(f<c){i(1,f);c=f;}return c;}float E(vec3 a){vec3 b=a.zyx-vec3(11,1.25,-44);float c=length(b)-8.;if(c>5.)return c;b.y-=2.;float d=k(b-vec3(-2.7,-1,-1.3),vec3(.35,.5,.5)),e=max(r(k(b,vec3(4,1.6,2)),.23),-min(m(b-vec3(0,.5,0),.8,100.),k(b-vec3(4,-.37,1),vec3(2,1,.53))));vec3 f=b-vec3(4,-.77,.5);f.xz*=s(-iA.x*3.1415927/2.);float g=k(f-vec3(0,.4,.5),vec3(.05,.99,.52));b.x=o(b.x,.3,-10.,10.);b.z=abs(b.z);float h=m(b.xzy-vec3(0,2,.5),.01,1.),j=min(d,g);i(1,h);i(-1,j);float l=min(h,min(e,j)),n=150.;if((iF&4)!=0)n=u(a-vec3(-42,3,11.2));if((iF&2)!=0)n=min(n,v(a.yzx-vec3(2,7.4,-45.5)));if(n<l){i(2,n);return n;}return l;}float F(vec3 a){float b=length(a)-9.;if(b>1.)return b;a.xz*=s(-.7853982);float d=k(a-vec3(-1.5,1,5),vec3(1,.2,3));a.y-=iB.w;vec3 e=a.xzy-vec3(-2,0,2);float f=c(j(a-clamp(a,vec3(-6,0,0),vec3(6,0,0)),1.7),min(m(e-clamp(e,vec3(-.5,0,0),vec3(.5,0,0)),.4,.5),min(k(a-vec3(7.5,0,0),vec3(.3,2,.05))-.05,k(a-vec3(7.5,0,0),vec3(.3,.05,2))-.05)),.3);i(3,f);return min(d,f);}float G(vec3 a){float b=length(a)-13.;if(b>3.)return b;vec3 c=abs(a),d=vec3(c.x,abs(a.y-4.58),c.z);float e=B(t(a.xzy-vec3(1.9,-1.5,.2))*.5,min(1.,(6.-iX.x)*.2))/.5,f=max(k(vec3(a.x,abs(a.y-3.5)-3.5,a.z),vec3(6,.2,6))-.05,max(-l(a-vec3(2,7,2),1.5),-l(a-vec3(5.7,0,4),.52)));vec3 g=a-vec3(5,7.6,-2);g.xy*=s(.3);vec3 h=vec3(a.xy,abs(a.z+2.));e=min(e,min(min(m(h.xzy-vec3(-6,1.1,8.7),1.,1.75),m(h.xzy-vec3(-6.5,1.1,0),.2,8.)),m(vec3(a.z,abs(a.y-7.6),a.x)-vec3(-3,.2,0),.1,5.)));float j=min(min(min(m(vec3(c.xz,a.y)-vec3(5,5,0),.5,8.3),m(d.zyx-vec3(5.3,3.5,0),.05,5.3)),max(m(d-vec3(5.3,3.5,0),.05,5.3),-l(a-vec3(5,.7,4),.8))),k(g,vec3(.5,.6,1.5))-.05);i(1,j);vec3 o=a-vec3(2,3.59,-.1);o.zy*=s(-.7853982);o.y-=iX.x;e=min(e,k(o,vec3(1,5.1,.02))-.05);i(5,e);float p=min(min(f,e),j);vec3 r=g-vec3(0,.8,0);if(length(r)-1.<2.){float a=min(min(n(r,vec2(.5,.02)),m(r.xzy+vec3(0,0,.5),.02,.5)),m(vec3(q(r.xz,5.,iB.x),r.y).zyx-vec3(0,0,.25),.01,.25));if(a<p){i(2,a);p=a;}}return p;}float H(vec3 a){vec3 b=a.zyx-vec3(4,-1,17);b.zy*=s(-.19);b.z-=19.-iA.w;return min(x(b,21.,0.),m(b.xzy+vec3(0,10.5,6),.15,5.));}float I(vec3 a){vec3 b=a-vec3(8.7,9.3,37);float c=length(b.xz)-5.;if(c>4.)return c;vec3 d=vec3(p(b.xz,6.),b.y).xzy,e=vec3(d.x,o(b.y,1.5,-3.,7.),d.z);float f=max(max(min(m(b.xzy,1.1,12.),max(r(m(b.xzy-vec3(0,0,14),4.,2.),.2),-k(d-vec3(4,14,0),vec3(1,1,2)))),-min(m(b.xzy,1.,13.),k(e-vec3(1,0,0),vec3(.2,.3,.13)))),-k(b+vec3(0,7,1),vec3(.8,1.2,.8)));vec3 g=vec3(b.x,b.y-iB.z,b.z);float h=m(g.xzy,1.,11.);g.y=o(g.y,1.5,-7.,7.);h=max(h,-n(g,vec2(1,.01)));vec3 l=vec3(b.x-.8,o(b.y-12.7,20.5,-1.,0.),b.z+.9);float q=j(l-vec3(0,.5,0),.06),s=min(m(l.xzy,.05,.5),min(k(l-vec3(0,.5,0),vec3(.05,.1,.1)),q));i(2,q);i(1,s);i(5,h);float t=min(min(f,min(s,h)),k(b+vec3(0,10.3,3),vec3(1.1,2,3)));if((iF&16)!=0){float b=w(a-vec3(12.15,22.31,38.65));if(b<t){i(2,b);return b;}}return t;}vec2 J;float K(vec3 a,vec3 b,vec2 c){a-=b;float d=length(a)-2.;if(d>.5)return d;a.xz*=s(1.5707964);J=(c-a.xy)/(c*2.);float e=k(a,vec3(c.xy,.01));return e;}float L(vec3 a){vec3 b=abs(vec3(a.x,a.y+3.,a.z))-vec3(60,0,39);if(b.x<0.&&b.z<0.)b.y-=e(textureLod(tH,a.xz/vec2(120,78)+.5,0.))*19.;return min(b.y,0.)+length(max(b,0.));}float M(vec3 a){float b=x(a-vec3(45,1.7,22.4),10.,2.),c=C(a-vec3(2,10,2)),d=D(a-vec3(47.5,3.5,30.5)),e=E(a);vec3 f=a-vec3(26,5,-58);f.xz*=s(1.9707963);float g=G(f),h=H(f),j=z(f.zyx-vec3(-2,9.7,32.5)),k=I(a),l=F(a-vec3(-46,-.5,-30)),m=min(min(min(b,c),min(d,e)),min(g,min(h,min(k,l))));if(j<m){i(1,j);return j;}i(0,m);return m;}int N=0;float O(vec3 b){float c=L(b);if(c<=a){N=1;return c;}float d=M(b),e=K(b,vec3(4.76,14.42,4),vec2(.45,.29)),f=min(e,d);if(c<f){N=1;return c;}N=e<=d?3:2;return f;}vec3 P(vec3 a){return normalize(vec3(M(a+vec3(.001,0,0)),M(a+vec3(0,.001,0)),M(a+vec3(0,0,.001)))-M(a));}vec3 Q(vec3 a,float b){vec2 c=vec2(mix(.03,.001,min(b/120.,1.)),0);return normalize(vec3(L(a+c.xyy),L(a+c.yxy),L(a+c.yyx))-L(a));}float R(vec3 b,vec3 c,float d,float e){float f=d;for(int g=0;;g++){vec3 h=b+c*e;a=d*max(e,1.);if(h.y<=-2.9995||e>=150.){float a=(-3.-b.y)/c.y;if(a>=0.&&a<500.){N=1;return a;}break;}if(h.y>45.)break;float i=O(h);if(i<0.){e-=f;i=f/2.;}e+=i;if(i<=a||g>=100)return e;f=i;}N=0;return 500.;}float S(vec3 b,float c,vec3 d,float e){float f=clamp(c*.005,.01,.1);b=b+d*f;float g=iS.w-a*2.;for(float h=1.;h<50.;h++){vec3 c=b+iS.xyz*f;if(f>=80.||c.y>45.||c.y<g||length(b)>=150.)break;float d=M(c),i=max(a,.01*min(1.,f)+h*2e-4);if(d<=i)return 0.;e=min(e,85.*d/f);if(e<.078)return 0.;f+=d+a;}return e;}float T(vec3 a,vec3 b){float c=(iS.w-a.y)/b.y;return min(c>=0.?c:500.,500.);}vec3 U(vec2 a){vec3 b=vec3(0);float c=0.,d=1.,e=0.,g=1.-length(iP.xz-a)/500.,h=5.*g*g;for(float i=0.;i<h;++i){a+=iD.w*.5;e*=-.75;vec3 g=f(a+sin(a.yx*.5+iD.w*.5)*.5);b+=g*d;a+=g.yz*.43;a*=2.;c+=d;d*=.75;}return b/c;}vec3 V(vec3 a,float c,vec3 d){float e=min(c/500.,1.),f=b(pow(e,3.5)+1.-exp(-c*.005)),g=max(dot(d,iS.xyz),0.);vec3 h=mix(vec3(.4,.8,1),vec3(1.065,.95,.85),pow(g,10.));return mix(a,h,f);}vec3 W(vec3 a,vec3 c){vec4 d=texelFetch(tP,ivec2(FC*256./iR),0);float e=uintBitsToFloat(uint(d.x*255.)<<24|uint(d.y*255.)<<16|uint(d.z*255.)<<8|uint(d.z*255.)),f=R(a,c,.001,e),h=T(a,c);vec3 i,j=vec3(0,1,0);float k=f;if(N==3)return iB.y>0.?texture(tS,J).xyz:vec3(0);vec3 l=a+c*f;bool m=h<500.&&h<f;vec3 n;float o=0.;if(m){o=mix(.2,1.,b((f-h)/3.));vec3 d=a+c*h,e=mix(vec3(0),U(d.xz*(.7-iS.w*.02))*(1.-length(d)/450.),o);j=normalize(vec3(e.y,1.,e.x));h-=abs(e.z)*o*.6;k=h;n=mix(vec3(.25,.52,.73),vec3(.15,.62,.83),b(abs(e.z)-o));}int p=N,q=g;if(N==0)i=vec3(.4,.8,1);else{vec3 a;if(l.y<=-2.9995){a=vec3(0,1,0);i=vec3(1);}else{i=vec3(.8);switch(p){case 1:a=Q(l,f);i=mix(vec3(.93,.8,.64),mix(vec3(.69+texture(tN,l.xz*1e-4).x,.67,.65),vec3(.38,.52,.23),dot(a,vec3(0,1,0))),b(l.y*.5-1.))+texture(tN,l.xz*.15).x*.1+texture(tN,l.xz*.01).y*.1;break;case 2:a=P(l);switch(q){case 1:i=vec3(1);break;case 2:i=vec3(1,0,0);break;case 3:i=vec3(.5,0,0);break;case 4:i=vec3(.2,.1,.2);break;case 5:i=vec3(1,.95,.8);break;case-1:i=vec3(.64000005,.48000002,.32000002);break;default:vec4 b=texture(tN,l.xy*.35)*a.z+texture(tN,l.yz*.35)*a.x+texture(tN,l.xz*.35)*a.y-.5;i+=.125*(b.x-b.y+b.z-b.w);break;}}j=normalize(mix(a,j,o));}}float r=m||p==2&&q>0?pow(b(dot(iS.xyz,reflect(c,j))),50.):0.,s=b(dot(iS.xyz,j)),t=b(dot(iS.xyz*vec3(-1,1,-1),j)),u=s+t*.15;if(p==1)u=pow(u*mix(.9,1.02,s*s),1.+s*.6);u=mix(u,s,o);float v=1.;if(N!=0)v=S(a+c*k,k,j,1.);if((iF&1)!=0&&f<20.){float a=pow(clamp(dot(iD.xyz,c),0.,1.),32.)*smoothstep(10.,0.,f);u+=a*max(dot(j,-c),0.)*(1.-u);v+=a*(1.-v);}i=mix(i,n,o);i=(i*vec3(1.065,.95,.85)*u+r)*mix(.38+(1.-u)*.2,1.,v);return V(i,k,c);}void main_c(){vec3 a=vec3(0,0,1);a.xz*=s(FC.x*.049087387+3.1415927);oC=d(.2-O(vec3(iP.x,iP.y+(FC.y/64.-1.)-.8,iP.z)+normalize(a)*.15));}void main_p(){vec2 b=FC/128.-1.+.001953125;vec3 c=normalize(iM*vec3(b.x*-1.5,b.y,2.4142134));float d=R(iP,c,.0046875,.15);uint e=floatBitsToUint(d>=150.?150.:d-a);oC=vec4(float(e>>24&255u)/255.,float(e>>16&255u)/255.,float(e>>8&255u)/255.,float(e&255u)/255.);}void main_m(){vec2 a=FC/(iR*.5)-1.;vec3 b=normalize(iM*vec3(a.x*-1.5,a.y,2.4142134));oC=vec4(W(iP,b),1);}float X(vec2 a,float c,float d,float e,float f){vec2 g=a-vec2(c,d);return b(1.-smoothstep(e-e*f,e,dot(g,g)*4.));}void main_h(){vec2 a=FC/(iR*.5)-1.,e=vec2(1.3,1),g=vec2(0);float h=0.,i=1.,j=1.,k=0.,l=1.;while(l<11.){vec3 b=f(21.1+a*e*s(l++*2.4));g+=b.yz;h+=j*(1.-b.x)/(1.+dot(g,g));i+=j*(.5-b.x);k+=j;j*=.5;e*=1.8;}h/=k;i*=.5;float m=length(a*(1.2-i+h))*b(i+.55-.5*h*a.x*(1.-a.y*.5)),n=X(a,-.45,-.52,1.,2.3)+X(a,-.6,-.1,1.,3.3)+X(a,.6,-.7,1.,5.)+X(a,.84,.84,h,i*5.);m=b(1.-c(m,1.-mix(0.,h*2.,n),.05+i*.5));vec2 o=1.-abs(a)+h*.04;m=c(m,c(o.x,o.y,.3)*2.,.1);oC=d(c(h,m,.01)*1.33-.045);}";
+  const loadShaderFunction = (mainFunction) => {
+    const program = gl.createProgram();
+    const loadShaderCode = (type, sourceCode) => {
+      const shader = gl.createShader(type);
+      gl.shaderSource(shader, sourceCode);
+      gl.compileShader(shader);
+      gl.attachShader(program, shader);
+      return shader;
+    };
+    const vertexShader = loadShaderCode(GL_VERTEX_SHADER, code);
+    const fragmentShader = loadShaderCode(GL_FRAGMENT_SHADER, code$1.replace(`main_${mainFunction}`, "main"));
+    gl.linkProgram(program);
+    gl.useProgram(program);
+    const iNoise = gl.getUniformLocation(program, "tN");
+    const iHeightmap = gl.getUniformLocation(program, "tH");
+    const iPrerendered = gl.getUniformLocation(program, "tP");
+    const iScreens = gl.getUniformLocation(program, "tS");
+    const iResolution = gl.getUniformLocation(program, "iR");
+    const iCameraMat3 = gl.getUniformLocation(program, "iM");
+    const iSunDirection = gl.getUniformLocation(program, "iS");
+    const iP = gl.getUniformLocation(program, "iP");
+    const iD = gl.getUniformLocation(program, "iD");
+    const iF = gl.getUniformLocation(program, "iF");
+    const iA = gl.getUniformLocation(program, "iA");
+    const iB = gl.getUniformLocation(program, "iB");
+    const iX = gl.getUniformLocation(program, "iX");
+    [iNoise, iHeightmap, iPrerendered, iScreens].map((t, i) => gl.uniform1i(t, i));
+    const useShader = (width, height, isCollider) => {
+      gl.viewport(0, 0, width, height);
+      gl.useProgram(program);
+      gl.uniform2f(iResolution, width, height);
+      const waterLevel = sin(gameTime * 2 + 3) * 0.2;
+      vec3Normalize(vec3Set(vec3Temp0, 0.4 + cos(gameTime * 0.02) * 0.1, 0.44 + sin(gameTime * 0.02) * 0.1 - 0.05, -0.38));
+      gl.uniform4f(iSunDirection, vec3Temp0.x, vec3Temp0.y, vec3Temp0.z, waterLevel);
+      gl.uniform3f(iP, cameraPos.x, cameraPos.y + (isCollider ? 0 : headBob), cameraPos.z);
+      gl.uniform4f(iD, cameraDir.x, cameraDir.y, cameraDir.z, gameTime);
+      gl.uniformMatrix3fv(iCameraMat3, false, cameraMat3);
+      gl.uniform1i(iF, (GAME_OBJECTS._flashlight._active && 1) | (GAME_OBJECTS._key._visible && 2) | (GAME_OBJECTS._flashlight._visible && 4) | (GAME_OBJECTS._antennaKey._visible && 8) | (GAME_OBJECTS._floppyDisk._visible && 16));
+      gl.uniform4f(iA, ANIMATIONS._prisonDoor._value, ANIMATIONS._antennaDoor._value, ANIMATIONS._monumentDescend._value, ANIMATIONS._oilrigRamp._value);
+      gl.uniform4f(iB, ANIMATIONS._oilrigWheel._value, ANIMATIONS._antennaRotation._value, ANIMATIONS._elevatorHeight._value, min(0, ANIMATIONS._submarine._value) + waterLevel);
+      gl.uniform4f(iX, 6 - ANIMATIONS._oilrigRamp2._value * 6, 0, 0, 0);
+    };
+    return useShader;
+  };
+  let mainShader;
+  let collisionShader;
+  let prerenderedShader;
+  const loadMainShader = () => {
+    mainShader = loadShaderFunction("m");
+    collisionShader = loadShaderFunction("c");
+    prerenderedShader = loadShaderFunction("p");
+  };
+  const HEIGHTMAP_TETURE_SIZE = 4096;
+  const heightmapTexture = gl.createTexture();
+  const buildHeightmapTexture = () => {
+    gl.activeTexture(GL_TEXTURE1);
+    gl.bindTexture(GL_TEXTURE_2D, heightmapTexture);
+    gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, HEIGHTMAP_TETURE_SIZE, HEIGHTMAP_TETURE_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
+    gl.bindFramebuffer(GL_FRAMEBUFFER, glFrameBuffer);
+    gl.framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, heightmapTexture, 0);
+    loadShaderFunction("h")(HEIGHTMAP_TETURE_SIZE, HEIGHTMAP_TETURE_SIZE);
+    gl.drawArrays(GL_TRIANGLES, 0, 3);
+    gl.generateMipmap(GL_TEXTURE_2D);
+    glSetTextureSampling(GL_CLAMP_TO_EDGE, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+    gl.bindFramebuffer(GL_FRAMEBUFFER, null);
+  };
+  const NOISE_TEXTURE_SIZE = 512;
+  const noiseTexture = gl.createTexture();
+  const buildNoiseTexture = () => {
+    gl.activeTexture(GL_TEXTURE0);
+    gl.bindTexture(GL_TEXTURE_2D, noiseTexture);
+    const data2 = new Uint8Array(NOISE_TEXTURE_SIZE * NOISE_TEXTURE_SIZE * 4);
+    let xoshiroA = 345;
+    let xoshiroB = 737;
+    let xoshiroC = 1082;
+    let xoshiroD = 254265;
+    for (let y = 0; y < NOISE_TEXTURE_SIZE; ++y) {
+      const ay = y * (NOISE_TEXTURE_SIZE * 4);
+      const by = ((y - 1) % NOISE_TEXTURE_SIZE + NOISE_TEXTURE_SIZE) % NOISE_TEXTURE_SIZE * (NOISE_TEXTURE_SIZE * 4);
+      for (let x = 0; x < NOISE_TEXTURE_SIZE; ++x) {
+        const t = xoshiroB << 9;
+        let xoshiro = xoshiroA * 5;
+        xoshiro = (xoshiro << 7 | xoshiro >>> 25) * 9;
+        xoshiroC ^= xoshiroA;
+        xoshiroD ^= xoshiroB;
+        xoshiroB ^= xoshiroC;
+        xoshiroA ^= xoshiroD;
+        xoshiroC ^= t;
+        xoshiroD = xoshiroD << 11 | xoshiroD >>> 21;
+        xoshiro &= 255;
+        const ax = x * 4;
+        const bx = ((x - 1) % NOISE_TEXTURE_SIZE + NOISE_TEXTURE_SIZE) % NOISE_TEXTURE_SIZE * 4;
+        data2[ax + ay] = xoshiro;
+        data2[bx + ay + 1] = xoshiro;
+        data2[ax + by + 2] = xoshiro;
+        data2[bx + by + 3] = xoshiro;
+      }
+    }
+    gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, NOISE_TEXTURE_SIZE, NOISE_TEXTURE_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, data2);
+    gl.hint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
+    gl.generateMipmap(GL_TEXTURE_2D);
+    glSetTextureSampling(GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+  };
+  const CAMERA_MAX_DISTANCE_FROM_CENTER = 100;
+  const COLLIDER_SIZE = 128;
+  const colliderTexture = gl.createTexture();
+  const colliderFrameBuffer = gl.createFramebuffer();
+  const colliderBuffer = new Uint8Array(COLLIDER_SIZE * COLLIDER_SIZE * 4);
+  const readDist = (x, y) => {
+    const bufIdx = y * COLLIDER_SIZE * 4 + x * 4;
+    return unpackFloatBytes4(colliderBuffer[bufIdx], colliderBuffer[bufIdx + 1], colliderBuffer[bufIdx + 2], colliderBuffer[bufIdx + 3]);
+  };
+  const getAngleFromIdx = (x) => -(PI * (x - 64) / 64) - PI / 2;
+  const initCollider = () => {
+    gl.activeTexture(GL_TEXTURE5);
+    gl.bindTexture(GL_TEXTURE_2D, colliderTexture);
+    gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, COLLIDER_SIZE, COLLIDER_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
+    gl.bindFramebuffer(GL_FRAMEBUFFER, colliderFrameBuffer);
+    gl.framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colliderTexture, 0);
+  };
+  const updateCollider = () => {
+    collisionShader(COLLIDER_SIZE, COLLIDER_SIZE, true);
+    gl.bindFramebuffer(GL_FRAMEBUFFER, colliderFrameBuffer);
+    gl.drawArrays(GL_TRIANGLES, 0, 3);
+    gl.readPixels(0, 0, COLLIDER_SIZE, COLLIDER_SIZE, GL_RGBA, GL_UNSIGNED_BYTE, colliderBuffer);
+    gl.bindFramebuffer(GL_FRAMEBUFFER, null);
+    let totalY = 0;
+    for (let x = 0; x < 128; x++) {
+      let maxY = -99;
+      for (let y = 0; y < 32; y++) {
+        maxY = max(readDist(x, y), maxY);
+      }
+      totalY += maxY;
+    }
+    const ddy = totalY / 128 - 0.2;
+    let ddx = 0;
+    let ddz = 0;
+    for (let y = 32; y < 96; ++y) {
+      for (let x1 = 0; x1 < 64; ++x1) {
+        const x2 = x1 + 64;
+        const dist1 = readDist(x1, y);
+        const dist2 = readDist(x2, y);
+        const angle1 = getAngleFromIdx(x1);
+        const angle2 = getAngleFromIdx(x2);
+        const dx = cos(angle1) * dist1 + cos(angle2) * dist2;
+        const dz = sin(angle1) * dist1 + sin(angle2) * dist2;
+        if (abs(dx) > abs(ddx)) {
+          ddx = dx;
+        }
+        if (abs(dz) > abs(ddz)) {
+          ddz = dz;
+        }
+      }
+    }
+    cameraPos.x += ddx;
+    cameraPos.y = max(cameraPos.y + ddy, 0.9);
+    cameraPos.z += ddz;
+    const distanceFromCenter = vec3Length(cameraPos);
+    if (distanceFromCenter >= CAMERA_MAX_DISTANCE_FROM_CENTER) {
+      cameraPos.x *= CAMERA_MAX_DISTANCE_FROM_CENTER / distanceFromCenter;
+      cameraPos.z *= CAMERA_MAX_DISTANCE_FROM_CENTER / distanceFromCenter;
+    }
+  };
+  const SCREEN_TEXTURE_SIZE = 512;
+  const screenTextures = [gl.createTexture(), gl.createTexture(), gl.createTexture(), gl.createTexture()];
+  let lastBoundTexture = -1;
+  const bindScreenTexture = (index) => {
+    const texture = screenTextures[index];
+    if (lastBoundTexture !== index) {
+      lastBoundTexture = index;
+      gl.activeTexture(GL_TEXTURE3);
+      gl.bindTexture(GL_TEXTURE_2D, texture);
+    }
+    return texture;
+  };
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 512;
+  const context = canvas.getContext("2d");
+  const captureScreenTexture = (index) => {
+    bindScreenTexture(index);
+    const imageData = context.getImageData(0, 0, SCREEN_TEXTURE_SIZE, SCREEN_TEXTURE_SIZE);
+    gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_TEXTURE_SIZE, SCREEN_TEXTURE_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
+    glSetTextureSampling(GL_CLAMP_TO_EDGE);
+  };
+  const drawFreq = (freq, phase) => {
+    context.beginPath();
+    for (let x = -5; x < SCREEN_TEXTURE_SIZE + 5; x++) {
+      const y = (sin(x * 0.05) + sin(x * freq / 3e3 + phase * TWO_PI / 360)) * 25 + 100;
+      if (x < -4) {
+        context.moveTo(x, y);
+      } else {
+        context.lineTo(x, y);
+      }
+    }
+    context.stroke();
+  };
+  const updateMinigameTexture = () => {
+    context.fillStyle = "#000015";
+    context.fillRect(0, 0, SCREEN_TEXTURE_SIZE, SCREEN_TEXTURE_SIZE);
+    context.strokeStyle = "#f00";
+    drawFreq(70, 300);
+    context.globalCompositeOperation = "lighter";
+    context.strokeStyle = "#0ff";
+    drawFreq(MINIGAME._frequency, MINIGAME._phase);
+    context.globalCompositeOperation = "source-over";
+    context.fillStyle = "#ff0";
+    context.fillText("Satellite Frequency Alignment", 10, 20);
+    context.fillText("Frequency", 7, 260);
+    context.fillText("Phase", 280, 380);
+    context.strokeStyle = "#0a0";
+    context.strokeRect(130, 170, 370, 180);
+    context.beginPath();
+    context.arc(135 + MINIGAME._phase, 175 + MINIGAME._frequency, 8, 0, TWO_PI);
+    context.fill();
+    if (MINIGAME._state >= MINIGAME_COMPLETE) {
+      context.fillStyle = "#000015";
+      context.fillRect(0, 160, SCREEN_TEXTURE_SIZE, SCREEN_TEXTURE_SIZE);
+      context.strokeRect(20, 180, 472, 120);
+      context.fillStyle = "#ff0";
+      context.fillText("🛰️ Satellite Frequency Found", 80, 230);
+      context.fillText("Autonomous Submarine Activated", 75, 260);
+    }
+    captureScreenTexture(3);
+  };
+  const updateMinigameValues = (frequencyDelta, phaseDelta) => {
+    if (MINIGAME._state === MINIGAME_ACTIVE) {
+      MINIGAME._frequency = clamp(MINIGAME._frequency + frequencyDelta, 0, 170);
+      MINIGAME._phase = clamp(MINIGAME._phase + phaseDelta, 0, 360);
+      if (MINIGAME._frequency === 70 && MINIGAME._phase === 300) {
+        MINIGAME._state = MINIGAME_COMPLETE;
+        GAME_OBJECTS._submarine._visible = true;
+        runAnimation(ANIMATIONS._submarine);
+      }
+      updateMinigameTexture();
+    }
+  };
+  KeyFunctions[KEY_FORWARD] = () => updateMinigameValues(-5, 0);
+  KeyFunctions[KEY_BACKWARD] = () => updateMinigameValues(5, 0);
+  KeyFunctions[KEY_STRAFE_LEFT] = () => updateMinigameValues(0, -5);
+  KeyFunctions[KEY_STRAFE_RIGHT] = () => updateMinigameValues(0, 5);
+  const buildScreenTextures = () => {
+    context.lineWidth = 5;
+    context.scale(1, 1.3);
+    context.fillStyle = "#000015";
+    context.fillRect(0, 0, SCREEN_TEXTURE_SIZE, SCREEN_TEXTURE_SIZE);
+    context.font = "17px monospace";
+    context.fillStyle = "#aee";
+    context.fillText("Memory Core: 132020K", 10, 100);
+    context.fillText("Launching xx142-b2.exe", 10, 124);
+    context.fillText("Antenna self test", 10, 146);
+    context.fillText("Activating radio", 10, 170);
+    context.fillStyle = "#8f8";
+    context.fillText("OK", 245, 100);
+    context.fillText("OK", 245, 124);
+    context.fillText("OK", 245, 146);
+    context.fillStyle = "#f66";
+    context.fillText("FAIL", 245, 170);
+    context.fillText("Insert floppy disk and press E to continue", 42, 280);
+    context.font = "20px monospace";
+    context.fillText("💾 ERROR 404 - data disk not found", 48, 250);
+    context.fillStyle = "#4f8aff";
+    context.fillText("⬣ JS13K Modular Bios v.13", 10, 30);
+    captureScreenTexture(0);
+    context.strokeStyle = "#f00";
+    context.strokeRect(20, 220, 472, 80);
+    captureScreenTexture(1);
+    context.strokeStyle = "#bb0";
+    context.fillStyle = "#000";
+    context.fillRect(20, 220, 472, 80);
+    context.strokeRect(20, 220, 472, 80);
+    context.fillStyle = "#bb0";
+    context.fillText("Loading data disk...", 150, 265);
+    captureScreenTexture(2);
+    updateMinigameTexture();
+  };
+  const PRERENDERED_TEXTURE_SIZE = 256;
+  const prerenderedTexture = gl.createTexture();
+  const initPrerenderedTexture = () => {
+    gl.activeTexture(GL_TEXTURE2);
+    gl.bindTexture(GL_TEXTURE_2D, prerenderedTexture);
+    gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, PRERENDERED_TEXTURE_SIZE, PRERENDERED_TEXTURE_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
+    glSetTextureSampling(GL_CLAMP_TO_EDGE, GL_NEAREST);
+    gl.bindFramebuffer(GL_FRAMEBUFFER, glFrameBuffer);
+    gl.framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, prerenderedTexture, 0);
+    gl.bindFramebuffer(GL_FRAMEBUFFER, null);
+  };
+  const data = [GAME_OBJECTS, INVENTORY, ANIMATIONS, MINIGAME, cameraPos, cameraEuler];
+  function deepMerge(original, item) {
+    for (const key in item) {
+      if (typeof item[key] === "object") {
+        deepMerge(original[key], item[key]);
+      } else {
+        original[key] = item[key];
+      }
+    }
+  }
+  const LOCAL_STORAGE_KEY = "ISLAND_NOT_FOUND";
+  const SAVE_GAME = () => {
+    if (gameStarted) {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+      setText("Saved", 2);
+      startOrResumeClick(false);
+      loadGameButton.className = "";
+    }
+  };
+  const getDataFromLocalStorage = () => localStorage.getItem(LOCAL_STORAGE_KEY);
+  const LOAD_GAME = () => {
+    const savedGame = getDataFromLocalStorage();
+    if (savedGame) {
+      clearTexts();
+      startOrResumeClick(false);
+      deepMerge(data, JSON.parse(savedGame));
+      setText("Game loaded", 2);
+      updateMinigameTexture();
+    }
+  };
+  saveGameButton.onclick = SAVE_GAME;
+  loadGameButton.onclick = LOAD_GAME;
+  loadGameButton.className = getDataFromLocalStorage() ? "" : "X";
+  setTimeout(() => {
+    buildNoiseTexture();
+    buildHeightmapTexture();
+    buildScreenTextures();
+    initPrerenderedTexture();
+    initCollider();
+    loadMainShader();
+    loadMusic();
+    showMainMenu();
+    const animationFrame = debug_trycatch_wrap((browserTimeInMilliseconds) => {
+      requestAnimationFrame(animationFrame);
+      if (!updateTime(browserTimeInMilliseconds, mainMenuVisible)) {
+        return;
+      }
+      updateCamera();
+      if (!mainMenuVisible) {
+        if (!GAME_OBJECTS._submarine._gameEnded) {
+          updateCollider();
+        }
+        updateAnimations();
+        updateGameObjects();
+        updateText();
+      }
+      prerenderedShader(PRERENDERED_TEXTURE_SIZE, PRERENDERED_TEXTURE_SIZE);
+      gl.bindFramebuffer(GL_FRAMEBUFFER, glFrameBuffer);
+      gl.drawArrays(GL_TRIANGLES, 0, 3);
+      gl.bindFramebuffer(GL_FRAMEBUFFER, null);
+      bindScreenTexture(min(MINIGAME._state || gameTime & 1, 3));
+      mainShader(renderWidth, renderHeight);
+      gl.drawArrays(GL_TRIANGLES, 0, 3);
+    });
+    requestAnimationFrame(animationFrame);
+  }, 99);
+})();}
+__js_load_modules__();</script></body></html>
