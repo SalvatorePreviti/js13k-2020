@@ -47,6 +47,7 @@ npm run ts-run src/filename.ts
 - https://www.shadertoy.com/view/Xl2XRW - We got inspiration from here for the water Fractional Brownian motion.
 - http://prng.di.unimi.it/ - We used xoshiro pseudorandom number generator to feed randomness to our virtual island.
 - https://developer.mozilla.org/ - for documentation
+- https://twitter.com/kostik13337 for helping us in testing and fixing the font for Linux
 
 # Packages and tools:
 

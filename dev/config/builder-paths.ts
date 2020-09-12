@@ -17,7 +17,7 @@ class BuilderPathsConfig {
   public shaderExtensions = ['.frag', '.vert', '.glsl', '.fs', '.vs']
 
   /** source index.html path, the entry point */
-  public indexHtmlPath = this.resolve('main.html')
+  public indexHtmlPath = this.resolve('index.html')
 
   /** Build output directory. If the directory exists, it will be removed before the build and recreated. */
   public dist = this.resolve('dist')
