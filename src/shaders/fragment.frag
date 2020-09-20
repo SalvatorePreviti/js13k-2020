@@ -821,7 +821,7 @@ vec3 waterFBM(vec2 p) {
 
   float flow = 0.;
   float distToCameraRatio = (1. - length(iCameraPos.xz - p) / HORIZON_DIST);
-  float octaves = float(int(iTime * .8) % 4 + 1);  // 5. * distToCameraRatio * distToCameraRatio;
+  float octaves = 5. * distToCameraRatio * distToCameraRatio;
   for (float i = 0.; i < octaves; ++i) {
     p += iTime * .5;
     flow *= -.75;
