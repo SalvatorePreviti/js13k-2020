@@ -997,7 +997,15 @@ void main_m() {
 
   vec3 ray = normalize(iCameraMat3 * vec3(screen.x * -SCREEN_ASPECT_RATIO, screen.y, PROJECTION_LEN));
 
-  oColor = vec4(intersectWithWorld(iCameraPos, ray), 1);
+  // oColor = vec4(intersectWithWorld(iCameraPos, ray), 1);
+
+  vec2 t = screen.xy * .1;
+  switch (int(iTime * .8) & 0x3) {
+    case 0: oColor.xyz = vec3(texture(iNoise, t).x, 0, 0); break;
+    case 1: oColor.xyz = vec3(0, texture(iNoise, t).y, 0); break;
+    case 2: oColor.xyz = vec3(0, 0, texture(iNoise, t).z); break;
+    case 3: oColor.xyz = vec3(texture(iNoise, t).w, texture(iNoise, t).w, texture(iNoise, t).w); break;
+  }
 }
 
 /**********************************************************************/

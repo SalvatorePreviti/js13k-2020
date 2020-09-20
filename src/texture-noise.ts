@@ -8,7 +8,8 @@ import {
   GL_NICEST,
   GL_REPEAT,
   GL_LINEAR_MIPMAP_LINEAR,
-  GL_LINEAR
+  GL_LINEAR,
+  GL_NEAREST
 } from './gl/gl-constants'
 import { glSetTextureSampling } from './gl/gl-utils'
 import { gl } from './page'
@@ -63,7 +64,7 @@ export const buildNoiseTexture = () => {
   gl.hint(GL_GENERATE_MIPMAP_HINT, GL_NICEST)
   gl.generateMipmap(GL_TEXTURE_2D)
 
-  glSetTextureSampling(GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
+  glSetTextureSampling(GL_REPEAT, GL_NEAREST, GL_NEAREST)
 
   debug_timeEnd(buildNoiseTexture)
 }
