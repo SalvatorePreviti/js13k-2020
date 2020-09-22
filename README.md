@@ -4,12 +4,22 @@ A game by Ben Clark and Salvatore Previti for https://2020.js13kgames.com/
 
 PLAY IT HERE https://2020.js13kgames.com/entries/island-not-found
 
+You can read the whole post-mortem/make-of with all the magic explained at https://github.com/SalvatorePreviti/js13k-2020/wiki/Post-Mortem
+
 MIT License
 Ben Clark, Salvatore Previti, 2020
 
 https://www.linkedin.com/in/ben-clark-18bb3b20/
 
 https://www.linkedin.com/in/salvatorepreviti/
+
+# Requirements to play
+
+This game requires a keyboard and a mouse or trackpad and is not designed to be played on mobile or tablet.
+It works on the latest version of Chrome, Firefox and Edge.
+It requires a not too old GPU and in general a machine not older than 5 years.
+
+This game does not work on Safari due to the lack of webgl2 support https://caniuse.com/webgl2
 
 # Build the source code
 
