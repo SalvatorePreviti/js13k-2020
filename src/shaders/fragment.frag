@@ -847,7 +847,7 @@ vec3 applyFog(vec3 rgb, float dist, vec3 rayDir) {
 vec3 intersectWithWorld(vec3 p, vec3 dir) {
   vec4 packed = texelFetch(iPrerendered, ivec2(fragCoord * PRERENDERED_TEXTURE_SIZE / iResolution), 0);
   float unpacked = uintBitsToFloat(
-      (uint(packed.x * 255.) << 24 | uint(packed.y * 255.) << 16 | uint(packed.z * 255.) << 8 | uint(packed.z * 255.)));
+      (uint(packed.x * 255.) << 24 | uint(packed.y * 255.) << 16 | uint(packed.z * 255.) << 8 | uint(packed.w * 255.)));
 
   float dist = rayMarch(p, dir, 0.001, unpacked);
   float wdist = rayTraceWater(p, dir);
